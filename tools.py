@@ -78,6 +78,12 @@ def threshold_detector(frame):
 def get_ant_mask(window):
     return threshold_detector(window)
 
+def show_frame(frame, scale=0.5):
+    h, w, _ = frame.shape
+    short_frame = cv2.resize(frame, (int(scale * w), int(scale * h)), interpolation = cv2.INTER_AREA)
+    cv2.imshow('Current Frame', short_frame)
+    cv2.waitKey(10)
+
 
 class Undistorter():
     """Undistorts images using camera calibration matrix"""

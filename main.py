@@ -1,7 +1,7 @@
 import cv2
 import os
 import numpy as np
-from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi, Undistorter
+from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi, Undistorter, show_frame
             
 import settings as sett
 
@@ -53,8 +53,7 @@ if __name__ == '__main__':
             cX, cY = update_roi_center(ant_mask, cX, cY)
 
             # display the full image with the ant in blue
-            cv2.imshow('a', frame)
-            cv2.waitKey(10)
+            show_frame(frame)
             
 
         # Ends the processing when no more frames detected   
