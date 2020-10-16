@@ -11,13 +11,17 @@ def frame_diff(frame1, frame2):
     # convert the grayscale image to binary image
     ret, thresh = cv2.threshold(gray_image, frame_diff_threshold, 255, cv2.THRESH_BINARY)
 
-    # return thresh
     # Calculate moments
-    M = cv2.moments(thresh)   
+    M = cv2.moments(thresh)  
 
-    # calculate x,y coordinate of center
-    cX = int(M["m10"] / M["m00"])
-    cY = int(M["m01"] / M["m00"])     
+    # Checks if something was over the threshold
+    if M["m00"] != 0:
+        # calculate x,y coordinate of center
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+    else:
+        print('[ERROR] Nothing was over threshold\n Try decreasing the value of settings.frame_diff_threshold')
+        return
 
     # put text and highlight the center
     cv2.circle(frame2, (cX, cY), 5, (255, 255, 255), -1)

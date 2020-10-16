@@ -13,8 +13,11 @@ while True:
             previous_frame = frame.copy()
             continue
         fd = frame_diff(previous_frame, frame)
-        cv2.imshow('a', fd)
-        cv2.waitKey(10)
+        if isinstance(fd, np.ndarray):            
+            cv2.imshow('a', fd)
+            cv2.waitKey(10)
+        else:
+            break
 
         previous_frame = frame.copy()      
     else:
