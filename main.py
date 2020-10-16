@@ -44,7 +44,11 @@ if __name__ == '__main__':
             window = get_roi(frame, cX, cY)
             
             # Segmentate the ant inside the ROI
+            # try:
             ant_mask = get_ant_mask(window)
+            # except:
+            #     print(ret, window, cX)
+            #     print(frame)
 
             # Alter the blue channel in ant-related pixels
             window[:,:,0] = ant_mask

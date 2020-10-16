@@ -29,7 +29,15 @@ def update_roi_center(img, cX_old, cY_old):
 
 
 def get_roi(frame, cX, cY):
-    return frame[cY-int(roi_heigh/2):cY+int(roi_heigh/2), cX-int(roi_width/2):cX+int(roi_width/2), :]
+    # get image width and height
+    h, w, _ = frame.shape
+
+    # get the bounds of the roi
+    ymin = max(cY - int(roi_heigh/2), 0)
+    ymax = min(cY + int(roi_heigh/2), h)
+    xmin = max(cX-int(roi_width/2), 0)
+    xmax = min(cX+int(roi_width/2), w)
+    return frame[ymin:ymax, xmin:xmax, :]
 
 
 def frame_diff_detector(frame1, frame2):
@@ -62,17 +70,18 @@ def threshold_detector(frame):
 
     # compute an adaptative threshold according the ratio of darkest pixels
     suma = 0
-    for i in range(256):
+    for i in range(3, 256):
         suma += ys[i]
         if suma/total > ant_ratio:
             threshold = i
             break
 
     # convert the grayscale image to binary image
-    ret, thresh = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
-
+    # ret, thresh = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
+    thresh = cv2.inRange(gray_image, 3, threshold)
     # return the reverted binary image
-    return cv2.bitwise_not(thresh)
+    return thresh
+    # return cv2.bitwise_not(thresh)
 
 
 def get_ant_mask(window):
