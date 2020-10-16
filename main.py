@@ -1,30 +1,40 @@
 import cv2
 import os
 import numpy as np
-from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi
-from settings import data_folder, data_file, skip_frames
+from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi, Undistorter
+            
+import settings as sett
 
 # Initialize Video Source
-cap = cv2.VideoCapture(os.path.join(os.getcwd(), data_folder, data_file))
+cap = cv2.VideoCapture(os.path.join(os.getcwd(), sett.data_folder, sett.data_file))
 
 # Temporal variables
 cX, cY = None, None
+iteration = 0    
+
+# Initialize Spherical undistorter
+U = Undistorter(sett.correction_method, sett.camera_correction_matrix)
 
 if __name__ == '__main__':
-    iteration = 0    
     # Loop for all frames in the video
     while True:
+
         # Skip some frames in the begining
-        if iteration <= skip_frames:
-            ret, previous_frame = cap.read()  
+        if iteration <= sett.skip_frames:
+            ret, previous_frame = cap.read() 
+            if sett.correct_spherical_distortion:
+                previous_frame = U.undistort(previous_frame) 
             print('Skipping frame {}'.format(iteration))
             iteration += 1
-            continue
-          
+            continue          
 
         # Get current frame
         ret, frame = cap.read()    
         if ret:
+
+            # Correct Spherical Distortion
+            if sett.correct_spherical_distortion:
+                frame = U.undistort(frame) 
 
             # Initialize the center of the ROI by frame differencing
             if not cX:

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 from settings import frame_diff_threshold, roi_width, roi_heigh, ant_ratio
 
 
@@ -76,3 +77,41 @@ def threshold_detector(frame):
 
 def get_ant_mask(window):
     return threshold_detector(window)
+
+
+class Undistorter():
+    """Undistorts images using camera calibration matrix"""
+    def __init__(self, method, camera_file):
+        # Select the undistort method
+        if method == "undistort":
+            self.undistort = self.classic_undistort
+        elif method == "remap":
+            self.undistort = self.remap
+        else:
+            print('Undistort method not recognized. Undistort disabled')
+            self.undistort = self.no_undistort
+
+        # Read camera undistort matrix
+        npzfile = os.path.join(os.getcwd(), 'cameras', camera_file)
+        npzfile = np.load(npzfile)
+
+        # Initialize camera parameters
+        self.c_h = npzfile["h"]
+        self.c_w = npzfile["w"]
+        self.c_mtx = npzfile["mtx"]
+        self.c_dist = npzfile["dist"]
+        self.c_newcameramtx = npzfile["newcameramtx"]
+        self.c_mapx, self.c_mapy = cv2.initUndistortRectifyMap(self.c_mtx, self.c_dist, None, self.c_newcameramtx,(self.c_w, self.c_h),5)
+
+    # Undistort by opencv undistort
+    def classic_undistort(self, frame):
+        return cv2.undistort(frame, self.c_mtx, self.c_dist, None, self.c_newcameramtx)
+    
+    # Undistort by opencv remapping
+    def remap(self, frame):        
+        return cv2.remap(frame, self.c_mapx, self.c_mapy, cv2.INTER_LINEAR)
+    
+    # No undistort
+    def no_undistort(self, frame):
+        return frame
+

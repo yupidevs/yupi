@@ -1,3 +1,10 @@
+"""
+Camera-related stuff
+"""
+correct_spherical_distortion = False # Set to True only when decent calibration is available
+correction_method = 'remap' # Only 2 methods available: 'remap' or 'undistort'
+camera_correction_matrix = 'noir-pi.npz' # Available cameras are in 'cameras' folder
+
 
 """
 Data-related stuff
