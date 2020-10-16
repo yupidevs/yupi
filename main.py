@@ -44,17 +44,16 @@ if __name__ == '__main__':
             window = get_roi(frame, cX, cY)
             
             # Segmentate the ant inside the ROI
-            # try:
             ant_mask = get_ant_mask(window)
-            # except:
-            #     print(ret, window, cX)
-            #     print(frame)
 
             # Alter the blue channel in ant-related pixels
             window[:,:,0] = ant_mask
 
             # update the roi center using current ant coordinates
             cX, cY = update_roi_center(ant_mask, cX, cY)
+
+            # draw a point over the ant
+            cv2.circle(frame, (cX, cY), 5, (255, 255, 255), -1)
 
             # display the full image with the ant in blue
             show_frame(frame)

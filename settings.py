@@ -17,8 +17,8 @@ skip_frames = 0 # Frames to skip before start processing
 """
 Algorithm's parameters
 """
-roi_width = 180 # Width of the region of image analized on each frame
-roi_heigh = 180 # Heigh of the region of image analized on each frame
+roi_width = 120 # Width of the region of image analized on each frame
+roi_heigh = 120 # Heigh of the region of image analized on each frame
 frame_diff_threshold = 15 # Min value-change of a pixel to be considered as altered
 ant_pixels = 180 # approximate area of the ant in pixels
 
