@@ -2,32 +2,33 @@ import cv2
 import os
 import numpy as np
 from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi
-from settings import data_folder, data_file
+from settings import data_folder, data_file, skip_frames
 
 # Initialize Video Source
 cap = cv2.VideoCapture(os.path.join(os.getcwd(), data_folder, data_file))
 
 # Temporal variables
-previous_frame = None # Stores last processed frame
-first_time = True
+cX, cY = None, None
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
+    iteration = 0    
     # Loop for all frames in the video
     while True:
+        # Skip some frames in the begining
+        if iteration <= skip_frames:
+            ret, previous_frame = cap.read()  
+            print('Skipping frame {}'.format(iteration))
+            iteration += 1
+            continue
+          
+
         # Get current frame
         ret, frame = cap.read()    
         if ret:
 
-            # Checks if there is a real previous frame
-            if not isinstance(previous_frame, np.ndarray):
-                previous_frame = frame.copy()
-                continue
-
             # Initialize the center of the ROI by frame differencing
-            if first_time:
+            if not cX:
                 cX, cY = frame_diff_detector(previous_frame, frame)
-                first_time = False
-
 
             # Get only the ROI from the current frame
             window = get_roi(frame, cX, cY)

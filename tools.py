@@ -26,10 +26,9 @@ def update_roi_center(img, cX_old, cY_old):
     cY = cY_old - int(roi_heigh/2) + cY_roi
     return cX, cY
 
+
 def get_roi(frame, cX, cY):
     return frame[cY-int(roi_heigh/2):cY+int(roi_heigh/2), cX-int(roi_width/2):cX+int(roi_width/2), :]
-
-           
 
 
 def frame_diff_detector(frame1, frame2):
@@ -47,7 +46,6 @@ def frame_diff_detector(frame1, frame2):
     
     # return the centroid of the pixels over threshold
     return get_centroid(thresh, hint)
-
 
 
 def threshold_detector(frame):
