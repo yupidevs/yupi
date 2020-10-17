@@ -10,8 +10,8 @@ import settings as sett
 cap = cv2.VideoCapture(os.path.join(os.getcwd(), sett.data_folder, sett.data_file))
 
 # Temporal variables
-cX, cY = None, None
-iteration = 0    
+cX, cY = None, None # center of the ROI
+iteration = 0       # iteration counter
 
 # Initialize Spherical undistorter
 U = Undistorter(sett.correction_method, sett.camera_correction_matrix)
