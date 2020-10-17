@@ -19,8 +19,10 @@ Algorithm's parameters
 """
 roi_width = 120 # Width of the region of image analized on each frame
 roi_heigh = 120 # Heigh of the region of image analized on each frame
-frame_diff_threshold = 15 # Min value-change of a pixel to be considered as altered
 ant_pixels = 180 # approximate area of the ant in pixels
+
+roi_initialization = 'manual' # Only 2 methods available: 'manual' or 'auto'
+frame_diff_threshold = 15 # Only usefull when roi_initialization is in 'auto' mode
 
 
 """

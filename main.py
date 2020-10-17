@@ -1,5 +1,6 @@
 import cv2
 import os
+import time
 import numpy as np
 from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi, Undistorter, show_frame
             
@@ -14,6 +15,14 @@ iteration = 0
 
 # Initialize Spherical undistorter
 U = Undistorter(sett.correction_method, sett.camera_correction_matrix)
+
+# callback handler to manually set the roi
+def on_click(event, x, y, p1, p2):
+    global cX, cY
+    if event == cv2.EVENT_LBUTTONDOWN:
+        cX, cY = x, y
+        print('ROI Initialized, now press any key to continue')
+
 
 if __name__ == '__main__':
     # Loop for all frames in the video
@@ -36,9 +45,26 @@ if __name__ == '__main__':
             if sett.correct_spherical_distortion:
                 frame = U.fix(frame) 
 
-            # Initialize the center of the ROI by frame differencing
+            # Initialize the center of the ROI 
             if not cX:
-                cX, cY = frame_diff_detector(previous_frame, frame)
+
+                # Init the ROI by frame differencing
+                if sett.roi_initialization == 'auto':
+                    cX, cY = frame_diff_detector(previous_frame, frame)
+
+                # Init the ROI by user input
+                else:
+                    window_name = 'Clic the ant and press a key'
+                    print('Clic over the ant in the image')
+                    cv2.imshow(window_name, frame)
+                    cv2.setMouseCallback(window_name, on_click)
+                    cv2.waitKey(-1)
+
+                    if not cX:
+                        print("[ERROR] ROI was not Initialized")
+                        break
+                    else:
+                        cv2.destroyAllWindows()                   
 
             # Get only the ROI from the current frame
             window = get_roi(frame, cX, cY)
