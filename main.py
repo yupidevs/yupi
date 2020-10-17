@@ -82,8 +82,10 @@ if __name__ == '__main__':
             cv2.circle(frame, (cX, cY), 5, (255, 255, 255), -1)
 
             # display the full image with the ant in blue
-            show_frame(frame)
+            show_frame(frame, cX, cY)
             
+            # save current frame as previous for next iteration
+            previous_frame = frame
 
         # Ends the processing when no more frames detected   
         else:

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import os
-from settings import frame_diff_threshold, roi_width, roi_heigh, ant_ratio
+from settings import frame_diff_threshold, roi_width, roi_heigh, ant_ratio, ant_darkest_pixel
 
 
 def get_centroid(bin_img, hint=''):
@@ -35,8 +35,8 @@ def get_roi(frame, cX, cY):
     # get the bounds of the roi
     ymin = max(cY - int(roi_heigh/2), 0)
     ymax = min(cY + int(roi_heigh/2), h)
-    xmin = max(cX-int(roi_width/2), 0)
-    xmax = min(cX+int(roi_width/2), w)
+    xmin = max(cX - int(roi_width/2), 0)
+    xmax = min(cX + int(roi_width/2), w)
     return frame[ymin:ymax, xmin:xmax, :]
 
 
@@ -69,23 +69,30 @@ def threshold_detector(frame):
     total = x * y
 
     # compute an adaptative threshold according the ratio of darkest pixels
+    min_threshold = ant_darkest_pixel
     suma = 0
-    for i in range(3, 256):
+    for i in range(min_threshold, 256):
         suma += ys[i]
         if suma/total > ant_ratio:
-            threshold = i
+            max_threshold = i
             break
 
     # convert the grayscale image to binary image
-    return cv2.inRange(gray_image, 3, threshold)
+    return cv2.inRange(gray_image, min_threshold, max_threshold)
 
 
 def get_ant_mask(window):
     return threshold_detector(window)
 
-def show_frame(frame, scale=0.5):
+def show_frame(frame, cX, cY, scale=0.5):
     h, w, _ = frame.shape
     short_frame = cv2.resize(frame, (int(scale * w), int(scale * h)), interpolation = cv2.INTER_AREA)
+    y1 = int(scale * max(cY - int(roi_heigh/2), 0))
+    y2 = int(scale * min(cY + int(roi_heigh/2), h))
+    x1 = int(scale * max(cX - int(roi_width/2), 0))
+    x2 = int(scale * min(cX + int(roi_width/2), w))
+    cv2.rectangle(short_frame, (x1, y1), (x2, y2), (0,255,0), 2)
+
     cv2.imshow('Current Frame', short_frame)
     cv2.waitKey(10)
 
