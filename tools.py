@@ -77,11 +77,7 @@ def threshold_detector(frame):
             break
 
     # convert the grayscale image to binary image
-    # ret, thresh = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
-    thresh = cv2.inRange(gray_image, 3, threshold)
-    # return the reverted binary image
-    return thresh
-    # return cv2.bitwise_not(thresh)
+    return cv2.inRange(gray_image, 3, threshold)
 
 
 def get_ant_mask(window):
@@ -117,6 +113,7 @@ class Undistorter():
         self.c_dist = npzfile["dist"]
         self.c_newcameramtx = npzfile["newcameramtx"]
         self.c_mapx, self.c_mapy = cv2.initUndistortRectifyMap(self.c_mtx, self.c_dist, None, self.c_newcameramtx,(self.c_w, self.c_h),5)
+        self.mask = None
 
     # Undistort by opencv undistort
     def classic_undistort(self, frame):
@@ -130,3 +127,22 @@ class Undistorter():
     def no_undistort(self, frame):
         return frame
 
+    # method to be called to fix the distortion
+    def fix(self, frame):
+        if self.mask is None:
+            self.create_mask(frame)
+        corrected = self.undistort(frame)
+        return self.masked(corrected)
+
+    # create a mask with the distortion pattern
+    def create_mask(self, frame):
+        empty_frame = 255 * np.ones(frame.shape, dtype=np.uint8)        
+        corrected = self.undistort(empty_frame)
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+        self.mask = cv2.erode(corrected, kernel, iterations = 1)
+        self.mask = cv2.bitwise_not(self.mask)
+        self.background = np.full(frame.shape, 130, dtype=np.uint8)
+
+    # apply the mask to a frame to adjust border colors
+    def masked(self, frame):
+        return cv2.bitwise_or(frame, self.mask)

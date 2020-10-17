@@ -23,7 +23,7 @@ if __name__ == '__main__':
         if iteration <= sett.skip_frames:
             ret, previous_frame = cap.read() 
             if sett.correct_spherical_distortion:
-                previous_frame = U.undistort(previous_frame) 
+                previous_frame = U.fix(previous_frame) 
             print('Skipping frame {}'.format(iteration))
             iteration += 1
             continue          
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
             # Correct Spherical Distortion
             if sett.correct_spherical_distortion:
-                frame = U.undistort(frame) 
+                frame = U.fix(frame) 
 
             # Initialize the center of the ROI by frame differencing
             if not cX:
