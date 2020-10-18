@@ -13,6 +13,8 @@ cap = cv2.VideoCapture(os.path.join(os.getcwd(), sett.data_folder, sett.data_fil
 # Temporal variables
 cX, cY = None, None # center of the ROI
 iteration = 0       # iteration counter
+ant_coords = []
+world_coords = [(0,0,0)]
 
 # Initialize Spherical undistorter
 U = Undistorter(sett.correction_method, sett.camera_correction_matrix)
@@ -90,13 +92,21 @@ if __name__ == '__main__':
 
             # Track the floor
             valid_regions = validate(regions, cX, cY)
-            tx, ty, theta, scale, region = get_affine(frame, previous_frame, valid_regions, show=False, debug=False)
+            tx, ty, angle, scale, region = get_affine(frame, previous_frame, valid_regions, show=False, debug=False)
             
             # save current frame as previous for next iteration
             previous_frame = frame
 
             # display the full image with the ant in blue
             show_frame(frame, cX, cY, region)
+
+            # update data
+            x_0, y_0, theta_0 = world_coords[-1]
+            theta = theta_0 + angle
+            x = x_0 * np.cos(theta) + y_0 * np.sin(theta) + x_0
+            y = -x_0 * np.sin(theta) + y_0 * np.cos(theta) + y_0
+            world_coords.append((x, y, theta))
+            ant_coords.append((cX, cY))
 
         # Ends the processing when no more frames detected   
         else:
@@ -105,3 +115,13 @@ if __name__ == '__main__':
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+    print(world_coords)
+
+    print()
+    print()
+    print()
+
+    print(ant_coords)
+    

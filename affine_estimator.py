@@ -38,7 +38,8 @@ def get_affine(img1, img2, regions, show=True, debug=True):
         theta = transformation.get_rotation()
         scale = transformation.get_scale()
 
-        M = np.float32([[math.cos(theta), -math.sin(theta), tx], [math.sin(theta), math.cos(theta), ty]])
+        if abs(scale - 1) > 0.001:
+            continue 
 
         if debug:
             print("features_used: {}".format(len(good_new)))
@@ -49,9 +50,11 @@ def get_affine(img1, img2, regions, show=True, debug=True):
             # print("epsilon: "+str(np.max(np.abs(good_new-good_old))))
 
         if show:
+            M = np.float32([[math.cos(theta), -math.sin(theta), tx], [math.sin(theta), math.cos(theta), ty]])
             img1 = img1.copy()
             img2 = img2.copy()
             img3 = cv2.warpAffine(img1, M, (cols,rows))
+
             for i in np.int0(good_old):
                 x, y = i.ravel()
                 cv2.circle(img1, (x,y), 3, (0,0,0), -1)
