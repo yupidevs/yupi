@@ -84,7 +84,39 @@ def threshold_detector(frame):
 def get_ant_mask(window):
     return threshold_detector(window)
 
-def show_frame(frame, cX, cY, scale=0.5):
+def get_possible_regions(w, h, cols=3, rows=2, border=0.7):
+    regions = []
+    cell_width = w * border / cols
+    cell_height = h * border / rows
+    x_offset = (1 - border) * w / 2
+    y_offset = (1 - border) * h / 2
+    for c in range(cols):
+        for r in range(rows):
+            x1 = int(x_offset + c * cell_width)
+            y1 = int(y_offset + r * cell_height)
+            x2 = int(x_offset + (c + 1) * cell_width)
+            y2 = int(y_offset + (r + 1) * cell_height)
+            regions.append((x1, x2, y1, y2))
+    return regions
+
+def validate(regions, cX, cY):
+    validated = []
+    d_2 = (regions[0][1] - regions[0][0])**2 + (regions[0][3] - regions[0][2])**2
+    d_2 = d_2/4
+    for r in regions:
+        cx = int((r[1] + r[0])/2)
+        delta_x_2 = (cX - cx)**2 
+        if delta_x_2 > d_2:
+            cy = int((r[3] + r[2])/2)
+            delta_y_2 = (cY - cy)**2 
+            if delta_y_2 + delta_x_2 > d_2:
+                validated.append(r)
+    return validated
+
+def update_floor_region(x0, xf, y0, yf, cX, cY, w, h, border=0.8):
+    pass
+
+def show_frame(frame, cX, cY, floor=None, scale=0.5):
     h, w, _ = frame.shape
     short_frame = cv2.resize(frame, (int(scale * w), int(scale * h)), interpolation = cv2.INTER_AREA)
     y1 = int(scale * max(cY - int(roi_heigh/2), 0))
@@ -92,6 +124,13 @@ def show_frame(frame, cX, cY, scale=0.5):
     x1 = int(scale * max(cX - int(roi_width/2), 0))
     x2 = int(scale * min(cX + int(roi_width/2), w))
     cv2.rectangle(short_frame, (x1, y1), (x2, y2), (0,255,0), 2)
+    if floor:        
+        x1 = int(floor[0] * scale)
+        x2 = int(floor[1] * scale)
+        y1 = int(floor[2] * scale)
+        y2 = int(floor[3] * scale)
+        cv2.rectangle(short_frame, (x1, y1), (x2, y2), (0,0,255), 2)
+
 
     cv2.imshow('Current Frame', short_frame)
     cv2.waitKey(10)

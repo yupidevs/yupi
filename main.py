@@ -2,7 +2,8 @@ import cv2
 import os
 import time
 import numpy as np
-from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi, Undistorter, show_frame
+from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi, Undistorter, show_frame, validate, get_possible_regions
+from affine_estimator import get_affine
             
 import settings as sett
 
@@ -33,9 +34,14 @@ if __name__ == '__main__':
             ret, previous_frame = cap.read() 
             if sett.correct_spherical_distortion:
                 previous_frame = U.fix(previous_frame) 
+            
             print('Skipping frame {}'.format(iteration))
             iteration += 1
-            continue          
+            continue
+
+        # Get some regions to track the floor
+        h, w, _ = previous_frame.shape
+        regions = get_possible_regions(w, h)
 
         # Get current frame
         ret, frame = cap.read()    
@@ -81,11 +87,16 @@ if __name__ == '__main__':
             # draw a point over the ant
             cv2.circle(frame, (cX, cY), 5, (255, 255, 255), -1)
 
-            # display the full image with the ant in blue
-            show_frame(frame, cX, cY)
+
+            # Track the floor
+            valid_regions = validate(regions, cX, cY)
+            tx, ty, theta, scale, region = get_affine(frame, previous_frame, valid_regions, show=False, debug=False)
             
             # save current frame as previous for next iteration
             previous_frame = frame
+
+            # display the full image with the ant in blue
+            show_frame(frame, cX, cY, region)
 
         # Ends the processing when no more frames detected   
         else:
