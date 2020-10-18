@@ -1,6 +1,7 @@
 import cv2
 import os
 import time
+import json
 import numpy as np
 from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi, Undistorter, show_frame, validate, get_possible_regions
 from affine_estimator import get_affine
@@ -103,8 +104,8 @@ if __name__ == '__main__':
             # update data
             x_0, y_0, theta_0 = world_coords[-1]
             theta = theta_0 + angle
-            x = x_0 * np.cos(theta) + y_0 * np.sin(theta) + x_0
-            y = -x_0 * np.sin(theta) + y_0 * np.cos(theta) + y_0
+            x = tx * np.cos(theta) + ty * np.sin(theta) + x_0
+            y = -tx * np.sin(theta) + ty * np.cos(theta) + y_0
             world_coords.append((x, y, theta))
             ant_coords.append((cX, cY))
 
@@ -116,12 +117,10 @@ if __name__ == '__main__':
     cap.release()
     cv2.destroyAllWindows()
 
+    data = {
+        'ant_coords' : ant_coords,
+        'camera_coords': world_coords
+    }
 
-    print(world_coords)
-
-    print()
-    print()
-    print()
-
-    print(ant_coords)
-    
+    with open("data.json", "w") as write_file:
+        json.dump(data, write_file)
