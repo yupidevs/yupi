@@ -15,7 +15,7 @@ cap = cv2.VideoCapture(os.path.join(os.getcwd(), sett.data_folder, sett.data_fil
 cX, cY = None, None # center of the ROI
 iteration = 0       # iteration counter
 ant_coords = []
-world_coords = [(0,0,0)]
+region_coords = []
 
 # Initialize Spherical undistorter
 U = Undistorter(sett.correction_method, sett.camera_correction_matrix)
@@ -102,11 +102,12 @@ if __name__ == '__main__':
             show_frame(frame, cX, cY, region)
 
             # update data
-            x_0, y_0, theta_0 = world_coords[-1]
-            theta = theta_0 + angle
-            x = tx * np.cos(theta) + ty * np.sin(theta) + x_0
-            y = -tx * np.sin(theta) + ty * np.cos(theta) + y_0
-            world_coords.append((x, y, theta))
+            # x_0, y_0, theta_0 = world_coords[-1]
+            # theta = theta_0 + angle
+            # x = tx * np.cos(theta) + ty * np.sin(theta) + x_0
+            # y = -tx * np.sin(theta) + ty * np.cos(theta) + y_0
+
+            region_coords.append((region[0], region[2], tx, ty, angle))
             ant_coords.append((cX, cY))
 
         # Ends the processing when no more frames detected   
@@ -119,7 +120,7 @@ if __name__ == '__main__':
 
     data = {
         'ant_coords' : ant_coords,
-        'camera_coords': world_coords
+        'region_coords': region_coords
     }
 
     with open("data.json", "w") as write_file:
