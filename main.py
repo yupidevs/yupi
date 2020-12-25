@@ -11,11 +11,13 @@ import settings as sett
 # Initialize Video Source
 cap = cv2.VideoCapture(os.path.join(os.getcwd(), sett.data_folder, sett.data_file))
 
+k = 1
+
 # Temporal variables
 cX, cY = None, None # center of the ROI
 iteration = 0       # iteration counter
 ant_coords = []
-region_coords = []
+region_coords = [(0, 0, 0, 0, 0) for i in range(k)]
 
 # Initialize Spherical undistorter
 U = Undistorter(sett.correction_method, sett.camera_correction_matrix)
@@ -28,6 +30,8 @@ def on_click(event, x, y, p1, p2):
         print('ROI Initialized, now press any key to continue')
 
 
+queue = []
+
 if __name__ == '__main__':
     # Loop for all frames in the video
     while True:
@@ -37,10 +41,18 @@ if __name__ == '__main__':
             ret, previous_frame = cap.read() 
             if sett.correct_spherical_distortion:
                 previous_frame = U.fix(previous_frame) 
+            queue.append(previous_frame.copy())
+            if len(queue) > k:
+                queue.pop(0)
             
+            if len(queue) < k:
+                queue.append(previous_frame.copy())
+
             print('Skipping frame {}'.format(iteration))
             iteration += 1
-            continue
+            continue        
+
+
 
         # Get some regions to track the floor
         h, w, _ = previous_frame.shape
@@ -93,22 +105,31 @@ if __name__ == '__main__':
 
             # Track the floor
             valid_regions = validate(regions, cX, cY)
-            tx, ty, angle, scale, region = get_affine(frame, previous_frame, valid_regions, show=False, debug=False)
+            previous_frame = queue.pop(0)
+            ret_val = get_affine(frame, previous_frame, valid_regions, show=False, debug=False)
+            if ret_val:
+                tx, ty, angle, scale, region = ret_val
             
-            # save current frame as previous for next iteration
-            previous_frame = frame
+                # save current frame as previous for next iteration
+                queue.append(frame.copy())
 
-            # display the full image with the ant in blue
-            show_frame(frame, cX, cY, region)
+                # display the full image with the ant in blue
+                show_frame(frame, cX, cY, region)
 
-            # update data
-            # x_0, y_0, theta_0 = world_coords[-1]
-            # theta = theta_0 + angle
-            # x = tx * np.cos(theta) + ty * np.sin(theta) + x_0
-            # y = -tx * np.sin(theta) + ty * np.cos(theta) + y_0
+                # update data
+                # x_0, y_0, theta_0 = world_coords[-1]
+                # theta = theta_0 + angle
+                # x = tx * np.cos(theta) + ty * np.sin(theta) + x_0
+                # y = -tx * np.sin(theta) + ty * np.cos(theta) + y_0
 
-            region_coords.append((region[0], region[2], tx, ty, angle))
-            ant_coords.append((cX, cY))
+                region_coords.append((region[0], region[2], tx, ty, angle))
+                if not len(ant_coords):
+                    ant_coords = [(cX, cY) for i in range(k)]
+                ant_coords.append((cX, cY))
+            else:
+                print('ups..')
+                break
+            iteration += 1
 
         # Ends the processing when no more frames detected   
         else:

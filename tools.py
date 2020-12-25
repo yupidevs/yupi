@@ -84,7 +84,7 @@ def threshold_detector(frame):
 def get_ant_mask(window):
     return threshold_detector(window)
 
-def get_possible_regions(w, h, cols=3, rows=2, border=0.7):
+def get_possible_regions(w, h, cols=3, rows=2, border=0.6):
     regions = []
     cell_width = w * border / cols
     cell_height = h * border / rows
