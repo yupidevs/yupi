@@ -105,11 +105,11 @@ def validate(regions, cX, cY):
     d_2 = (x2 - x1)**2 + (y2 - y1)**2
     d_2 = d_2/4
     for x1, x2, y1, y2 in regions:
-        cx = int((x2 + x1)/2)
-        delta_x_2 = (cX - cx)**2 
-        if delta_x_2 > d_2:
-            cy = int((y2 + y1)/2)
-            delta_y_2 = (cY - cy)**2 
+        cy = int((y2 + y1)/2)
+        delta_y_2 = (cY - cy)**2 
+        if delta_y_2 > d_2:        
+            cx = int((x2 + x1)/2)
+            delta_x_2 = (cX - cx)**2             
             if delta_y_2 + delta_x_2 > d_2:
                 validated.append((x1, x2, y1, y2))
     return validated

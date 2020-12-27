@@ -105,6 +105,7 @@ if __name__ == '__main__':
 
             # Track the floor
             valid_regions = validate(regions, cX, cY)
+
             previous_frame = queue.pop(0)
             ret_val = get_affine(frame, previous_frame, valid_regions, show=False, debug=False)
             if ret_val:
