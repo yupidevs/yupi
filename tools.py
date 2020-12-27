@@ -11,8 +11,8 @@ def get_centroid(bin_img, hint=''):
     # Checks if something was over the threshold
     if M["m00"] != 0:
         # calculate x,y coordinate of center
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
+        cY = int(M["m10"] / M["m00"])
+        cX = int(M["m01"] / M["m00"])
         return cX, cY
     else:
         print('[ERROR] Nothing was over threshold\n {}'.format(hint))
@@ -23,8 +23,8 @@ def update_roi_center(img, cX_old, cY_old):
     cX_roi, cY_roi = get_centroid(img)
 
     # get the centroid refered to the full image
-    cX = cX_old - int(roi_width/2) + cX_roi
-    cY = cY_old - int(roi_heigh/2) + cY_roi
+    cX = cX_old - int(roi_heigh/2) + cX_roi
+    cY = cY_old - int(roi_width/2) + cY_roi
     return cX, cY
 
 
@@ -33,11 +33,11 @@ def get_roi(frame, cX, cY):
     h, w, _ = frame.shape
 
     # get the bounds of the roi
-    ymin = max(cY - int(roi_heigh/2), 0)
-    ymax = min(cY + int(roi_heigh/2), h)
-    xmin = max(cX - int(roi_width/2), 0)
-    xmax = min(cX + int(roi_width/2), w)
-    return frame[ymin:ymax, xmin:xmax, :]
+    ymin = max(cY - int(roi_width/2), 0)
+    ymax = min(cY + int(roi_width/2), w)
+    xmin = max(cX - int(roi_heigh/2), 0)
+    xmax = min(cX + int(roi_heigh/2), h)
+    return frame[xmin:xmax, ymin:ymax, :]
 
 
 def frame_diff_detector(frame1, frame2):
@@ -88,29 +88,30 @@ def get_possible_regions(w, h, cols=3, rows=2, border=0.6):
     regions = []
     cell_width = w * border / cols
     cell_height = h * border / rows
-    x_offset = (1 - border) * w / 2
-    y_offset = (1 - border) * h / 2
+    x_offset = (1 - border) * h / 2
+    y_offset = (1 - border) * w / 2
     for c in range(cols):
         for r in range(rows):
-            x1 = int(x_offset + c * cell_width)
-            y1 = int(y_offset + r * cell_height)
-            x2 = int(x_offset + (c + 1) * cell_width)
-            y2 = int(y_offset + (r + 1) * cell_height)
+            x1 = int(x_offset + r * cell_height)
+            y1 = int(y_offset + c * cell_width)
+            x2 = int(x_offset + (r + 1) * cell_height)
+            y2 = int(y_offset + (c + 1) * cell_width)
             regions.append((x1, x2, y1, y2))
     return regions
 
 def validate(regions, cX, cY):
     validated = []
-    d_2 = (regions[0][1] - regions[0][0])**2 + (regions[0][3] - regions[0][2])**2
+    x1, x2, y1, y2 = regions[0]
+    d_2 = (x2 - x1)**2 + (y2 - y1)**2
     d_2 = d_2/4
-    for r in regions:
-        cx = int((r[1] + r[0])/2)
+    for x1, x2, y1, y2 in regions:
+        cx = int((x2 + x1)/2)
         delta_x_2 = (cX - cx)**2 
         if delta_x_2 > d_2:
-            cy = int((r[3] + r[2])/2)
+            cy = int((y2 + y1)/2)
             delta_y_2 = (cY - cy)**2 
             if delta_y_2 + delta_x_2 > d_2:
-                validated.append(r)
+                validated.append((x1, x2, y1, y2))
     return validated
 
 def update_floor_region(x0, xf, y0, yf, cX, cY, w, h, border=0.8):
@@ -119,17 +120,20 @@ def update_floor_region(x0, xf, y0, yf, cX, cY, w, h, border=0.8):
 def show_frame(frame, cX, cY, floor=None, scale=0.5):
     h, w, _ = frame.shape
     short_frame = cv2.resize(frame, (int(scale * w), int(scale * h)), interpolation = cv2.INTER_AREA)
-    y1 = int(scale * max(cY - int(roi_heigh/2), 0))
-    y2 = int(scale * min(cY + int(roi_heigh/2), h))
-    x1 = int(scale * max(cX - int(roi_width/2), 0))
-    x2 = int(scale * min(cX + int(roi_width/2), w))
-    cv2.rectangle(short_frame, (x1, y1), (x2, y2), (0,255,0), 2)
+
+    y1 = int(scale * max(cY - int(roi_width/2), 0))
+    y2 = int(scale * min(cY + int(roi_width/2), w))
+    x1 = int(scale * max(cX - int(roi_heigh/2), 0))
+    x2 = int(scale * min(cX + int(roi_heigh/2), h))
+
+    cv2.rectangle(short_frame, (y1, x1), (y2, x2), (0,255,0), 2)
+
     if floor:        
         x1 = int(floor[0] * scale)
         x2 = int(floor[1] * scale)
         y1 = int(floor[2] * scale)
         y2 = int(floor[3] * scale)
-        cv2.rectangle(short_frame, (x1, y1), (x2, y2), (0,0,255), 2)
+        cv2.rectangle(short_frame, (y1, x1), (y2, x2), (0,0,255), 2)
 
 
     cv2.imshow('Current Frame', short_frame)

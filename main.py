@@ -26,7 +26,7 @@ U = Undistorter(sett.correction_method, sett.camera_correction_matrix)
 def on_click(event, x, y, p1, p2):
     global cX, cY
     if event == cv2.EVENT_LBUTTONDOWN:
-        cX, cY = x, y
+        cX, cY = y, x
         print('ROI Initialized, now press any key to continue')
 
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
             cX, cY = update_roi_center(ant_mask, cX, cY)
 
             # draw a point over the ant
-            cv2.circle(frame, (cX, cY), 5, (255, 255, 255), -1)
+            cv2.circle(frame, (cY, cX), 5, (255, 255, 255), -1)
 
 
             # Track the floor

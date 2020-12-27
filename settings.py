@@ -10,7 +10,7 @@ camera_correction_matrix = 'gph3+1080-60fps-NARROW.npz' # Available cameras are 
 Data-related stuff
 """
 data_folder = 'data' # Folder containing the videos
-data_file = 'video2.mp4' # Video file being analized
+data_file = 'test_square.mp4' # Video file being analized
 skip_frames = 0 # Frames to skip before start processing
 
 

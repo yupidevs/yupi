@@ -21,12 +21,14 @@ def get_affine(img1, img2, regions, show=True, debug=True):
     errors = []
     retval = []
     for x0, xf, y0, yf  in regions:
-        i1, i2 = img1[y0:yf, x0:xf, :], img2[y0:yf, x0:xf, :]
+        i1, i2 = img1[x0:xf, y0:yf, :], img2[x0:xf, y0:yf, :]
         img1_gray =  cv2.cvtColor(i1, cv2.COLOR_BGR2GRAY)                    
         img2_gray =  cv2.cvtColor(i2, cv2.COLOR_BGR2GRAY)
 
         p0 = cv2.goodFeaturesToTrack(img1_gray, mask = None, **feature_params)
         p1, st, err = cv2.calcOpticalFlowPyrLK(img1_gray, img2_gray, p0, None, **lk_params)
+
+        # NOTA: p0 y P1 están con los ejes invertidos
 
          # Select good points
         good_new = p1[st==1]
@@ -54,6 +56,7 @@ def get_affine(img1, img2, regions, show=True, debug=True):
             # # print("estimated error: "+str(nudged.estimate_error(transformation, good_old-center, good_new-center)))
             # print("epsilon: "+str(np.max(np.abs(good_new-good_old))))
 
+        # Fix once the affine is fixed
         if show:
             M = np.float32([[math.cos(theta), -math.sin(theta), tx], [math.sin(theta), math.cos(theta), ty]])
             i1 = i1.copy()
