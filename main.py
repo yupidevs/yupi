@@ -1,149 +1,153 @@
-import cv2
 import os
-import time
-import json
+import cv2
+import tools
 import numpy as np
-from tools import frame_diff_detector, get_ant_mask, update_roi_center, get_roi, Undistorter, show_frame, validate, get_possible_regions
-from affine_estimator import get_affine
-            
 import settings as sett
+from affine_estimator import get_affine
 
-# Initialize Video Source
-cap = cv2.VideoCapture(os.path.join(os.getcwd(), sett.data_folder, sett.data_file))
 
-k = 1
 
-# Temporal variables
-cX, cY = None, None # center of the ROI
+# initialize video source
+cap = cv2.VideoCapture(os.path.join(os.getcwd(), sett.video_folder, sett.video_file))
+
+# variables
+total_frame_numb = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) # total number of frames in the video file
+fps = cap.get(cv2.CAP_PROP_FPS) # frames per seconds
+
+w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # frame width
+h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) # frame height
+dim = (w, h)
+
+region = tools.get_main_region(dim) # main region in which to analyze features
+
+cXY = None, None    # center of the ROI
 iteration = 0       # iteration counter
-ant_coords = []
-region_coords = [(0, 0, 0, 0, 0) for i in range(k)]
+manual_mode = False # passing frames by hand
 
-# Initialize Spherical undistorter
-U = Undistorter(sett.correction_method, sett.camera_correction_matrix)
+r_ac = []          # ant position in the camera frame of reference
+affine_params = [] # affine matrix parameters
+mse = []           # mean square errors
 
-# callback handler to manually set the roi
-def on_click(event, x, y, p1, p2):
-    global cX, cY
-    if event == cv2.EVENT_LBUTTONDOWN:
-        cX, cY = y, x
-        print('ROI Initialized, now press any key to continue')
+# initialize spherical undistorter
+U = tools.Undistorter(sett.correction_method, sett.camera_correction_matrix)
 
-
-queue = []
 
 if __name__ == '__main__':
-    # Loop for all frames in the video
+    # loop for all frames in the video
     while True:
 
-        # Skip some frames in the begining
-        if iteration <= sett.skip_frames:
-            ret, previous_frame = cap.read() 
-            if sett.correct_spherical_distortion:
-                previous_frame = U.fix(previous_frame) 
-            queue.append(previous_frame.copy())
-            if len(queue) > k:
-                queue.pop(0)
+        if iteration == 0:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, sett.first_frame)
+            ret, prev_frame = cap.read()
             
-            if len(queue) < k:
-                queue.append(previous_frame.copy())
-
-            print('Skipping frame {}'.format(iteration))
-            iteration += 1
-            continue        
-
-
-
-        # Get some regions to track the floor
-        h, w, _ = previous_frame.shape
-        regions = get_possible_regions(w, h)
-
-        # Get current frame
-        ret, frame = cap.read()    
-        if ret:
-
-            # Correct Spherical Distortion
+            # correct spherical distortion
             if sett.correct_spherical_distortion:
-                frame = U.fix(frame) 
+                prev_frame = U.fix(prev_frame)
 
-            # Initialize the center of the ROI 
-            if not cX:
-
-                # Init the ROI by frame differencing
-                if sett.roi_initialization == 'auto':
-                    cX, cY = frame_diff_detector(previous_frame, frame)
-
-                # Init the ROI by user input
+            # init ROI coordinates manually by user input
+            prev_cXY = (None, None)
+            if sett.roi_initialization == 'manual':
+                prev_cXY = tools.cXY_from_click(prev_frame)
+                if not prev_cXY[0]:
+                    print('[ERROR] ROI was not Initialized')
+                    break
                 else:
-                    window_name = 'Clic the ant and press a key'
-                    print('Clic over the ant in the image')
-                    cv2.imshow(window_name, frame)
-                    cv2.setMouseCallback(window_name, on_click)
-                    cv2.waitKey(-1)
-
-                    if not cX:
-                        print("[ERROR] ROI was not Initialized")
-                        break
-                    else:
-                        cv2.destroyAllWindows()                   
-
-            # Get only the ROI from the current frame
-            window = get_roi(frame, cX, cY)
+                    cv2.destroyAllWindows()
             
-            # Segmentate the ant inside the ROI
-            ant_mask = get_ant_mask(window)
-
-            # Alter the blue channel in ant-related pixels
-            window[:,:,0] = ant_mask
-
-            # update the roi center using current ant coordinates
-            cX, cY = update_roi_center(ant_mask, cX, cY)
-
-            # draw a point over the ant
-            cv2.circle(frame, (cY, cX), 5, (255, 255, 255), -1)
-
-
-            # Track the floor
-            valid_regions = validate(regions, cX, cY)
-
-            previous_frame = queue.pop(0)
-            ret_val = get_affine(frame, previous_frame, valid_regions, show=False, debug=False)
-            if ret_val:
-                tx, ty, angle, scale, region = ret_val
-            
-                # save current frame as previous for next iteration
-                queue.append(frame.copy())
-
-                # display the full image with the ant in blue
-                show_frame(frame, cX, cY, region)
-
-                # update data
-                # x_0, y_0, theta_0 = world_coords[-1]
-                # theta = theta_0 + angle
-                # x = tx * np.cos(theta) + ty * np.sin(theta) + x_0
-                # y = -tx * np.sin(theta) + ty * np.cos(theta) + y_0
-
-                region_coords.append((region[0], region[2], tx, ty, angle))
-                if not len(ant_coords):
-                    ant_coords = [(cX, cY) for i in range(k)]
-                ant_coords.append((cX, cY))
-            else:
-                print('ups..')
-                break
             iteration += 1
+            continue
 
-        # Ends the processing when no more frames detected   
-        else:
-            print("[INFO] No more frames to process.")
+        # get current frame and ends the processing when no more frames are detected
+        ret, frame = cap.read()
+        if not ret: 
+            print('[INFO] No more frames to process.')
             break
+        
+        # current frame number
+        frame_numb = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
+        percent_video = frame_numb / total_frame_numb
+
+        # correct spherical distortion
+        if sett.correct_spherical_distortion:
+            frame = U.fix(frame)
+
+        # init ROI center automatically by frame differencing
+        if sett.roi_initialization == 'auto':
+            cXY = tools.frame_diff_detector(prev_frame, frame)
+            prev_cXY = cXY
+             
+        # get only the ROI from the current frame
+        window = tools.get_roi(frame, prev_cXY)
+        
+        # segmentate the ant inside the ROI
+        ant_mask = tools.get_ant_mask(window)
+
+        # alter the blue channel in ant-related pixels
+        window[:,:,0] = ant_mask
+
+        # update the roi center using current ant coordinates
+        cXY = tools.update_roi_center(ant_mask, prev_cXY)
+
+        # track the floor
+        mask = tools.mask2track(dim, prev_cXY, cXY)
+        p_good, aff_params, err = get_affine(prev_frame, frame, region, mask)
+        features = p_good[1:]
+
+        if err is None:
+            print('No matrix was estimated in frame %i' % frame_numb)
+            break
+
+        # update data
+        r_ac.append(cXY)
+        affine_params.append(aff_params)
+        mse.append(err)
+        
+        # display the full image with the ant in blue
+        tools.show_frame(frame, cXY, region, features, frame_numb)
+
+        # save current frame and ROI center as previous for next iteration
+        prev_frame = frame.copy()
+        prev_cXY = cXY
+
+        # keyboard events
+        wait_key = 0 if manual_mode else 10
+        k = cv2.waitKey(wait_key) & 0xff
+
+        if k == ord('m'):
+            manual_mode = not manual_mode
+
+        if k == ord('s'):
+            data = {
+                'fps': fps,
+                'first_frame': sett.first_frame,
+                'last_frame': frame_numb,
+                'percent': percent_video,
+                'r_ac' : r_ac,
+                'affine_params': affine_params,
+                'mse': mse
+            }
+            tools.save_data(data)
+
+        elif k == ord('q'):
+            break
+
+        elif k == ord('e'):
+            exit()
+        
+        iteration += 1
 
     cap.release()
     cv2.destroyAllWindows()
-
+    
+    
     data = {
-        'ant_coords' : ant_coords,
-        'region_coords': region_coords
+        'fps': fps,
+        'first_frame': sett.first_frame,
+        'last_frame': frame_numb,
+        'percent': percent_video,
+        'r_ac' : r_ac,
+        'affine_params': affine_params,
+        'mse': mse
     }
-
-    with open("data.json", "w") as write_file:
-        json.dump(data, write_file)
+    minutes_video = frame_numb / fps / 60
+    tools.save_data(data, minutes_video, percent_video)

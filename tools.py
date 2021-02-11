@@ -1,43 +1,24 @@
-import cv2
-import numpy as np
 import os
-from settings import frame_diff_threshold, roi_width, roi_heigh, ant_ratio, ant_darkest_pixel
+import cv2
+import json
+import numpy as np
+import settings as sett
+
 
 
 def get_centroid(bin_img, hint=''):
     # Calculate moments
     M = cv2.moments(bin_img)  
 
-    # Checks if something was over the threshold
-    if M["m00"] != 0:
+    # Check if something was over the threshold
+    if M['m00'] != 0:
         # calculate x,y coordinate of center
-        cY = int(M["m10"] / M["m00"])
-        cX = int(M["m01"] / M["m00"])
+        cX = int(M['m10'] / M['m00'])
+        cY = int(M['m01'] / M['m00'])
         return cX, cY
     else:
         print('[ERROR] Nothing was over threshold\n {}'.format(hint))
         return 0, 0
-
-def update_roi_center(img, cX_old, cY_old):
-    # get the centroid refered to the roi
-    cX_roi, cY_roi = get_centroid(img)
-
-    # get the centroid refered to the full image
-    cX = cX_old - int(roi_heigh/2) + cX_roi
-    cY = cY_old - int(roi_width/2) + cY_roi
-    return cX, cY
-
-
-def get_roi(frame, cX, cY):
-    # get image width and height
-    h, w, _ = frame.shape
-
-    # get the bounds of the roi
-    ymin = max(cY - int(roi_width/2), 0)
-    ymax = min(cY + int(roi_width/2), w)
-    xmin = max(cX - int(roi_heigh/2), 0)
-    xmax = min(cX + int(roi_heigh/2), h)
-    return frame[xmin:xmax, ymin:ymax, :]
 
 
 def frame_diff_detector(frame1, frame2):
@@ -48,13 +29,44 @@ def frame_diff_detector(frame1, frame2):
     gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
     # convert the grayscale image to binary image
-    ret, thresh = cv2.threshold(gray_image, frame_diff_threshold, 255, cv2.THRESH_BINARY)
+    ret, thresh = cv2.threshold(gray_image, sett.frame_diff_threshold, 255, cv2.THRESH_BINARY)
 
     # give a hint message about what may go wrong
     hint = "Try decreasing the value of settings.frame_diff_threshold"
     
     # return the centroid of the pixels over threshold
     return get_centroid(thresh, hint)
+
+
+def get_roi_bounds(dim, cXY):
+    w, h = dim
+    cX, cY = cXY
+    # get the bounds of the roi
+    xmin = max(cX - int(sett.roi_width/2), 0)
+    xmax = min(cX + int(sett.roi_width/2), w)
+    ymin = max(cY - int(sett.roi_heigh/2), 0)
+    ymax = min(cY + int(sett.roi_heigh/2), h)
+    return xmin, xmax, ymin, ymax
+
+
+def get_roi(frame, cXY):
+    h, w = frame.shape[:2]
+    #bounds of the roi
+    xmin, xmax, ymin, ymax = get_roi_bounds((w,h), cXY)
+    window = frame[ymin:ymax, xmin:xmax, :]
+    return window
+
+
+def update_roi_center(img, prev_cXY):
+    prev_cX, prev_cY = prev_cXY
+
+    # get the centroid refered to the roi
+    cX_roi, cY_roi = get_centroid(img)
+
+    # get the centroid refered to the full image
+    cX = prev_cX - int(sett.roi_width/2) + cX_roi
+    cY = prev_cY - int(sett.roi_heigh/2) + cY_roi
+    return cX, cY
 
 
 def threshold_detector(frame):
@@ -69,11 +81,11 @@ def threshold_detector(frame):
     total = x * y
 
     # compute an adaptative threshold according the ratio of darkest pixels
-    min_threshold = ant_darkest_pixel
+    min_threshold = sett.ant_darkest_pixel
     suma = 0
     for i in range(min_threshold, 256):
         suma += ys[i]
-        if suma/total > ant_ratio:
+        if suma/total > sett.ant_ratio:
             max_threshold = i
             break
 
@@ -84,64 +96,150 @@ def threshold_detector(frame):
 def get_ant_mask(window):
     return threshold_detector(window)
 
-def get_possible_regions(w, h, cols=3, rows=2, border=0.6):
-    regions = []
-    cell_width = w * border / cols
-    cell_height = h * border / rows
-    x_offset = (1 - border) * h / 2
-    y_offset = (1 - border) * w / 2
-    for c in range(cols):
-        for r in range(rows):
-            x1 = int(x_offset + r * cell_height)
-            y1 = int(y_offset + c * cell_width)
-            x2 = int(x_offset + (r + 1) * cell_height)
-            y2 = int(y_offset + (c + 1) * cell_width)
-            regions.append((x1, x2, y1, y2))
-    return regions
 
-def validate(regions, cX, cY):
-    validated = []
-    x1, x2, y1, y2 = regions[0]
-    d_2 = (x2 - x1)**2 + (y2 - y1)**2
-    d_2 = d_2/4
-    for x1, x2, y1, y2 in regions:
-        cy = int((y2 + y1)/2)
-        delta_y_2 = (cY - cy)**2 
-        if delta_y_2 > d_2:        
-            cx = int((x2 + x1)/2)
-            delta_x_2 = (cX - cx)**2             
-            if delta_y_2 + delta_x_2 > d_2:
-                validated.append((x1, x2, y1, y2))
-    return validated
+def get_main_region(dim, border=sett.border):
+    r = np.array(dim)
+    dr = r * sett.border
+    r1 = (1 - sett.border) * r / 2
+    r2 = r1 + dr
 
-def update_floor_region(x0, xf, y0, yf, cX, cY, w, h, border=0.8):
-    pass
+    region_ = np.transpose([r1, r2])
+    region = np.concatenate(region_).astype(np.int32)
 
-def show_frame(frame, cX, cY, floor=None, scale=0.5):
-    h, w, _ = frame.shape
-    short_frame = cv2.resize(frame, (int(scale * w), int(scale * h)), interpolation = cv2.INTER_AREA)
-
-    y1 = int(scale * max(cY - int(roi_width/2), 0))
-    y2 = int(scale * min(cY + int(roi_width/2), w))
-    x1 = int(scale * max(cX - int(roi_heigh/2), 0))
-    x2 = int(scale * min(cX + int(roi_heigh/2), h))
-
-    cv2.rectangle(short_frame, (y1, x1), (y2, x2), (0,255,0), 2)
-
-    if floor:        
-        x1 = int(floor[0] * scale)
-        x2 = int(floor[1] * scale)
-        y1 = int(floor[2] * scale)
-        y2 = int(floor[3] * scale)
-        cv2.rectangle(short_frame, (y1, x1), (y2, x2), (0,0,255), 2)
+    x0, xf, y0, yf = region.tolist()
+    return x0, xf, y0, yf
 
 
-    cv2.imshow('Current Frame', short_frame)
-    cv2.waitKey(10)
+def mask2track(dim, prev_cXY, cXY):
+    # ROI from previous and current frame
+    x0_1, xf_1, y0_1, yf_1 = get_roi_bounds(dim, prev_cXY)
+    x0_2, xf_2, y0_2, yf_2 = get_roi_bounds(dim, cXY)
+
+    # mask pixeles inside both ROIs
+    w, h = dim
+    mask = 255 * np.ones((h, w), dtype=np.uint8)
+    mask[y0_1:yf_1, x0_1:xf_1] = 0
+    mask[y0_2:yf_2, x0_2:xf_2] = 0
+
+    return mask
+
+
+def draw_frame(frame, cXY, region, features, frame_numb, mask):
+    frame = frame.copy()
+    h, w = frame.shape[:2]
+
+    # draw region in which features are detected
+    if region:
+        x0, xf, y0, yf = region
+        cv2.rectangle(frame, (x0, y0), (xf, yf), (0,0,255), 2)
+    
+    # draw detected and estimated features
+    if features:
+        p2, p3 = features
+        for p2_, p3_ in zip(p2, p3):
+            x2, y2 = np.rint(p2_).astype(np.int32)
+            x3, y3 = np.rint(p3_).astype(np.int32)
+
+            cv2.circle(frame, (x2,y2), 3, (0,0,0), -1)
+            cv2.circle(frame, (x3,y3), 3, (0,255,0), -1)
+
+    # draw a point over the ant and roi bounds
+    if cXY:
+        x1, x2, y1, y2 = get_roi_bounds((w, h), cXY)
+        cv2.circle(frame, cXY, 5, (255, 255, 255), -1)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,255), 2)
+
+    # draw current frame number
+    if frame_numb:
+        x_, y_ = .02, .05
+        x, y = int(x_ * w), int(y_ * h)
+        cv2.putText(frame, str(frame_numb), (x, y), 
+            cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1.2, (0,255,255), 1, cv2.LINE_AA)
+
+    # draw in black ant ROIs from previous and current frame
+    if mask is not None:
+        idx = np.where(mask == 0)
+        frame[idx] = 0
+
+    return frame
+
+
+def resize_frame(frame, scale=sett.resize_factor):
+    h, w = frame.shape[:2]
+    w_, h_ = int(scale * w), int(scale * h)
+    short_frame = cv2.resize(frame, (w_, h_), interpolation=cv2.INTER_AREA)
+    return short_frame
+
+
+def show_frame(frame, cXY=None, region=None, features=None, frame_numb=None,
+        scale=sett.resize_factor, win_name=sett.video_file[:-4], mask=None):
+    frame = draw_frame(frame, cXY, region, features, frame_numb, mask)
+    frame = resize_frame(frame, scale)
+    cv2.imshow(win_name, frame)
+    return
+
+
+def save_data(data, minutes=None, percent=None):
+    data_file_name = 'data_' + sett.video_file[:-4]
+    
+    data_file_name += '_[' if (minutes or percent) else ''
+    data_file_name += f'{minutes:.1f}min' if minutes else ''
+    data_file_name += '-' if (minutes and percent) else ''
+    data_file_name += f'{percent * 100 :.1f}%' if percent else ''
+    data_file_name += ']' if (minutes or percent) else ''
+    data_file_name += '.json'
+
+    data_file_dir = os.path.join(sett.data_folder, data_file_name)
+    with open(data_file_dir, 'w') as json_file:
+        json.dump(data, json_file)
+    
+    return
+
+
+def cXY_from_click(frame, 
+                   win1_name='Clic the ant and press a key', 
+                   win2_name='ROI'):
+    
+    frame_ = resize_frame(frame, scale=sett.resize_factor)
+    cv2.imshow(win1_name, frame_)
+
+    # callback handler to manually set the roi
+    def on_click(event, x, y, flags, param):
+        global cXY
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            # global roi center coordinates
+            cXY = int(x / sett.resize_factor), int(y / sett.resize_factor)
+
+            # copy of true frame and its resized version
+            img = frame.copy()
+            img_ = frame_.copy()
+
+            # draw a circle in the selected pixel
+            cv2.circle(img_, (x,y), 3, (0,255,255), 1)
+            cv2.imshow(win1_name, img_)
+            
+            # get roi in the full size frame
+            cv2.circle(img, cXY, 3, (0,255,255), 1)
+            roi = get_roi(img, cXY)
+
+            # roi padding just to display the new window
+            padL, padR = np.hsplit(np.zeros_like(roi), 2)
+            roi_ = np.hstack([padL, roi, padR])
+            cv2.imshow(win2_name, roi_)
+
+            print('ROI Initialized, now press any key to continue')
+        return
+    
+    cv2.setMouseCallback(win1_name, on_click)
+    cv2.waitKey(0)
+    return cXY
 
 
 class Undistorter():
+
     """Undistorts images using camera calibration matrix"""
+
     def __init__(self, method, camera_file):
         # Select the undistort method
         if method == "undistort":
@@ -157,12 +255,14 @@ class Undistorter():
         npzfile = np.load(npzfile)
 
         # Initialize camera parameters
-        self.c_h = npzfile["h"]
-        self.c_w = npzfile["w"]
-        self.c_mtx = npzfile["mtx"]
-        self.c_dist = npzfile["dist"]
-        self.c_newcameramtx = npzfile["newcameramtx"]
-        self.c_mapx, self.c_mapy = cv2.initUndistortRectifyMap(self.c_mtx, self.c_dist, None, self.c_newcameramtx,(self.c_w, self.c_h),5)
+        self.c_h = npzfile['h']
+        self.c_w = npzfile['w']
+        self.c_mtx = npzfile['mtx']
+        self.c_dist = npzfile['dist']
+        self.c_newcameramtx = npzfile['newcameramtx']
+        self.c_mapx, self.c_mapy = cv2.initUndistortRectifyMap(self.c_mtx, self.c_dist, 
+                                                               None, self.c_newcameramtx,
+                                                               (self.c_w, self.c_h), 5)
         self.mask = None
 
     # Undistort by opencv undistort
@@ -189,7 +289,7 @@ class Undistorter():
         empty_frame = 255 * np.ones(frame.shape, dtype=np.uint8)        
         corrected = self.undistort(empty_frame)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
-        self.mask = cv2.erode(corrected, kernel, iterations = 1)
+        self.mask = cv2.erode(corrected, kernel, iterations=1)
         self.mask = cv2.bitwise_not(self.mask)
         self.background = np.full(frame.shape, 130, dtype=np.uint8)
 
