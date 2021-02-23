@@ -110,16 +110,14 @@ def get_main_region(dim, border=sett.border):
     return x0, xf, y0, yf
 
 
-def mask2track(dim, prev_cXY, cXY):
-    # ROI from previous and current frame
-    x0_1, xf_1, y0_1, yf_1 = get_roi_bounds(dim, prev_cXY)
-    x0_2, xf_2, y0_2, yf_2 = get_roi_bounds(dim, cXY)
-
-    # mask pixeles inside both ROIs
+def mask2track(dim, roi_array):
     w, h = dim
     mask = 255 * np.ones((h, w), dtype=np.uint8)
-    mask[y0_1:yf_1, x0_1:xf_1] = 0
-    mask[y0_2:yf_2, x0_2:xf_2] = 0
+
+    # mask pixeles inside every ROIs
+    for ROI in roi_array:
+        x0, xf, y0, yf = get_roi_bounds(dim, ROI)
+        mask[y0:yf, x0:xf] = 0
 
     return mask
 

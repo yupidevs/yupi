@@ -3,7 +3,7 @@ Data-related stuff
 """
 data_folder = 'data' # Folder containing exported data files
 video_folder = 'videos' # Folder containing the videos
-video_file = 'video1.mp4' # Video file being analized
+video_file = 'video2_short.mp4' # Video file being analized
 first_frame = 1 # Frames to skip before to start processing
 resize_factor = .5 # Factor to resize displayed frames
 
