@@ -1,7 +1,7 @@
 import cv2
 import nudged
 import numpy as np
-import settings as sett
+import tracking.settings as sett
 
 
 

@@ -2,7 +2,7 @@ import os
 import cv2
 import json
 import numpy as np
-import settings as sett
+import tracking.settings as sett
 
 
 # Algorithm 

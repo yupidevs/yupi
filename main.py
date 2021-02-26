@@ -1,6 +1,6 @@
-from trackers import ROI, ObjectTracker, CameraTracker, TrackingScenario
-from undistorters import RemapUndistorter
-import tools
+from tracking.trackers import ROI, ObjectTracker, CameraTracker, TrackingScenario
+from tracking.undistorters import RemapUndistorter
+from tracking.show_path import plot_results
 
 if __name__ == '__main__':
     # Initialize main tracking objects
@@ -12,3 +12,4 @@ if __name__ == '__main__':
     # Track the video using the preconfigured scenario
     retval, message = scenario.track('videos/video2_short.mp4')
     print(message)
+    plot_results('videos/video2_short_[0.2min-100.0%].json')

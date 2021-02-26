@@ -1,10 +1,12 @@
 import os
 import cv2
 import json
-import tools
+import tracking.tools
 import numpy as np
-import settings
-from affine_estimator import get_affine
+import tracking.settings
+from tracking.affine_estimator import get_affine
+
+import tracking.tools as tools
 
 class ROI():
     """docstring for ROI"""
