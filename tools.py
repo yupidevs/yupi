@@ -67,24 +67,9 @@ def get_ant_mask(window):
     return threshold_detector(window)
 
 
-# Roi 
-def get_roi_bounds(dim, cXY):
-    w, h = dim
-    cX, cY = cXY
-    # get the bounds of the roi
-    xmin = max(cX - int(sett.roi_width/2), 0)
-    xmax = min(cX + int(sett.roi_width/2), w)
-    ymin = max(cY - int(sett.roi_heigh/2), 0)
-    ymax = min(cY + int(sett.roi_heigh/2), h)
-    return xmin, xmax, ymin, ymax
+# ROI
 
 
-def get_roi(frame, cXY):
-    h, w = frame.shape[:2]
-    #bounds of the roi
-    xmin, xmax, ymin, ymax = get_roi_bounds((w,h), cXY)
-    window = frame[ymin:ymax, xmin:xmax, :]
-    return window
 
 
 def update_roi_center(img, prev_cXY):
@@ -99,44 +84,6 @@ def update_roi_center(img, prev_cXY):
     return cX, cY
 
 
-def cXY_from_click(frame, 
-                   win1_name='Clic the ant and press a key', 
-                   win2_name='ROI'):
-    
-    frame_ = resize_frame(frame, scale=sett.resize_factor)
-    cv2.imshow(win1_name, frame_)
-
-    # callback handler to manually set the roi
-    def on_click(event, x, y, flags, param):
-        global cXY
-
-        if event == cv2.EVENT_LBUTTONDOWN:
-            # global roi center coordinates
-            cXY = int(x / sett.resize_factor), int(y / sett.resize_factor)
-
-            # copy of true frame and its resized version
-            img = frame.copy()
-            img_ = frame_.copy()
-
-            # draw a circle in the selected pixel
-            cv2.circle(img_, (x,y), 3, (0,255,255), 1)
-            cv2.imshow(win1_name, img_)
-            
-            # get roi in the full size frame
-            cv2.circle(img, cXY, 3, (0,255,255), 1)
-            roi = get_roi(img, cXY)
-
-            # roi padding just to display the new window
-            padL, padR = np.hsplit(np.zeros_like(roi), 2)
-            roi_ = np.hstack([padL, roi, padR])
-            cv2.imshow(win2_name, roi_)
-
-            print('ROI Initialized, now press any key to continue')
-        return
-    
-    cv2.setMouseCallback(win1_name, on_click)
-    cv2.waitKey(0)
-    return cXY
 
 
 def get_main_region(dim, border=sett.border):
@@ -157,8 +104,7 @@ def mask2track(dim, roi_array):
     mask = 255 * np.ones((h, w), dtype=np.uint8)
 
     # mask pixeles inside every ROIs
-    for ROI in roi_array:
-        x0, xf, y0, yf = get_roi_bounds(dim, ROI)
+    for x0, xf, y0, yf in roi_array:
         mask[y0:yf, x0:xf] = 0
 
     return mask
@@ -186,9 +132,9 @@ def draw_frame(frame, cXY, region, features, frame_numb, mask):
 
     # draw a point over the ant and roi bounds
     if cXY:
-        x1, x2, y1, y2 = get_roi_bounds((w, h), cXY)
+        # x1, x2, y1, y2 = get_roi_bounds((w, h), cXY)
         cv2.circle(frame, cXY, 5, (255, 255, 255), -1)
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,255), 2)
+        # cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,255), 2)
 
     # draw current frame number
     if frame_numb:

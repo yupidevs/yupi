@@ -6,40 +6,101 @@ import numpy as np
 import settings
 from affine_estimator import get_affine
 
+class ROI():
+    """docstring for ROI"""
+    def __init__(self, roi_size, init_method, scale=0.5):
+        self.roi_width, self.roi_heigh = roi_size
+        self.prev_cXY = None, None
+        self.cXY = None, None
+        self.roi_init_mode = init_method
+        self.scale = scale
+
+    def get_bounds(self):
+        cX, cY = self.cXY
+        # get the bounds of the roi
+        xmin = max(cX - int(self.roi_width/2), 0)
+        xmax = min(cX + int(self.roi_width/2), self.global_width)
+        ymin = max(cY - int(self.roi_heigh/2), 0)
+        ymax = min(cY + int(self.roi_heigh/2), self.global_heigh)
+        return xmin, xmax, ymin, ymax
+
+
+    def manual_init(self, frame, name,
+                       win2_name='ROI'):
+
+        win1_name = 'Clic on the center of {} to init roi'.format(name)
+
+        self.global_heigh, self.global_width = frame.shape[:2]
+
+        frame_ = tools.resize_frame(frame, scale=self.scale)
+        cv2.imshow(win1_name, frame_)
+
+        # callback handler to manually set the roi
+        def on_click(event, x, y, flags, param):
+
+            if event == cv2.EVENT_LBUTTONDOWN:
+                # global roi center coordinates
+                self.cXY = int(x / self.scale), int(y / self.scale)
+
+                # copy of true frame and its resized version
+                img = frame.copy()
+                img_ = frame_.copy()
+
+                # draw a circle in the selected pixel
+                cv2.circle(img_, (x,y), 3, (0,255,255), 1)
+                cv2.imshow(win1_name, img_)
+                
+                # get roi in the full size frame
+                cv2.circle(img, self.cXY, 3, (0,255,255), 1)
+                roi = self.crop(img)
+
+                # roi padding just to display the new window
+                padL, padR = np.hsplit(np.zeros_like(roi), 2)
+                roi_ = np.hstack([padL, roi, padR])
+                cv2.imshow(win2_name, roi_)
+
+                print('ROI Initialized, now press any key to continue')
+        
+        cv2.setMouseCallback(win1_name, on_click)
+        cv2.waitKey(0)
+        return self.cXY
+
+    def initialize(self, name, first_frame):
+        # Initialize ROI coordinates manually by user input
+        if self.roi_init_mode == 'manual':
+            self.cXY = self.manual_init(first_frame, name)
+            self.prev_cXY = self.cXY
+            if not self.prev_cXY[0]:
+                return False, '[ERROR] ROI was not Initialized (in {})'.format(name)
+            else:
+                cv2.destroyAllWindows()
+                return True, '[INFO] ROI was Initialized (in {})'.format(name)
+        else:
+            return False, '[ERROR] ROI initialization mode unknown (in {})'.format(name)
+
+    def crop(self, frame):
+        self.global_heigh, self.global_width = frame.shape[:2]
+        #bounds of the roi
+        xmin, xmax, ymin, ymax = self.get_bounds()
+        window = frame[ymin:ymax, xmin:xmax, :]
+        return window
+
+    def update_center(self):
+        pass
 
 class ObjectTracker():
     """docstring for ObjectTracker"""
-    def __init__(self, name, method, roi_size, roi_init_mode):
+    def __init__(self, name, method, roi):
         self.name = name
-        self.method = method
-        self.roi_size = roi_size
-        self.prev_cXY = None, None
-        self.cXY = None, None
+        self.roi = roi
         self.history = []
-        self.roi_init_mode = roi_init_mode
 
     def __init_roi__(self, prev_frame):
-        # Initialize ROI coordinates manually by user input
-        if self.roi_init_mode == 'manual':
-            self.cXY = tools.cXY_from_click(prev_frame)
-            self.prev_cXY = self.cXY
-            if not self.prev_cXY[0]:
-                return False, '[ERROR] ROI was not Initialized (in {})'.format(self.name)
-            else:
-                cv2.destroyAllWindows()
-                return True, '[INFO] ROI was Initialized (in {})'.format(self.name)
-
-        # init ROI center automatically by frame differencing
-        elif self.roi_init_mode == 'auto':
-            self.cXY = tools.frame_diff_detector(prev_frame, frame)
-            self.prev_cXY = self.cXY
-
-        else:
-            return False, '[ERROR] ROI initialization mode unknown (in {})'.format(self.name)
+        return self.roi.initialize(self.name, prev_frame)
 
     def track(self, frame):
         # get only the ROI from the current frame
-        window = tools.get_roi(frame, self.prev_cXY)
+        window = self.roi.crop(frame)
         
         # segmentate the ant inside the ROI
         ant_mask = tools.get_ant_mask(window)
@@ -48,11 +109,11 @@ class ObjectTracker():
         window[:,:,0] = ant_mask
 
         # update the roi center using current ant coordinates
-        self.cXY = tools.update_roi_center(ant_mask, self.prev_cXY)
+        self.roi.cXY = tools.update_roi_center(ant_mask, self.roi.prev_cXY)
 
         # update data
-        self.history.append(self.cXY)
-        self.prev_cXY = self.cXY
+        self.history.append(self.roi.cXY)
+        self.roi.prev_cXY = self.roi.cXY
   
 
 
@@ -167,9 +228,9 @@ class TrackingScenario():
 
         # Track every object and save past and current ROIs
         for otrack in self.object_trackers:
-            roi_array.append(otrack.cXY)
+            roi_array.append(otrack.roi.get_bounds())
             otrack.track(frame)
-            roi_array.append(otrack.cXY)
+            roi_array.append(otrack.roi.get_bounds())
  
         
         ret, message = self.camera_tracker.track(self.prev_frame, frame, roi_array)
@@ -180,7 +241,7 @@ class TrackingScenario():
        
 
         # display the full image with the ant in blue (TODO: Refactor this to make more general)
-        tools.show_frame(frame, self.object_trackers[0].cXY, self.camera_tracker.roi, self.camera_tracker.features, frame_id)
+        tools.show_frame(frame, self.object_trackers[0].roi.cXY, self.camera_tracker.roi, self.camera_tracker.features, frame_id)
 
         # save current frame and ROI center as previous for next iteration
         self.prev_frame = frame.copy()

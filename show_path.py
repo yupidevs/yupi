@@ -36,9 +36,9 @@ def affine2ant(theta, tx, ty, x_ac, y_ac):
 pix_per_cm = 63.
 pix_per_m = pix_per_cm * 100
 
-file_name = 'data_video2_[1.2min-100.0%].json'
-file_dir = os.path.join('data', file_name)
-
+# file_name = 'data_video2_[1.2min-100.0%].json'
+# file_dir = os.path.join('data', file_name)
+file_dir = 'videos/video2_short_[0.2min-100.0%].json'
 with open(file_dir, 'r') as file:
     data = json.load(file)
 
