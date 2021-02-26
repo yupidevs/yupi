@@ -140,3 +140,7 @@ cython_debug/
 
 # Videos
 *.mp4
+
+
+# Datafiles
+*.json
