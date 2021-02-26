@@ -5,6 +5,7 @@ import numpy as np
 import settings as sett
 
 
+# Algorithm 
 
 def get_centroid(bin_img, hint=''):
     # Calculate moments
@@ -38,6 +39,35 @@ def frame_diff_detector(frame1, frame2):
     return get_centroid(thresh, hint)
 
 
+def threshold_detector(frame):
+    # convert image to grayscale image
+    gray_image = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2GRAY)
+
+    # obtain image histogram
+    ys = cv2.calcHist([gray_image], [0], None, [256], [0,256], True)
+
+    # compute image total pixel count
+    x, y = gray_image.shape
+    total = x * y
+
+    # compute an adaptative threshold according the ratio of darkest pixels
+    min_threshold = sett.ant_darkest_pixel
+    suma = 0
+    for i in range(min_threshold, 256):
+        suma += ys[i]
+        if suma/total > sett.ant_ratio:
+            max_threshold = i
+            break
+
+    # convert the grayscale image to binary image
+    return cv2.inRange(gray_image, min_threshold, max_threshold)
+
+
+def get_ant_mask(window):
+    return threshold_detector(window)
+
+
+# Roi 
 def get_roi_bounds(dim, cXY):
     w, h = dim
     cX, cY = cXY
@@ -69,32 +99,44 @@ def update_roi_center(img, prev_cXY):
     return cX, cY
 
 
-def threshold_detector(frame):
-    # convert image to grayscale image
-    gray_image = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2GRAY)
+def cXY_from_click(frame, 
+                   win1_name='Clic the ant and press a key', 
+                   win2_name='ROI'):
+    
+    frame_ = resize_frame(frame, scale=sett.resize_factor)
+    cv2.imshow(win1_name, frame_)
 
-    # obtain image histogram
-    ys = cv2.calcHist([gray_image], [0], None, [256], [0,256], True)
+    # callback handler to manually set the roi
+    def on_click(event, x, y, flags, param):
+        global cXY
 
-    # compute image total pixel count
-    x, y = gray_image.shape
-    total = x * y
+        if event == cv2.EVENT_LBUTTONDOWN:
+            # global roi center coordinates
+            cXY = int(x / sett.resize_factor), int(y / sett.resize_factor)
 
-    # compute an adaptative threshold according the ratio of darkest pixels
-    min_threshold = sett.ant_darkest_pixel
-    suma = 0
-    for i in range(min_threshold, 256):
-        suma += ys[i]
-        if suma/total > sett.ant_ratio:
-            max_threshold = i
-            break
+            # copy of true frame and its resized version
+            img = frame.copy()
+            img_ = frame_.copy()
 
-    # convert the grayscale image to binary image
-    return cv2.inRange(gray_image, min_threshold, max_threshold)
+            # draw a circle in the selected pixel
+            cv2.circle(img_, (x,y), 3, (0,255,255), 1)
+            cv2.imshow(win1_name, img_)
+            
+            # get roi in the full size frame
+            cv2.circle(img, cXY, 3, (0,255,255), 1)
+            roi = get_roi(img, cXY)
 
+            # roi padding just to display the new window
+            padL, padR = np.hsplit(np.zeros_like(roi), 2)
+            roi_ = np.hstack([padL, roi, padR])
+            cv2.imshow(win2_name, roi_)
 
-def get_ant_mask(window):
-    return threshold_detector(window)
+            print('ROI Initialized, now press any key to continue')
+        return
+    
+    cv2.setMouseCallback(win1_name, on_click)
+    cv2.waitKey(0)
+    return cXY
 
 
 def get_main_region(dim, border=sett.border):
@@ -121,6 +163,7 @@ def mask2track(dim, roi_array):
 
     return mask
 
+# Viewing options 
 
 def draw_frame(frame, cXY, region, features, frame_numb, mask):
     frame = frame.copy()
@@ -177,120 +220,3 @@ def show_frame(frame, cXY=None, region=None, features=None, frame_numb=None,
     return
 
 
-def save_data(data, minutes=None, percent=None):
-    data_file_name = 'data_' + sett.video_file[:-4]
-    
-    data_file_name += '_[' if (minutes or percent) else ''
-    data_file_name += f'{minutes:.1f}min' if minutes else ''
-    data_file_name += '-' if (minutes and percent) else ''
-    data_file_name += f'{percent * 100 :.1f}%' if percent else ''
-    data_file_name += ']' if (minutes or percent) else ''
-    data_file_name += '.json'
-
-    data_file_dir = os.path.join(sett.data_folder, data_file_name)
-    with open(data_file_dir, 'w') as json_file:
-        json.dump(data, json_file)
-    
-    return
-
-
-def cXY_from_click(frame, 
-                   win1_name='Clic the ant and press a key', 
-                   win2_name='ROI'):
-    
-    frame_ = resize_frame(frame, scale=sett.resize_factor)
-    cv2.imshow(win1_name, frame_)
-
-    # callback handler to manually set the roi
-    def on_click(event, x, y, flags, param):
-        global cXY
-
-        if event == cv2.EVENT_LBUTTONDOWN:
-            # global roi center coordinates
-            cXY = int(x / sett.resize_factor), int(y / sett.resize_factor)
-
-            # copy of true frame and its resized version
-            img = frame.copy()
-            img_ = frame_.copy()
-
-            # draw a circle in the selected pixel
-            cv2.circle(img_, (x,y), 3, (0,255,255), 1)
-            cv2.imshow(win1_name, img_)
-            
-            # get roi in the full size frame
-            cv2.circle(img, cXY, 3, (0,255,255), 1)
-            roi = get_roi(img, cXY)
-
-            # roi padding just to display the new window
-            padL, padR = np.hsplit(np.zeros_like(roi), 2)
-            roi_ = np.hstack([padL, roi, padR])
-            cv2.imshow(win2_name, roi_)
-
-            print('ROI Initialized, now press any key to continue')
-        return
-    
-    cv2.setMouseCallback(win1_name, on_click)
-    cv2.waitKey(0)
-    return cXY
-
-
-class Undistorter():
-
-    """Undistorts images using camera calibration matrix"""
-
-    def __init__(self, method, camera_file):
-        # Select the undistort method
-        if method == "undistort":
-            self.undistort = self.classic_undistort
-        elif method == "remap":
-            self.undistort = self.remap
-        else:
-            print('Undistort method not recognized. Undistort disabled')
-            self.undistort = self.no_undistort
-
-        # Read camera undistort matrix
-        npzfile = os.path.join(os.getcwd(), 'cameras', camera_file)
-        npzfile = np.load(npzfile)
-
-        # Initialize camera parameters
-        self.c_h = npzfile['h']
-        self.c_w = npzfile['w']
-        self.c_mtx = npzfile['mtx']
-        self.c_dist = npzfile['dist']
-        self.c_newcameramtx = npzfile['newcameramtx']
-        self.c_mapx, self.c_mapy = cv2.initUndistortRectifyMap(self.c_mtx, self.c_dist, 
-                                                               None, self.c_newcameramtx,
-                                                               (self.c_w, self.c_h), 5)
-        self.mask = None
-
-    # Undistort by opencv undistort
-    def classic_undistort(self, frame):
-        return cv2.undistort(frame, self.c_mtx, self.c_dist, None, self.c_newcameramtx)
-    
-    # Undistort by opencv remapping
-    def remap(self, frame):        
-        return cv2.remap(frame, self.c_mapx, self.c_mapy, cv2.INTER_LINEAR)
-    
-    # No undistort
-    def no_undistort(self, frame):
-        return frame
-
-    # method to be called to fix the distortion
-    def fix(self, frame):
-        if self.mask is None:
-            self.create_mask(frame)
-        corrected = self.undistort(frame)
-        return self.masked(corrected)
-
-    # create a mask with the distortion pattern
-    def create_mask(self, frame):
-        empty_frame = 255 * np.ones(frame.shape, dtype=np.uint8)        
-        corrected = self.undistort(empty_frame)
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
-        self.mask = cv2.erode(corrected, kernel, iterations=1)
-        self.mask = cv2.bitwise_not(self.mask)
-        self.background = np.full(frame.shape, 130, dtype=np.uint8)
-
-    # apply the mask to a frame to adjust border colors
-    def masked(self, frame):
-        return cv2.bitwise_or(frame, self.mask)

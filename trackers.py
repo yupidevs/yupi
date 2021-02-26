@@ -1,5 +1,6 @@
 import os
 import cv2
+import json
 import tools
 import numpy as np
 import settings
@@ -93,6 +94,7 @@ class TrackingScenario():
 
     def __digest_video_path(self, video_path):
         # TODO: Validate the path
+        self.video_path = video_path
         self.cap = cv2.VideoCapture(video_path)                        # create capture object
         self.frame_count = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)) # total number of frames in the video file
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)                      # frames per seconds
@@ -213,7 +215,22 @@ class TrackingScenario():
             'affine_params': self.camera_tracker.history,
             'mse': self.camera_tracker.mse
         }
-        tools.save_data(data, minutes_video, percent_video)
+        self.__save_data__(data, minutes_video, percent_video)
+
+
+    def __save_data__(self, data, minutes=None, percent=None):
+        if not (minutes or percent):
+            progress = ''
+        else:
+            summary = f'{minutes:.1f}min' if minutes else ''
+            summary += '-' if (minutes and percent) else ''
+            summary += f'{percent:.1f}%' if percent else ''
+            progress = '_[{}]'.format(summary)
+
+        data_file_dir = '{}{}.json'.format(self.video_path[:-4], progress)
+
+        with open(data_file_dir, 'w') as json_file:
+            json.dump(data, json_file)
 
     def track(self, video_path, start_in_frame=0):
         self.__digest_video_path(video_path)
