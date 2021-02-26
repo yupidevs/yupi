@@ -5,7 +5,7 @@ import tools
 if __name__ == '__main__':
     # Initialize main tracking objects
     ant = ObjectTracker('ant', 'ColorMatching', ROI((120, 120), 'manual'))
-    camera = CameraTracker()
+    camera = CameraTracker(ROI((0.8, 0.8), 'center'))
     undistorter = RemapUndistorter('cameras/gph3+1080-60fps-NARROW.npz')
     scenario = TrackingScenario([ant], camera, undistorter)
 

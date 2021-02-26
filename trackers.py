@@ -24,6 +24,10 @@ class ROI():
         ymax = min(cY + int(self.roi_heigh/2), self.global_heigh)
         return xmin, xmax, ymin, ymax
 
+    def center_init(self, frame, name):
+        self.global_heigh, self.global_width = frame.shape[:2]
+        self.cXY = int(self.global_width/2), int(self.global_heigh/2)
+        return self.cXY
 
     def manual_init(self, frame, name,
                        win2_name='ROI'):
@@ -65,18 +69,30 @@ class ROI():
         cv2.waitKey(0)
         return self.cXY
 
+    def __check_roi_init__(self, name):
+        if not self.prev_cXY[0]:
+            return False, '[ERROR] ROI was not Initialized (in {})'.format(name)
+        else:
+            cv2.destroyAllWindows()
+            return True, '[INFO] ROI was Initialized (in {})'.format(name)
+
     def initialize(self, name, first_frame):
+        h, w = first_frame.shape[:2]
+        if self.roi_width <= 1:
+            self.roi_width *= w
+        if self.roi_heigh <= 1:
+            self.roi_heigh *= h
+
         # Initialize ROI coordinates manually by user input
         if self.roi_init_mode == 'manual':
             self.cXY = self.manual_init(first_frame, name)
             self.prev_cXY = self.cXY
-            if not self.prev_cXY[0]:
-                return False, '[ERROR] ROI was not Initialized (in {})'.format(name)
-            else:
-                cv2.destroyAllWindows()
-                return True, '[INFO] ROI was Initialized (in {})'.format(name)
+        elif self.roi_init_mode == 'center':
+            self.cXY = self.center_init(first_frame, name)
+            self.prev_cXY = self.cXY
         else:
             return False, '[ERROR] ROI initialization mode unknown (in {})'.format(name)
+        return self.__check_roi_init__(name)
 
     def crop(self, frame):
         self.global_heigh, self.global_width = frame.shape[:2]
@@ -119,19 +135,25 @@ class ObjectTracker():
 
 class CameraTracker():
     """docstring for CameraTracker"""
-    def __init__(self, scale=1):
-        self.scale = scale
+    def __init__(self, roi):
         self.history = []
         self.mse = []
+        self.roi = roi
 
-    def compute_roi(self, dim):
-        self.dim = dim
-        self.roi = tools.get_main_region(dim) # TODO: Update this to avoid relying on tools
+    def __init_roi__(self, prev_frame):
+        return self.roi.initialize('Camera', prev_frame)
 
-    def track(self, prev_frame, frame, roi_array):
-        # track the floor
-        mask = tools.mask2track(self.dim, roi_array)
-        p_good, aff_params, err = get_affine(prev_frame, frame, self.roi, mask)
+    # track the floor
+    def track(self, prev_frame, frame, ignored_regions):
+        # Initialize a mask of what to track
+        h, w = frame.shape[:2]
+        mask = 255 * np.ones((h, w), dtype=np.uint8)
+
+        # mask pixeles inside every ROIs
+        for x0, xf, y0, yf in ignored_regions:
+            mask[y0:yf, x0:xf] = 0
+
+        p_good, aff_params, err = get_affine(prev_frame, frame, self.roi.get_bounds(), mask)
         self.features = p_good[1:]
 
         if err is None:
@@ -177,8 +199,9 @@ class TrackingScenario():
 
         # draw region in which features are detected
         if self.camera_tracker:
-            # TODO: Update with CameraTracker ROI Object
-            x0, xf, y0, yf = self.camera_tracker.roi
+            x0, xf, y0, yf = self.camera_tracker.roi.get_bounds()
+            cv2.putText(frame, 'Camera Tracking region', (x0+5, yf-5), 
+                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0,0,255), 1, cv2.LINE_AA)
             cv2.rectangle(frame, (x0, y0), (xf, yf), (0,0,255), 2)
             p2, p3 = self.camera_tracker.features
             # draw detected and estimated features
@@ -229,7 +252,7 @@ class TrackingScenario():
 
         # Initialize the region of the camera tracker
         if self.camera_tracker:
-            self.camera_tracker.compute_roi(self.dim)
+            self.camera_tracker.__init_roi__(self.prev_frame)
 
         # Increase the iteration counter
         self.iteration_counter += 1

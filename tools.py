@@ -69,9 +69,6 @@ def get_ant_mask(window):
 
 # ROI
 
-
-
-
 def update_roi_center(img, prev_cXY):
     prev_cX, prev_cY = prev_cXY
 
@@ -84,48 +81,10 @@ def update_roi_center(img, prev_cXY):
     return cX, cY
 
 
-
-
-def get_main_region(dim, border=sett.border):
-    r = np.array(dim)
-    dr = r * sett.border
-    r1 = (1 - sett.border) * r / 2
-    r2 = r1 + dr
-
-    region_ = np.transpose([r1, r2])
-    region = np.concatenate(region_).astype(np.int32)
-
-    x0, xf, y0, yf = region.tolist()
-    return x0, xf, y0, yf
-
-
-def mask2track(dim, roi_array):
-    w, h = dim
-    mask = 255 * np.ones((h, w), dtype=np.uint8)
-
-    # mask pixeles inside every ROIs
-    for x0, xf, y0, yf in roi_array:
-        mask[y0:yf, x0:xf] = 0
-
-    return mask
-
 # Viewing options 
-
-
-
 
 def resize_frame(frame, scale=0.5):
     h, w = frame.shape[:2]
     w_, h_ = int(scale * w), int(scale * h)
     short_frame = cv2.resize(frame, (w_, h_), interpolation=cv2.INTER_AREA)
     return short_frame
-
-
-# def show_frame(frame, cXY=None, region=None, features=None, frame_numb=None,
-#         scale=sett.resize_factor, win_name=sett.video_file[:-4], mask=None):
-#     frame = draw_frame(frame, cXY, region, features, frame_numb, mask)
-#     frame = resize_frame(frame, scale)
-#     cv2.imshow(win_name, frame)
-#     return
-
-
