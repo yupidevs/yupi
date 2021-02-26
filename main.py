@@ -3,9 +3,8 @@ from undistorters import RemapUndistorter
 import tools
 
 if __name__ == '__main__':
-    ant_roi = ROI((120, 120), 'manual')
     # Initialize main tracking objects
-    ant = ObjectTracker('ant', 'ColorMatching', ant_roi)
+    ant = ObjectTracker('ant', 'ColorMatching', ROI((120, 120), 'manual'))
     camera = CameraTracker()
     undistorter = RemapUndistorter('cameras/gph3+1080-60fps-NARROW.npz')
     scenario = TrackingScenario([ant], camera, undistorter)

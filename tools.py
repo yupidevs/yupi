@@ -111,58 +111,21 @@ def mask2track(dim, roi_array):
 
 # Viewing options 
 
-def draw_frame(frame, cXY, region, features, frame_numb, mask):
-    frame = frame.copy()
-    h, w = frame.shape[:2]
-
-    # draw region in which features are detected
-    if region:
-        x0, xf, y0, yf = region
-        cv2.rectangle(frame, (x0, y0), (xf, yf), (0,0,255), 2)
-    
-    # draw detected and estimated features
-    if features:
-        p2, p3 = features
-        for p2_, p3_ in zip(p2, p3):
-            x2, y2 = np.rint(p2_).astype(np.int32)
-            x3, y3 = np.rint(p3_).astype(np.int32)
-
-            cv2.circle(frame, (x2,y2), 3, (0,0,0), -1)
-            cv2.circle(frame, (x3,y3), 3, (0,255,0), -1)
-
-    # draw a point over the ant and roi bounds
-    if cXY:
-        # x1, x2, y1, y2 = get_roi_bounds((w, h), cXY)
-        cv2.circle(frame, cXY, 5, (255, 255, 255), -1)
-        # cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,255), 2)
-
-    # draw current frame number
-    if frame_numb:
-        x_, y_ = .02, .05
-        x, y = int(x_ * w), int(y_ * h)
-        cv2.putText(frame, str(frame_numb), (x, y), 
-            cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1.2, (0,255,255), 1, cv2.LINE_AA)
-
-    # draw in black ant ROIs from previous and current frame
-    if mask is not None:
-        idx = np.where(mask == 0)
-        frame[idx] = 0
-
-    return frame
 
 
-def resize_frame(frame, scale=sett.resize_factor):
+
+def resize_frame(frame, scale=0.5):
     h, w = frame.shape[:2]
     w_, h_ = int(scale * w), int(scale * h)
     short_frame = cv2.resize(frame, (w_, h_), interpolation=cv2.INTER_AREA)
     return short_frame
 
 
-def show_frame(frame, cXY=None, region=None, features=None, frame_numb=None,
-        scale=sett.resize_factor, win_name=sett.video_file[:-4], mask=None):
-    frame = draw_frame(frame, cXY, region, features, frame_numb, mask)
-    frame = resize_frame(frame, scale)
-    cv2.imshow(win_name, frame)
-    return
+# def show_frame(frame, cXY=None, region=None, features=None, frame_numb=None,
+#         scale=sett.resize_factor, win_name=sett.video_file[:-4], mask=None):
+#     frame = draw_frame(frame, cXY, region, features, frame_numb, mask)
+#     frame = resize_frame(frame, scale)
+#     cv2.imshow(win_name, frame)
+#     return
 
 

@@ -170,6 +170,45 @@ class TrackingScenario():
             frame = self.undistorter.fix(frame)
         return frame
 
+
+    def show_frame(self, frame, show_frame_id=True):
+        # cXY, region, features, frame_numb, mask
+        frame = frame.copy()
+
+        # draw region in which features are detected
+        if self.camera_tracker:
+            # TODO: Update with CameraTracker ROI Object
+            x0, xf, y0, yf = self.camera_tracker.roi
+            cv2.rectangle(frame, (x0, y0), (xf, yf), (0,0,255), 2)
+            p2, p3 = self.camera_tracker.features
+            # draw detected and estimated features
+            for p2_, p3_ in zip(p2, p3):
+                x2, y2 = np.rint(p2_).astype(np.int32)
+                x3, y3 = np.rint(p3_).astype(np.int32)
+
+                cv2.circle(frame, (x2,y2), 3, (0,0,0), -1)
+                cv2.circle(frame, (x3,y3), 3, (0,255,0), -1)
+
+        for otrack in self.object_trackers:
+            # draw a point over the roi center and draw bounds
+            x1, x2, y1, y2 = otrack.roi.get_bounds()
+            cv2.circle(frame, otrack.roi.cXY, 5, (255, 255, 255), -1)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,255), 2)
+            cv2.putText(frame, otrack.name, (x1+5, y2-5), 
+                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0,255,255), 1, cv2.LINE_AA)
+
+        if show_frame_id:
+            h, w = frame.shape[:2]
+            frame_id = self.iteration_counter + self.first_frame
+            x_, y_ = .02, .05
+            x, y = int(x_ * w), int(y_ * h)
+            cv2.putText(frame, str(frame_id), (x, y), 
+                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0,255,255), 1, cv2.LINE_AA)
+
+        frame = tools.resize_frame(frame)
+        cv2.imshow('PYTANAL processing window', frame)
+        # return frame
+
     def __first_iteration__(self, start_in_frame):
         # Start processing frams at the given index
         if start_in_frame:
@@ -241,7 +280,7 @@ class TrackingScenario():
        
 
         # display the full image with the ant in blue (TODO: Refactor this to make more general)
-        tools.show_frame(frame, self.object_trackers[0].roi.cXY, self.camera_tracker.roi, self.camera_tracker.features, frame_id)
+        self.show_frame(frame)
 
         # save current frame and ROI center as previous for next iteration
         self.prev_frame = frame.copy()
