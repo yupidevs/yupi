@@ -1,11 +1,13 @@
 from tracking.trackers import ROI, ObjectTracker, CameraTracker, TrackingScenario
 from tracking.undistorters import RemapUndistorter
 from tracking.show_path import plot_results
+from tracking.algorithms import IntensityMatching
 
 if __name__ == '__main__':
     # Initialize main tracking objects
-    ant = ObjectTracker('ant', 'ColorMatching', ROI((120, 120), 'manual'))
-    camera = CameraTracker(ROI((0.8, 0.8), 'center'))
+    method = IntensityMatching(20, 180, 180)
+    ant = ObjectTracker('ant', method, ROI((120, 120), 'manual'))
+    camera = CameraTracker(ROI((.65, .65), 'center'))
     undistorter = RemapUndistorter('cameras/gph3+1080-60fps-NARROW.npz')
     scenario = TrackingScenario([ant], camera, undistorter)
 

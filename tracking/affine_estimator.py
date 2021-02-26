@@ -1,9 +1,6 @@
 import cv2
 import nudged
 import numpy as np
-import tracking.settings as sett
-
-
 
 # ShiTomasi corner detection
 feature_params = dict(maxCorners = 30, 

@@ -1,12 +1,8 @@
-import os
 import cv2
 import json
-import tracking.tools
 import numpy as np
-import tracking.settings
+from tracking.algorithms import resize_frame
 from tracking.affine_estimator import get_affine
-
-import tracking.tools as tools
 
 class ROI():
     """docstring for ROI"""
@@ -16,6 +12,16 @@ class ROI():
         self.cXY = None, None
         self.roi_init_mode = init_method
         self.scale = scale
+
+    def recenter(self, centroid):
+        # get the centroid refered to the roi
+        cX_roi, cY_roi = centroid
+
+        # get the centroid refered to the full image
+        cX = self.prev_cXY[0] - int(self.roi_width/2) + cX_roi
+        cY = self.prev_cXY[1] - int(self.roi_heigh/2) + cY_roi
+
+        self.cXY = cX, cY
 
     def get_bounds(self):
         cX, cY = self.cXY
@@ -38,7 +44,7 @@ class ROI():
 
         self.global_heigh, self.global_width = frame.shape[:2]
 
-        frame_ = tools.resize_frame(frame, scale=self.scale)
+        frame_ = resize_frame(frame, scale=self.scale)
         cv2.imshow(win1_name, frame_)
 
         # callback handler to manually set the roi
@@ -112,6 +118,7 @@ class ObjectTracker():
         self.name = name
         self.roi = roi
         self.history = []
+        self.tracking_method = method
 
     def __init_roi__(self, prev_frame):
         return self.roi.initialize(self.name, prev_frame)
@@ -120,14 +127,11 @@ class ObjectTracker():
         # get only the ROI from the current frame
         window = self.roi.crop(frame)
         
-        # segmentate the ant inside the ROI
-        ant_mask = tools.get_ant_mask(window)
-
-        # alter the blue channel in ant-related pixels
-        window[:,:,0] = ant_mask
-
+        # detect the object using the tracking method
+        self.mask, centroid = self.tracking_method.detect(window)
+       
         # update the roi center using current ant coordinates
-        self.roi.cXY = tools.update_roi_center(ant_mask, self.roi.prev_cXY)
+        self.roi.recenter(centroid)
 
         # update data
         self.history.append(self.roi.cXY)
@@ -215,6 +219,11 @@ class TrackingScenario():
                 cv2.circle(frame, (x3,y3), 3, (0,255,0), -1)
 
         for otrack in self.object_trackers:
+            # TODO: Do this better:
+            # alter the blue channel in ant-related pixels
+            window = otrack.roi.crop(frame)
+            window[:,:,0] = otrack.mask
+
             # draw a point over the roi center and draw bounds
             x1, x2, y1, y2 = otrack.roi.get_bounds()
             cv2.circle(frame, otrack.roi.cXY, 5, (255, 255, 255), -1)
@@ -230,7 +239,7 @@ class TrackingScenario():
             cv2.putText(frame, str(frame_id), (x, y), 
                 cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0,255,255), 1, cv2.LINE_AA)
 
-        frame = tools.resize_frame(frame)
+        frame = resize_frame(frame)
         cv2.imshow('PYTANAL processing window', frame)
         # return frame
 
@@ -238,7 +247,7 @@ class TrackingScenario():
         # Start processing frams at the given index
         if start_in_frame:
             self.first_frame = start_in_frame
-            self.cap.set(cv2.CAP_PROP_POS_FRAMES, start_in_frame)
+            self.cap.set(cv2.CAP_PROP_P_FRAMES, start_in_frame)
 
         # Capture the first frame to process
         ret, prev_frame = self.cap.read()
@@ -326,7 +335,7 @@ class TrackingScenario():
 
     def __export_data__(self):
         # TODO: This function needs to be rewritten to be able to handle more than 1 object tracker
-        # and also to provide more general purpose semantic information
+        # and also to provide more general purpe semantic information
         last_frame = self.first_frame + self.iteration_counter
         percent_video = 100 * (self.first_frame + self.iteration_counter) / self.frame_count
         minutes_video = last_frame / self.fps / 60
