@@ -1,0 +1,5 @@
+Algorithms
+==========
+
+.. automodule:: algorithms
+  :members:
