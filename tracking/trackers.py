@@ -3,34 +3,73 @@ import json
 import numpy as np
 from tracking.algorithms import resize_frame
 from tracking.affine_estimator import get_affine
+import logging
 
 
 class ROI():
+    """
+    Region of interest
 
-    def __init__(self, roi_size, init_method, scale=0.5):
-        self.roi_width, self.roi_heigh = roi_size
+    Region that can be tracked by the algorithms throughout the sequence of
+    image frames
+
+    ...
+    
+    Parameters
+    ----------
+        roi_size : tuple of int
+            Size of region in pixels
+        init_mode : str, optional
+            Defines the way ROI initial position is setted. (Default is 
+            'manual')
+        scale : float, optional
+            Scale of the sample frame to set ROI initial position if
+            `init_method` is set to `'manual'` (Default is 0.5)
+
+    Notes
+    -----
+        The `init_mode` parameter can be manual or center. These modes are
+        stored in `ROI.MANUAL_INIT_MODE` and `ROI.CENTER_INIT_MODE`
+
+    Examples
+    --------
+    >>> ROI((120, 120), ROI.MANUAL_INIT_MODE)    
+    ROI: size=(12,12) init_mode=manual scale=0.5
+    """
+
+    MANUAL_INIT_MODE = 'manual'
+    CENTER_INIT_MODE = 'center'
+
+    def __init__(self, size, init_mode=MANUAL_INIT_MODE, scale=0.5):
+        self.width, self.heigh = size
+        self.init_mode = init_mode
+        self.scale = scale
         self.prev_cXY = None, None
         self.cXY = None, None
-        self.roi_init_mode = init_method
-        self.scale = scale
+    
+    # this repr could change
+    def __repr__(self):
+        return 'ROI: size=({},{}) init_mode={} scale={}'\
+            .format(self.width, self.heigh, self.init_mode,
+                    self.scale)
 
     def recenter(self, centroid):
         # get the centroid refered to the roi
         cX_roi, cY_roi = centroid
 
         # get the centroid refered to the full image
-        cX = self.prev_cXY[0] - int(self.roi_width/2) + cX_roi
-        cY = self.prev_cXY[1] - int(self.roi_heigh/2) + cY_roi
+        cX = self.prev_cXY[0] - int(self.width/2) + cX_roi
+        cY = self.prev_cXY[1] - int(self.heigh/2) + cY_roi
 
         self.cXY = cX, cY
 
     def get_bounds(self):
         cX, cY = self.cXY
         # get the bounds of the roi
-        xmin = max(cX - int(self.roi_width/2), 0)
-        xmax = min(cX + int(self.roi_width/2), self.global_width)
-        ymin = max(cY - int(self.roi_heigh/2), 0)
-        ymax = min(cY + int(self.roi_heigh/2), self.global_heigh)
+        xmin = max(cX - int(self.width/2), 0)
+        xmax = min(cX + int(self.width/2), self.global_width)
+        ymin = max(cY - int(self.heigh/2), 0)
+        ymax = min(cY + int(self.heigh/2), self.global_heigh)
         return xmin, xmax, ymin, ymax
 
     def center_init(self, frame, name):
@@ -77,7 +116,7 @@ class ROI():
         cv2.waitKey(0)
         return self.cXY
 
-    def __check_roi_init__(self, name):
+    def __check_roi_init(self, name):
         if not self.prev_cXY[0]:
             return False, '[ERROR] ROI was not Initialized (in {})'.format(name)
         else:
@@ -86,21 +125,21 @@ class ROI():
 
     def initialize(self, name, first_frame):
         h, w = first_frame.shape[:2]
-        if self.roi_width <= 1:
-            self.roi_width *= w
-        if self.roi_heigh <= 1:
-            self.roi_heigh *= h
+        if self.width <= 1:
+            self.width *= w
+        if self.heigh <= 1:
+            self.heigh *= h
 
         # Initialize ROI coordinates manually by user input
-        if self.roi_init_mode == 'manual':
+        if self.init_mode == 'manual':
             self.cXY = self.manual_init(first_frame, name)
             self.prev_cXY = self.cXY
-        elif self.roi_init_mode == 'center':
+        elif self.init_mode == 'center':
             self.cXY = self.center_init(first_frame, name)
             self.prev_cXY = self.cXY
         else:
             return False, '[ERROR] ROI initialization mode unknown (in {})'.format(name)
-        return self.__check_roi_init__(name)
+        return self.__check_roi_init(name)
 
     def crop(self, frame):
         self.global_heigh, self.global_width = frame.shape[:2]
@@ -109,12 +148,12 @@ class ROI():
         window = frame[ymin:ymax, xmin:xmax, :]
         return window
 
-    def update_center(self):
-        pass
-
 
 class ObjectTracker():
-    """docstring for ObjectTracker"""
+    """
+    
+    
+    """
     def __init__(self, name, method, roi):
         self.name = name
         self.roi = roi
