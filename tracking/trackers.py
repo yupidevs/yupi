@@ -23,11 +23,11 @@ class ROI():
     init_mode : str, optional
         Defines the way ROI initial position is setted. (Default is 'manual').
 
-        The `init_mode` parameter can be manual or center. These modes are
-        stored in `ROI.MANUAL_INIT_MODE` and `ROI.CENTER_INIT_MODE`.
+        The ``init_mode`` parameter can be manual or center. These modes are
+        stored in ``ROI.MANUAL_INIT_MODE`` and ``ROI.CENTER_INIT_MODE``.
     scale : float, optional
-        Scale of the sample frame to set ROI initial position if `init_method`
-        is set to `'manual'` (Default is 0.5).
+        Scale of the sample frame to set ROI initial position if
+        ``init_method`` is set to ``'manual'`` (Default is 0.5).
 
     Examples
     --------
@@ -41,7 +41,7 @@ class ROI():
     ValueError
         If one of the size value is grater than 1 and the other is less than 1.
     ValueError
-        If ROI initialization mode is neither 'manual' or 'center'.
+        If ROI initialization mode is neither ``'manual'`` or ``'center'``.
     """
 
     MANUAL_INIT_MODE = 'manual'
@@ -52,10 +52,10 @@ class ROI():
     def __init__(self, size: tuple, init_mode: str = MANUAL_INIT_MODE,
                  scale: float = 0.5):
 
-        if size[0] < 0 or size[1] < 0:
+        if size[0] <= 0 or size[1] <= 0:
             raise ValueError("ROI's size values must be positives")
 
-        # TODO: chick for amore pythonic way to do this comprobation
+        # TODO: check for a more pythonic way to do this comprobation
         if (size[0] < 1 and size[1] > 1) or \
            (size[0] > 1 and size[1] < 1):
             raise ValueError(size)  # TODO: write error message here
@@ -68,14 +68,28 @@ class ROI():
         self.init_mode = init_mode
         self.scale = scale
         self.__prev_cXY = None, None
-        self.__cXY = None, None    
+        self.__cXY = None, None
 
     # this repr could change
     def __repr__(self):
         return 'ROI: size=({}, {}) init_mode={} scale={}' \
             .format(self.width, self.heigh, self.init_mode, self.scale)
 
-    def __recenter(self, centroid):
+    def __recenter(self, centroid: tuple) -> tuple:
+        """
+        Recenters ROI position.
+
+        Parameters
+        ----------
+        centroid : tuple of int
+            New center of the ROI.
+
+        Returns
+        -------
+        cX, cY : int
+            Center of the ROI.
+        """
+
         # get the centroid refered to the roi
         cX_roi, cY_roi = centroid
 
@@ -85,21 +99,70 @@ class ROI():
 
         self.__cXY = cX, cY
 
-    def __get_bounds(self):        
-        # get the bounds of the roi
+    def __get_bounds(self) -> tuple:
+        """
+        ROI's bounds.
+
+        Calculates the ROI's bounds according to its center, width, height and
+        the global bounds.
+
+        Returns
+        -------
+        xmin : int
+            Mnimum bound on X axis
+        xmax : int
+            Maximun bound on X axis
+        ymin : int
+            Mnimum bound on Y axis
+        ymax : int
+            Maximum bound on Y axis
+        """
+
         cX, cY = self.__cXY
-        xmin = max(cX - int(self.width/2), 0)
-        xmax = min(cX + int(self.width/2), self.__global_width)
-        ymin = max(cY - int(self.heigh/2), 0)
-        ymax = min(cY + int(self.heigh/2), self.__global_heigh)
+        half_width, half_height = int(self.width/2), int(self.heigh/2)
+        xmin = max(cX - half_width, 0)
+        xmax = min(cX + half_width, self.__global_width)
+        ymin = max(cY - half_height, 0)
+        ymax = min(cY + half_height, self.__global_heigh)
         return xmin, xmax, ymin, ymax
 
-    def __center_init(self, frame, name):
+    def __center_init(self, frame) -> tuple:
+        """
+        Initialize ROI using center initialization mode
+
+        Parameters:
+        frame : numpy.ndarray
+            Frame used as reference to initialize ROI position at its center
+
+        Returns
+        -------
+        tuple of int
+            Center of the ROI
+        """
+
         self.__global_heigh, self.__global_width = frame.shape[:2]
         self.__cXY = int(self.__global_width/2), int(self.__global_heigh/2)
         return self.__cXY
 
-    def __manual_init(self, frame, name, win2_name='ROI'):
+    # TODO: check for 'win2_name' utility. Maybe it it should be 'ROI' as
+    # default so there is no need to pass it as a parameter
+    def __manual_init(self, frame: np.ndarray, name: str,
+                      win2_name: str = 'ROI'):
+        """
+        Initialize ROI using manual initialization mode
+
+        Parameter
+        ---------
+        frame : numpy.ndarray
+            Frame used as reference to initialize ROI position manually
+        name : str
+            Name of the tracking object
+
+        Returns
+        -------
+        tuple of int
+            Center of the ROI
+        """
 
         win1_name = 'Click on the center of {} to init roi'.format(name)
 
@@ -138,14 +201,34 @@ class ROI():
         cv2.waitKey(0)
         return self.__cXY
 
-    def __check_roi_init(self, name):
+    # TODO: check for 'name' utility. It is only use for the return message
+    # I think this method should only return True/False and then handle the
+    # error in the tracking scenario
+    def __check_roi_init(self, name: str):
+        """
+        Checks for ROI initialization
+
+        Parameter
+        ---------
+        name : str
+            Name of the tracking object
+
+        Returns
+        -------
+        bool
+            Whether or not the ROI was initialized
+        str
+            Information message
+        """
+
         if not self.__prev_cXY[0]:
-            return False, "[ERROR] ROI was not Initialized (in {})".format(name)
+            return False, "[ERROR] ROI was not Initialized " \
+                            "(in {})".format(name)
         else:
             cv2.destroyAllWindows()
             return True, '[INFO] ROI was Initialized (in {})'.format(name)
 
-    def __initialize(self, name, first_frame):
+    def __initialize(self, name: str, first_frame):
         h, w = first_frame.shape[:2]
         if self.width <= 1:
             self.width *= w
@@ -156,10 +239,10 @@ class ROI():
         if self.init_mode == ROI.MANUAL_INIT_MODE:
             self.__cXY = self.__manual_init(first_frame, name)
             self.__prev_cXY = self.__cXY
-        # TODO: check this. The 'elif' and 'init mode' comprobation where 
+        # TODO: check this. The 'elif' and 'init mode' comprobation where
         # removed because init mode is checeked on ROI initialization
         else:
-            self.__cXY = self.__center_init(first_frame, name)
+            self.__cXY = self.__center_init(first_frame)
             self.__prev_cXY = self.__cXY
 
         return self.__check_roi_init(name)
@@ -174,8 +257,7 @@ class ROI():
 
 class ObjectTracker():
     """
-    
-    
+
     """
     def __init__(self, name, method, roi):
         self.name = name
@@ -385,13 +467,15 @@ class TrackingScenario():
             otrack.track(frame)
             roi_array.append(otrack.roi._ROI__get_bounds())
 
-        ret, message = self.camera_tracker.track(self.prev_frame, frame, roi_array)
+        ret, message = self.camera_tracker.track(self.prev_frame, frame,
+                                                 roi_array)
         frame_id = self.iteration_counter + self.first_frame
 
         if not ret:
             return False, '[Error] {} (Frame {})'.format(message, frame_id)
 
-        # display the full image with the ant in blue (TODO: Refactor this to make more general)
+        # display the full image with the ant in blue (TODO: Refactor this to
+        # make more general)
         self.show_frame(frame)
 
         # save current frame and ROI center as previous for next iteration
@@ -414,7 +498,7 @@ class TrackingScenario():
         # than 1 object tracker and also to provide more general purpe semantic
         # information
         last_frame = self.first_frame + self.iteration_counter
-        percent_video = 100 * (self.first_frame + self.iteration_counter) / self.frame_count
+        percent_video = 100 * last_frame / self.frame_count
         minutes_video = last_frame / self.fps / 60
 
         data = {
