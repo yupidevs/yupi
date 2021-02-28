@@ -3,85 +3,107 @@ import json
 import numpy as np
 from tracking.algorithms import resize_frame
 from tracking.affine_estimator import get_affine
-import logging
 
 
 class ROI():
     """
-    Region of interest
+    Region of interest.
 
     Region that can be tracked by the algorithms throughout the sequence of
-    image frames
+    image frames.
 
-    ...
-    
     Parameters
     ----------
-        roi_size : tuple of int
-            Size of region in pixels
-        init_mode : str, optional
-            Defines the way ROI initial position is setted. (Default is 
-            'manual')
-        scale : float, optional
-            Scale of the sample frame to set ROI initial position if
-            `init_method` is set to `'manual'` (Default is 0.5)
+    size : tuple of float
+        Size of the region of interest.
 
-    Notes
-    -----
+        If both tuple's values are grater than 1 then they are rounded and
+        taken as pixels. Otherwise, if both values are less than 1, the
+        size is taken relative to the video frame size.
+    init_mode : str, optional
+        Defines the way ROI initial position is setted. (Default is 'manual').
+
         The `init_mode` parameter can be manual or center. These modes are
-        stored in `ROI.MANUAL_INIT_MODE` and `ROI.CENTER_INIT_MODE`
+        stored in `ROI.MANUAL_INIT_MODE` and `ROI.CENTER_INIT_MODE`.
+    scale : float, optional
+        Scale of the sample frame to set ROI initial position if `init_method`
+        is set to `'manual'` (Default is 0.5).
 
     Examples
     --------
-    >>> ROI((120, 120), ROI.MANUAL_INIT_MODE)    
-    ROI: size=(12,12) init_mode=manual scale=0.5
+    >>> ROI((120, 120), ROI.MANUAL_INIT_MODE)
+    ROI: size=(120, 120) init_mode=manual scale=0.5
+
+    Raises
+    ------
+    ValueError
+        If any size value is negative.
+    ValueError
+        If one of the size value is grater than 1 and the other is less than 1.
+    ValueError
+        If ROI initialization mode is neither 'manual' or 'center'.
     """
 
     MANUAL_INIT_MODE = 'manual'
+    """Manual initialization mode for the ROI"""
     CENTER_INIT_MODE = 'center'
+    """Center initialization mode for the ROI"""
 
-    def __init__(self, size, init_mode=MANUAL_INIT_MODE, scale=0.5):
+    def __init__(self, size: tuple, init_mode: str = MANUAL_INIT_MODE,
+                 scale: float = 0.5):
+
+        if size[0] < 0 or size[1] < 0:
+            raise ValueError("ROI's size values must be positives")
+
+        # TODO: chick for amore pythonic way to do this comprobation
+        if (size[0] < 1 and size[1] > 1) or \
+           (size[0] > 1 and size[1] < 1):
+            raise ValueError(size)  # TODO: write error message here
+
+        if init_mode != ROI.CENTER_INIT_MODE and \
+           init_mode != ROI.MANUAL_INIT_MODE:
+            raise ValueError(f"ROI '{init_mode}' initialization mode unknown")
+
         self.width, self.heigh = size
         self.init_mode = init_mode
         self.scale = scale
-        self.prev_cXY = None, None
-        self.cXY = None, None
-    
+        self.__prev_cXY = None, None
+        self.__cXY = None, None    
+
     # this repr could change
     def __repr__(self):
-        return 'ROI: size=({},{}) init_mode={} scale={}'\
-            .format(self.width, self.heigh, self.init_mode,
-                    self.scale)
+        return 'ROI: size=({}, {}) init_mode={} scale={}' \
+            .format(self.width, self.heigh, self.init_mode, self.scale)
 
-    def recenter(self, centroid):
+    def __recenter(self, centroid):
         # get the centroid refered to the roi
         cX_roi, cY_roi = centroid
 
         # get the centroid refered to the full image
-        cX = self.prev_cXY[0] - int(self.width/2) + cX_roi
-        cY = self.prev_cXY[1] - int(self.heigh/2) + cY_roi
+        cX = self.__prev_cXY[0] - int(self.width/2) + cX_roi
+        cY = self.__prev_cXY[1] - int(self.heigh/2) + cY_roi
 
-        self.cXY = cX, cY
+        self.__cXY = cX, cY
 
-    def get_bounds(self):
-        cX, cY = self.cXY
+    def __get_bounds(self):        
         # get the bounds of the roi
+        cX, cY = self.__cXY
         xmin = max(cX - int(self.width/2), 0)
-        xmax = min(cX + int(self.width/2), self.global_width)
+        xmax = min(cX + int(self.width/2), self.__global_width)
         ymin = max(cY - int(self.heigh/2), 0)
-        ymax = min(cY + int(self.heigh/2), self.global_heigh)
+        ymax = min(cY + int(self.heigh/2), self.__global_heigh)
         return xmin, xmax, ymin, ymax
 
-    def center_init(self, frame, name):
-        self.global_heigh, self.global_width = frame.shape[:2]
-        self.cXY = int(self.global_width/2), int(self.global_heigh/2)
-        return self.cXY
+    def __center_init(self, frame, name):
+        self.__global_heigh, self.__global_width = frame.shape[:2]
+        self.__cXY = int(self.__global_width/2), int(self.__global_heigh/2)
+        return self.__cXY
 
-    def manual_init(self, frame, name, win2_name='ROI'):
+    def __manual_init(self, frame, name, win2_name='ROI'):
 
-        win1_name = 'Clic on the center of {} to init roi'.format(name)
+        win1_name = 'Click on the center of {} to init roi'.format(name)
 
-        self.global_heigh, self.global_width = frame.shape[:2]
+        self.__global_heigh, self.__global_width = frame.shape[:2]
 
         frame_ = resize_frame(frame, scale=self.scale)
         cv2.imshow(win1_name, frame_)
@@ -91,7 +113,7 @@ class ROI():
 
             if event == cv2.EVENT_LBUTTONDOWN:
                 # global roi center coordinates
-                self.cXY = int(x / self.scale), int(y / self.scale)
+                self.__cXY = int(x / self.scale), int(y / self.scale)
 
                 # copy of true frame and its resized version
                 img = frame.copy()
@@ -102,8 +124,8 @@ class ROI():
                 cv2.imshow(win1_name, img_)
 
                 # get roi in the full size frame
-                cv2.circle(img, self.cXY, 3, (0, 255, 255), 1)
-                roi = self.crop(img)
+                cv2.circle(img, self.__cXY, 3, (0, 255, 255), 1)
+                roi = self.__crop(img)
 
                 # roi padding just to display the new window
                 padL, padR = np.hsplit(np.zeros_like(roi), 2)
@@ -114,16 +136,16 @@ class ROI():
 
         cv2.setMouseCallback(win1_name, on_click)
         cv2.waitKey(0)
-        return self.cXY
+        return self.__cXY
 
     def __check_roi_init(self, name):
-        if not self.prev_cXY[0]:
-            return False, '[ERROR] ROI was not Initialized (in {})'.format(name)
+        if not self.__prev_cXY[0]:
+            return False, "[ERROR] ROI was not Initialized (in {})".format(name)
         else:
             cv2.destroyAllWindows()
             return True, '[INFO] ROI was Initialized (in {})'.format(name)
 
-    def initialize(self, name, first_frame):
+    def __initialize(self, name, first_frame):
         h, w = first_frame.shape[:2]
         if self.width <= 1:
             self.width *= w
@@ -131,20 +153,21 @@ class ROI():
             self.heigh *= h
 
         # Initialize ROI coordinates manually by user input
-        if self.init_mode == 'manual':
-            self.cXY = self.manual_init(first_frame, name)
-            self.prev_cXY = self.cXY
-        elif self.init_mode == 'center':
-            self.cXY = self.center_init(first_frame, name)
-            self.prev_cXY = self.cXY
+        if self.init_mode == ROI.MANUAL_INIT_MODE:
+            self.__cXY = self.__manual_init(first_frame, name)
+            self.__prev_cXY = self.__cXY
+        # TODO: check this. The 'elif' and 'init mode' comprobation where 
+        # removed because init mode is checeked on ROI initialization
         else:
-            return False, '[ERROR] ROI initialization mode unknown (in {})'.format(name)
+            self.__cXY = self.__center_init(first_frame, name)
+            self.__prev_cXY = self.__cXY
+
         return self.__check_roi_init(name)
 
-    def crop(self, frame):
-        self.global_heigh, self.global_width = frame.shape[:2]
+    def __crop(self, frame):
+        self.__global_heigh, self.__global_width = frame.shape[:2]
         # bounds of the roi
-        xmin, xmax, ymin, ymax = self.get_bounds()
+        xmin, xmax, ymin, ymax = self.__get_bounds()
         window = frame[ymin:ymax, xmin:xmax, :]
         return window
 
@@ -161,21 +184,21 @@ class ObjectTracker():
         self.tracking_method = method
 
     def __init_roi__(self, prev_frame):
-        return self.roi.initialize(self.name, prev_frame)
+        return self.roi._ROI__initialize(self.name, prev_frame)
 
     def track(self, frame):
         # get only the ROI from the current frame
-        window = self.roi.crop(frame)
+        window = self.roi._ROI__crop(frame)
 
         # detect the object using the tracking method
         self.mask, centroid = self.tracking_method.detect(window)
 
         # update the roi center using current ant coordinates
-        self.roi.recenter(centroid)
+        self.roi._ROI__recenter(centroid)
 
         # update data
-        self.history.append(self.roi.cXY)
-        self.roi.prev_cXY = self.roi.cXY
+        self.history.append(self.roi._ROI__cXY)
+        self.roi._ROI__prev_cXY = self.roi._ROI__cXY
 
 
 class CameraTracker():
@@ -186,7 +209,7 @@ class CameraTracker():
         self.roi = roi
 
     def __init_roi__(self, prev_frame):
-        return self.roi.initialize('Camera', prev_frame)
+        return self.roi._ROI__initialize('Camera', prev_frame)
 
     # track the floor
     def track(self, prev_frame, frame, ignored_regions):
@@ -198,7 +221,9 @@ class CameraTracker():
         for x0, xf, y0, yf in ignored_regions:
             mask[y0:yf, x0:xf] = 0
 
-        p_good, aff_params, err = get_affine(prev_frame, frame, self.roi.get_bounds(), mask)
+        p_good, aff_params, err = get_affine(prev_frame, frame,
+                                             self.roi._ROI__get_bounds(),
+                                             mask)
         self.features = p_good[1:]
 
         if err is None:
@@ -254,7 +279,7 @@ class TrackingScenario():
 
         # draw region in which features are detected
         if self.camera_tracker:
-            x0, xf, y0, yf = self.camera_tracker.roi.get_bounds()
+            x0, xf, y0, yf = self.camera_tracker.roi._ROI__get_bounds()
 
             cv2.putText(frame, 'Camera Tracking region', (x0+5, yf-5),
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0, 0, 255), 1,
@@ -273,12 +298,12 @@ class TrackingScenario():
         for otrack in self.object_trackers:
             # TODO: Do this better:
             # alter the blue channel in ant-related pixels
-            window = otrack.roi.crop(frame)
+            window = otrack.roi._ROI__crop(frame)
             window[:, :, 0] = otrack.mask
 
             # draw a point over the roi center and draw bounds
-            x1, x2, y1, y2 = otrack.roi.get_bounds()
-            cv2.circle(frame, otrack.roi.cXY, 5, (255, 255, 255), -1)
+            x1, x2, y1, y2 = otrack.roi._ROI__get_bounds()
+            cv2.circle(frame, otrack.roi._ROI__cXY, 5, (255, 255, 255), -1)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
             cv2.putText(frame, otrack.name, (x1+5, y2-5),
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0, 255, 255), 1,
@@ -356,9 +381,9 @@ class TrackingScenario():
 
         # Track every object and save past and current ROIs
         for otrack in self.object_trackers:
-            roi_array.append(otrack.roi.get_bounds())
+            roi_array.append(otrack.roi._ROI__get_bounds())
             otrack.track(frame)
-            roi_array.append(otrack.roi.get_bounds())
+            roi_array.append(otrack.roi._ROI__get_bounds())
 
         ret, message = self.camera_tracker.track(self.prev_frame, frame, roi_array)
         frame_id = self.iteration_counter + self.first_frame
