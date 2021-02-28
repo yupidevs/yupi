@@ -10,7 +10,7 @@ Welcome to Yupi's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   tracking/tracking
+   reference/reference
 
 
 
