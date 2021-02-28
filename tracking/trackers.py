@@ -23,11 +23,11 @@ class ROI():
     init_mode : str, optional
         Defines the way ROI initial position is setted. (Default is 'manual').
 
-        The `init_mode` parameter can be manual or center. These modes are
-        stored in `ROI.MANUAL_INIT_MODE` and `ROI.CENTER_INIT_MODE`.
+        The ``init_mode`` parameter can be manual or center. These modes are
+        stored in ``ROI.MANUAL_INIT_MODE`` and ``ROI.CENTER_INIT_MODE``.
     scale : float, optional
-        Scale of the sample frame to set ROI initial position if `init_method`
-        is set to `'manual'` (Default is 0.5).
+        Scale of the sample frame to set ROI initial position if
+        ``init_method`` is set to ``'manual'`` (Default is 0.5).
 
     Examples
     --------
@@ -41,7 +41,7 @@ class ROI():
     ValueError
         If one of the size value is grater than 1 and the other is less than 1.
     ValueError
-        If ROI initialization mode is neither 'manual' or 'center'.
+        If ROI initialization mode is neither ``'manual'`` or ``'center'``.
     """
 
     MANUAL_INIT_MODE = 'manual'
