@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import pathlib
 
-VERSION = '0.0.7' 
+VERSION = '0.0.9' 
 BASE = pathlib.Path(__file__).parent
 README = (BASE / "README.md").read_text()
 AUTHORS = 'Gustavo Viera, Alfredo Reyes, Jorge Morgado, Ernesto Altushler'

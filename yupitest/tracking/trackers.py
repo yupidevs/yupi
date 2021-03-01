@@ -1,8 +1,8 @@
 import cv2
 import json
 import numpy as np
-from algorithms import resize_frame
-from affine_estimator import get_affine
+from yupitest.tracking.algorithms import resize_frame
+from yupitest.tracking.affine_estimator import get_affine
 
 
 class ROI():
