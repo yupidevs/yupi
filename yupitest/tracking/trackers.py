@@ -1,7 +1,7 @@
 import cv2
 import json
 import numpy as np
-from yupitest.tracking.algorithms import resize_frame
+from yupitest.tracking.algorithms import Algorithm, resize_frame
 from yupitest.tracking.affine_estimator import get_affine
 
 
@@ -21,13 +21,33 @@ class ROI():
         taken as pixels. Otherwise, if both values are less than 1, the
         size is taken relative to the video frame size.
     init_mode : str, optional
-        Defines the way ROI initial position is setted. (Default is 'manual').
+        ROI's initialization mode. (Default is 'manual').
+
+        Defines the way ROI initial position is setted.
 
         The ``init_mode`` parameter can be manual or center. These modes are
         stored in ``ROI.MANUAL_INIT_MODE`` and ``ROI.CENTER_INIT_MODE``.
     scale : float, optional
         Scale of the sample frame to set ROI initial position if
-        ``init_method`` is set to ``'manual'`` (Default is 0.5).
+        ``init_method`` is set to ``'manual'``. (Default is 0.5).
+
+    Attributes
+    ----------
+    width : float
+        Width of the ROI.
+
+        If the width value is between 0 and 1 then this is taken relative
+        to the frames. Otherwise it is a rounded value and taken as pixels.
+    height : float
+        Height of the ROI.
+
+        If the height value is between 0 and 1 then this is taken relative
+        to the frames. Otherwise it is a rounded value and taken as pixels.
+    init_mode : str
+        ROI's initialization mode.
+    scale : float
+        Scale of the sample frame to set ROI initial position if
+        ``init_method`` is set to ``'manual'``.
 
     Examples
     --------
@@ -109,13 +129,13 @@ class ROI():
         Returns
         -------
         xmin : int
-            Mnimum bound on X axis
+            Mnimum bound on X axis.
         xmax : int
-            Maximun bound on X axis
+            Maximun bound on X axis.
         ymin : int
-            Mnimum bound on Y axis
+            Mnimum bound on Y axis.
         ymax : int
-            Maximum bound on Y axis
+            Maximum bound on Y axis.
         """
 
         cX, cY = self.__cXY
@@ -126,18 +146,18 @@ class ROI():
         ymax = min(cY + half_height, self.__global_heigh)
         return xmin, xmax, ymin, ymax
 
-    def __center_init(self, frame) -> tuple:
+    def __center_init(self, frame: np.ndarray) -> tuple:
         """
-        Initialize ROI using center initialization mode
+        Initialize ROI using center initialization mode.
 
         Parameters:
-        frame : numpy.ndarray
-            Frame used as reference to initialize ROI position at its center
+        frame : np.ndarray
+            Frame used as reference to initialize ROI position at its center.
 
         Returns
         -------
         tuple of int
-            Center of the ROI
+            Center of the ROI.
         """
 
         self.__global_heigh, self.__global_width = frame.shape[:2]
@@ -147,21 +167,21 @@ class ROI():
     # TODO: check for 'win2_name' utility. Maybe it it should be 'ROI' as
     # default so there is no need to pass it as a parameter
     def __manual_init(self, frame: np.ndarray, name: str,
-                      win2_name: str = 'ROI'):
+                      win2_name: str = 'ROI') -> tuple:
         """
-        Initialize ROI using manual initialization mode
+        Initialize ROI using manual initialization mode.
 
         Parameter
         ---------
-        frame : numpy.ndarray
-            Frame used as reference to initialize ROI position manually
+        frame : np.ndarray
+            Frame used as reference to initialize ROI position manually.
         name : str
-            Name of the tracking object
+            Name of the tracking object.
 
         Returns
         -------
         tuple of int
-            Center of the ROI
+            Center of the ROI.
         """
 
         win1_name = 'Click on the center of {} to init roi'.format(name)
@@ -204,21 +224,21 @@ class ROI():
     # TODO: check for 'name' utility. It is only use for the return message
     # I think this method should only return True/False and then handle the
     # error in the tracking scenario
-    def __check_roi_init(self, name: str):
+    def __check_roi_init(self, name: str) -> tuple:
         """
-        Checks for ROI initialization
+        Checks for ROI initialization.
 
         Parameter
         ---------
         name : str
-            Name of the tracking object
+            Name of the tracking object.
 
         Returns
         -------
         bool
-            Whether or not the ROI was initialized
+            Whether or not the ROI is initialized.
         str
-            Information message
+            Information message.
         """
 
         if not self.__prev_cXY[0]:
@@ -228,7 +248,28 @@ class ROI():
             cv2.destroyAllWindows()
             return True, '[INFO] ROI was Initialized (in {})'.format(name)
 
-    def __initialize(self, name: str, first_frame):
+    def __initialize(self, name: str, first_frame: np.ndarray) -> tuple:
+        """
+        Initialize ROI.
+
+        Parameters
+        ----------
+        name : str
+            Name of the tracking object.
+        first_frame : np.ndarray
+            First frame of the video.
+
+            If ROI's initialization mode is set to ``'manual'`` this frame
+            will be shown to select the tracking object center.
+
+        Returns
+        -------
+        bool
+            Whether or not the ROI was initialized.
+        str
+            Information message.
+        """
+
         h, w = first_frame.shape[:2]
         if self.width <= 1:
             self.width *= w
@@ -239,15 +280,27 @@ class ROI():
         if self.init_mode == ROI.MANUAL_INIT_MODE:
             self.__cXY = self.__manual_init(first_frame, name)
             self.__prev_cXY = self.__cXY
-        # TODO: check this. The 'elif' and 'init mode' comprobation where
-        # removed because init mode is checeked on ROI initialization
         else:
             self.__cXY = self.__center_init(first_frame)
             self.__prev_cXY = self.__cXY
 
         return self.__check_roi_init(name)
 
-    def __crop(self, frame):
+    def __crop(self, frame: np.ndarray) -> np.ndarray:
+        """
+        Crops a frame according to the ROI's bounds.
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Frame that will be cropped.
+
+        Returns
+        -------
+        window : np.ndarray
+            Cropped part of the frame.
+        """
+
         self.__global_heigh, self.__global_width = frame.shape[:2]
         # bounds of the roi
         xmin, xmax, ymin, ymax = self.__get_bounds()
@@ -257,23 +310,78 @@ class ROI():
 
 class ObjectTracker():
     """
+    Tracks an object inside a ROI according to an algorithm.
 
+    Parameters
+    ----------
+    name : str
+        Name of the tracked object.
+    algorithm : Algorithm
+        Algorithm used to track the object.
+    roi : ROI
+        Region of interest where the object will be tracked.
+
+    Attributes
+    ----------
+    name : str
+        Name of the tracked object.
+    algorithm : Algorithm
+        Algorithm used to track the object.
+    roi : ROI
+        Region of interest where the object will be tracked.
+    history : list of tuple
+        ROI's position in every frame of the video.
+
+    See Also
+    --------
+    tracking.algorithms
     """
-    def __init__(self, name, method, roi):
+
+    def __init__(self, name: str, algorithm: Algorithm, roi: ROI):
         self.name = name
         self.roi = roi
         self.history = []
-        self.tracking_method = method
+        self.algorithm = algorithm
 
-    def __init_roi__(self, prev_frame):
-        return self.roi._ROI__initialize(self.name, prev_frame)
+    def __init_roi__(self, frame: np.ndarray) -> tuple:
+        """
+        Initialize the ROI.
 
-    def track(self, frame):
+        Parameters
+        ----------
+        frame : np.ndarray
+            Sample frame for ROI initialization.
+
+            This frame will be shown for selecting the tracking object center
+            if ROI's initialization mode is ``'manual'``.
+
+        Returns
+        -------
+        tuple
+            ROI's center position.
+        """
+
+        return self.roi._ROI__initialize(self.name, frame)
+
+    def __track(self, frame: np.ndarray) -> tuple:
+        """
+        Tracks the center of the object.
+
+        Given a new frame, the center of the object inside the ROI is
+        recalculated using the selected algorithm.
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Frame used by the algorithm to detect the tracked object's new
+            center.
+        """
+
         # get only the ROI from the current frame
         window = self.roi._ROI__crop(frame)
 
-        # detect the object using the tracking method
-        self.mask, centroid = self.tracking_method.detect(window)
+        # detect the object using the tracking algorithm
+        self.mask, centroid = self.algorithm.detect(window)
 
         # update the roi center using current ant coordinates
         self.roi._ROI__recenter(centroid)
@@ -464,7 +572,7 @@ class TrackingScenario():
         # Track every object and save past and current ROIs
         for otrack in self.object_trackers:
             roi_array.append(otrack.roi._ROI__get_bounds())
-            otrack.track(frame)
+            otrack._ObjectTracker__track(frame)
             roi_array.append(otrack.roi._ROI__get_bounds())
 
         ret, message = self.camera_tracker.track(self.prev_frame, frame,
