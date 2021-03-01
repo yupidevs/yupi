@@ -1,8 +1,8 @@
 import cv2
 import json
 import numpy as np
-from tracking.algorithms import resize_frame
-from tracking.affine_estimator import get_affine
+from .algorithms import resize_frame
+from .affine_estimator import get_affine
 
 
 class ROI():
