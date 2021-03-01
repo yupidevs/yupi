@@ -10,7 +10,10 @@ Welcome to Yupi's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   getting_started/getting_started
+   examples/examples
    reference/reference
+
 
 
 

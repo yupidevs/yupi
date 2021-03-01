@@ -1,0 +1,1 @@
+include yupitest/cameras/*.npz
