@@ -3,10 +3,10 @@ name = "yupi"
 version = "0.0.1"
 description = "A package for tracking and analysing objects trajectories"
 authors = [
-    "Gustavo Viera",
+    "Gustavo Viera-López <gvieralopez@gmail.com>",
     "Alfredo Reyes <areyes@fisica.uh.cu>",
     "Jorge Morgado <jorge.morgadov@gmail.com>",
-    "Ernesto Altushler"
+    "Ernesto Altushler <ealtshuler@fisica.uh.cu>"
 ]
 license = "MIT"
 readme = "README.md"
