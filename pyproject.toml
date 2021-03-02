@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "yupi"
+version = "0.0.1"
+description = "A package for tracking and analysing objects trajectories"
+authors = [
+    "Gustavo Viera",
+    "Alfredo Reyes <areyes@fisica.uh.cu>",
+    "Jorge Morgado <jorge.morgadov@gmail.com>",
+    "Ernesto Altushler"
+]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+opencv-python = ">=4.4.0"
+numpy = ">=1.16.5"
+nudged = ">=0.3.1"
+matplotlib = ">=3.2.0"
+PyQt5 = "^5.15.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

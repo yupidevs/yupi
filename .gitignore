@@ -148,3 +148,6 @@ videos
 
 # Code editor
 .vscode
+
+# Poetry
+poetry.lock

@@ -1,8 +1,8 @@
 import cv2
 import json
 import numpy as np
-from yupitest.tracking.algorithms import Algorithm, resize_frame
-from yupitest.tracking.affine_estimator import get_affine
+from yupi.tracking.algorithms import Algorithm, resize_frame
+from yupi.tracking.affine_estimator import get_affine
 
 
 class ROI():
@@ -12,8 +12,7 @@ class ROI():
     Region that can be tracked by the algorithms throughout the sequence of
     image frames.
 
-    Parameters
-    ----------
+    Args:
     size : tuple of float
         Size of the region of interest.
 
@@ -89,13 +88,14 @@ class ROI():
         self.scale = scale
         self.__prev_cXY = None, None
         self.__cXY = None, None
+        self.__global_heigh, self.__global_width = None, None
 
     # this repr could change
     def __repr__(self):
         return 'ROI: size=({}, {}) init_mode={} scale={}' \
             .format(self.width, self.heigh, self.init_mode, self.scale)
 
-    def __recenter(self, centroid: tuple) -> tuple:
+    def _recenter(self, centroid: tuple) -> tuple:
         """
         Recenters ROI position.
 
@@ -384,7 +384,7 @@ class ObjectTracker():
         self.mask, centroid = self.algorithm.detect(window)
 
         # update the roi center using current ant coordinates
-        self.roi._ROI__recenter(centroid)
+        self.roi._recenter(centroid)
 
         # update data
         self.history.append(self.roi._ROI__cXY)

@@ -12,8 +12,9 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../yupitest/'))
-sys.path.insert(0, os.path.abspath('../../yupitest/tracking/'))
+sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('../../yupi/'))
+sys.path.insert(0, os.path.abspath('../../yupi/tracking/'))
 
 
 # -- Project information -----------------------------------------------------
@@ -34,6 +35,7 @@ release = '0.0.1'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
+    'sphinx.ext.napoleon',
     'numpydoc',
     'sphinx_rtd_theme'
 ]

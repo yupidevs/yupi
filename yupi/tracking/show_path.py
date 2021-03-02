@@ -2,7 +2,7 @@ import json
 import os.path
 import numpy as np
 import matplotlib.pyplot as plt
-from yupitest.tracking.affine_estimator import affine_matrix
+from yupi.tracking.affine_estimator import affine_matrix
 
 
 def affine2camera(theta, tx, ty):
