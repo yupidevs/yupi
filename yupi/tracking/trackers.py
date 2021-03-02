@@ -12,7 +12,8 @@ class ROI():
     Region that can be tracked by the algorithms throughout the sequence of
     image frames.
 
-    Args:
+    Parameters
+    ----------
     size : tuple of float
         Size of the region of interest.
 
