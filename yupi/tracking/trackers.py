@@ -84,17 +84,17 @@ class ROI():
            init_mode != ROI.MANUAL_INIT_MODE:
             raise ValueError(f"ROI '{init_mode}' initialization mode unknown")
 
-        self.width, self.heigh = size
+        self.width, self.height = size
         self.init_mode = init_mode
         self.scale = scale
         self.__prev_cXY = None, None
         self.__cXY = None, None
-        self.__global_heigh, self.__global_width = None, None
+        self.__global_height, self.__global_width = None, None
 
     # this repr could change
     def __repr__(self):
         return 'ROI: size=({}, {}) init_mode={} scale={}' \
-            .format(self.width, self.heigh, self.init_mode, self.scale)
+            .format(self.width, self.height, self.init_mode, self.scale)
 
     def _recenter(self, centroid: tuple) -> tuple:
         """
@@ -116,7 +116,7 @@ class ROI():
 
         # get the centroid refered to the full image
         cX = self.__prev_cXY[0] - int(self.width/2) + cX_roi
-        cY = self.__prev_cXY[1] - int(self.heigh/2) + cY_roi
+        cY = self.__prev_cXY[1] - int(self.height/2) + cY_roi
 
         self.__cXY = cX, cY
 
@@ -140,11 +140,11 @@ class ROI():
         """
 
         cX, cY = self.__cXY
-        half_width, half_height = int(self.width/2), int(self.heigh/2)
+        half_width, half_height = int(self.width/2), int(self.height/2)
         xmin = max(cX - half_width, 0)
         xmax = min(cX + half_width, self.__global_width)
         ymin = max(cY - half_height, 0)
-        ymax = min(cY + half_height, self.__global_heigh)
+        ymax = min(cY + half_height, self.__global_height)
         return xmin, xmax, ymin, ymax
 
     def _center_init(self, frame: np.ndarray) -> tuple:
@@ -161,8 +161,8 @@ class ROI():
             Center of the ROI.
         """
 
-        self.__global_heigh, self.__global_width = frame.shape[:2]
-        self.__cXY = int(self.__global_width/2), int(self.__global_heigh/2)
+        self.__global_height, self.__global_width = frame.shape[:2]
+        self.__cXY = int(self.__global_width/2), int(self.__global_height/2)
         return self.__cXY
 
     # TODO: check for 'win2_name' utility. Maybe it it should be 'ROI' as
@@ -187,7 +187,7 @@ class ROI():
 
         win1_name = 'Click on the center of {} to init roi'.format(name)
 
-        self.__global_heigh, self.__global_width = frame.shape[:2]
+        self.__global_height, self.__global_width = frame.shape[:2]
 
         frame_ = resize_frame(frame, scale=self.scale)
         cv2.imshow(win1_name, frame_)
@@ -274,8 +274,8 @@ class ROI():
         h, w = first_frame.shape[:2]
         if self.width <= 1:
             self.width *= w
-        if self.heigh <= 1:
-            self.heigh *= h
+        if self.height <= 1:
+            self.height *= h
 
         # Initialize ROI coordinates manually by user input
         if self.init_mode == ROI.MANUAL_INIT_MODE:
@@ -302,7 +302,7 @@ class ROI():
             Cropped part of the frame.
         """
 
-        self.__global_heigh, self.__global_width = frame.shape[:2]
+        self.__global_height, self.__global_width = frame.shape[:2]
         # bounds of the roi
         xmin, xmax, ymin, ymax = self._get_bounds()
         window = frame[ymin:ymax, xmin:xmax, :]
