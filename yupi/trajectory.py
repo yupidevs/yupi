@@ -7,15 +7,11 @@ TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
 
 class Trajectory():
 
-    def __init__(self,
-                 x_arr: np.ndarray,
-                 y_arr: np.ndarray,
-                 z_arr: np.ndarray = None,
-                 time_arr: np.ndarray = None,
-                 theta_arr: np.ndarray = None,
-                 dt: float = None):
+    def __init__(self, x_arr: np.ndarray, y_arr: np.ndarray,
+                 z_arr: np.ndarray = None, time_arr: np.ndarray = None,
+                 theta_arr: np.ndarray = None, dt: float = None):
 
-        if len(x_arr) != len(y_arr):
+        if len(x_arr) != len(y_arr) != len(z_arr):
             # TODO: write error message
             raise ValueError()
 

@@ -120,7 +120,7 @@ class ROI():
 
         self.__cXY = cX, cY
 
-    def __get_bounds(self) -> tuple:
+    def _get_bounds(self) -> tuple:
         """
         ROI's bounds.
 
@@ -147,7 +147,7 @@ class ROI():
         ymax = min(cY + half_height, self.__global_heigh)
         return xmin, xmax, ymin, ymax
 
-    def __center_init(self, frame: np.ndarray) -> tuple:
+    def _center_init(self, frame: np.ndarray) -> tuple:
         """
         Initialize ROI using center initialization mode.
 
@@ -167,7 +167,7 @@ class ROI():
 
     # TODO: check for 'win2_name' utility. Maybe it it should be 'ROI' as
     # default so there is no need to pass it as a parameter
-    def __manual_init(self, frame: np.ndarray, name: str,
+    def _manual_init(self, frame: np.ndarray, name: str,
                       win2_name: str = 'ROI') -> tuple:
         """
         Initialize ROI using manual initialization mode.
@@ -209,7 +209,7 @@ class ROI():
 
                 # get roi in the full size frame
                 cv2.circle(img, self.__cXY, 3, (0, 255, 255), 1)
-                roi = self.__crop(img)
+                roi = self._crop(img)
 
                 # roi padding just to display the new window
                 padL, padR = np.hsplit(np.zeros_like(roi), 2)
@@ -225,7 +225,7 @@ class ROI():
     # TODO: check for 'name' utility. It is only use for the return message
     # I think this method should only return True/False and then handle the
     # error in the tracking scenario
-    def __check_roi_init(self, name: str) -> tuple:
+    def _check_roi_init(self, name: str) -> tuple:
         """
         Checks for ROI initialization.
 
@@ -249,7 +249,7 @@ class ROI():
             cv2.destroyAllWindows()
             return True, '[INFO] ROI was Initialized (in {})'.format(name)
 
-    def __initialize(self, name: str, first_frame: np.ndarray) -> tuple:
+    def _initialize(self, name: str, first_frame: np.ndarray) -> tuple:
         """
         Initialize ROI.
 
@@ -279,15 +279,15 @@ class ROI():
 
         # Initialize ROI coordinates manually by user input
         if self.init_mode == ROI.MANUAL_INIT_MODE:
-            self.__cXY = self.__manual_init(first_frame, name)
+            self.__cXY = self._manual_init(first_frame, name)
             self.__prev_cXY = self.__cXY
         else:
-            self.__cXY = self.__center_init(first_frame)
+            self.__cXY = self._center_init(first_frame)
             self.__prev_cXY = self.__cXY
 
-        return self.__check_roi_init(name)
+        return self._check_roi_init(name)
 
-    def __crop(self, frame: np.ndarray) -> np.ndarray:
+    def _crop(self, frame: np.ndarray) -> np.ndarray:
         """
         Crops a frame according to the ROI's bounds.
 
@@ -304,7 +304,7 @@ class ROI():
 
         self.__global_heigh, self.__global_width = frame.shape[:2]
         # bounds of the roi
-        xmin, xmax, ymin, ymax = self.__get_bounds()
+        xmin, xmax, ymin, ymax = self._get_bounds()
         window = frame[ymin:ymax, xmin:xmax, :]
         return window
 
@@ -332,10 +332,6 @@ class ObjectTracker():
         Region of interest where the object will be tracked.
     history : list of tuple
         ROI's position in every frame of the video.
-
-    See Also
-    --------
-    tracking.algorithms
     """
 
     def __init__(self, name: str, algorithm: Algorithm, roi: ROI):
@@ -344,27 +340,10 @@ class ObjectTracker():
         self.history = []
         self.algorithm = algorithm
 
-    def __init_roi__(self, frame: np.ndarray) -> tuple:
-        """
-        Initialize the ROI.
+    def _init_roi(self, frame: np.ndarray) -> tuple:
+        return self.roi._initialize(self.name, frame)
 
-        Parameters
-        ----------
-        frame : np.ndarray
-            Sample frame for ROI initialization.
-
-            This frame will be shown for selecting the tracking object center
-            if ROI's initialization mode is ``'manual'``.
-
-        Returns
-        -------
-        tuple
-            ROI's center position.
-        """
-
-        return self.roi._ROI__initialize(self.name, frame)
-
-    def __track(self, frame: np.ndarray) -> tuple:
+    def _track(self, frame: np.ndarray) -> tuple:
         """
         Tracks the center of the object.
 
@@ -379,7 +358,7 @@ class ObjectTracker():
         """
 
         # get only the ROI from the current frame
-        window = self.roi._ROI__crop(frame)
+        window = self.roi._crop(frame)
 
         # detect the object using the tracking algorithm
         self.mask, centroid = self.algorithm.detect(window)
@@ -393,17 +372,47 @@ class ObjectTracker():
 
 
 class CameraTracker():
-    """docstring for CameraTracker"""
-    def __init__(self, roi):
+    """
+    Tracks the camera movement.
+
+    Parameters
+    ----------
+    roi : ROI
+        Region of interest where the background changes will be detected.
+
+    Attributes
+    ----------
+    roi : ROI
+        Region of interest where the background changes will be detected.
+    history : list of tuple
+        ROI's position in every frame of the video.
+    """
+
+    def __init__(self, roi: ROI):
         self.history = []
         self.mse = []
         self.roi = roi
 
-    def __init_roi__(self, prev_frame):
-        return self.roi._ROI__initialize('Camera', prev_frame)
+    def _init_roi(self, prev_frame: np.ndarray) -> tuple:
+        return self.roi._initialize('Camera', prev_frame)
 
     # track the floor
-    def track(self, prev_frame, frame, ignored_regions):
+    def _track(self, prev_frame: np.ndarray, frame: np.ndarray,
+              ignored_regions: list) -> tuple:
+        """
+        Tracks the camera movements according to the changing background
+        inside the ROI.
+
+        Parameters
+        ----------
+        prev_frame, frame : np.ndarray
+            Frames used to detect background movement.
+        igonerd_regions : list of tuple
+            Tracked object's boundaries.
+
+            Tracked object's does not form part of the background so they
+            should be ignored.
+        """
         # Initialize a mask of what to track
         h, w = frame.shape[:2]
         mask = 255 * np.ones((h, w), dtype=np.uint8)
@@ -413,7 +422,7 @@ class CameraTracker():
             mask[y0:yf, x0:xf] = 0
 
         p_good, aff_params, err = get_affine(prev_frame, frame,
-                                             self.roi._ROI__get_bounds(),
+                                             self.roi._get_bounds(),
                                              mask)
         self.features = p_good[1:]
 
@@ -470,7 +479,7 @@ class TrackingScenario():
 
         # draw region in which features are detected
         if self.camera_tracker:
-            x0, xf, y0, yf = self.camera_tracker.roi._ROI__get_bounds()
+            x0, xf, y0, yf = self.camera_tracker.roi._get_bounds()
 
             cv2.putText(frame, 'Camera Tracking region', (x0+5, yf-5),
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0, 0, 255), 1,
@@ -489,11 +498,11 @@ class TrackingScenario():
         for otrack in self.object_trackers:
             # TODO: Do this better:
             # alter the blue channel in ant-related pixels
-            window = otrack.roi._ROI__crop(frame)
+            window = otrack.roi._crop(frame)
             window[:, :, 0] = otrack.mask
 
             # draw a point over the roi center and draw bounds
-            x1, x2, y1, y2 = otrack.roi._ROI__get_bounds()
+            x1, x2, y1, y2 = otrack.roi._get_bounds()
             cv2.circle(frame, otrack.roi._ROI__cXY, 5, (255, 255, 255), -1)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
             cv2.putText(frame, otrack.name, (x1+5, y2-5),
@@ -527,13 +536,13 @@ class TrackingScenario():
 
         # Initialize the roi of all the trackers
         for otrack in self.object_trackers:
-            retval, message = otrack.__init_roi__(self.prev_frame)
+            retval, message = otrack._init_roi(self.prev_frame)
             if not retval:
                 return retval, message
 
         # Initialize the region of the camera tracker
         if self.camera_tracker:
-            self.camera_tracker.__init_roi__(self.prev_frame)
+            self.camera_tracker._init_roi(self.prev_frame)
 
         # Increase the iteration counter
         self.iteration_counter += 1
@@ -572,11 +581,11 @@ class TrackingScenario():
 
         # Track every object and save past and current ROIs
         for otrack in self.object_trackers:
-            roi_array.append(otrack.roi._ROI__get_bounds())
-            otrack._ObjectTracker__track(frame)
-            roi_array.append(otrack.roi._ROI__get_bounds())
+            roi_array.append(otrack.roi._get_bounds())
+            otrack._track(frame)
+            roi_array.append(otrack.roi._get_bounds())
 
-        ret, message = self.camera_tracker.track(self.prev_frame, frame,
+        ret, message = self.camera_tracker._track(self.prev_frame, frame,
                                                  roi_array)
         frame_id = self.iteration_counter + self.first_frame
 
