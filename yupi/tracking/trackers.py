@@ -445,6 +445,8 @@ class TrackingScenario():
         self.auto_mode = True
         self.undistorter = undistorter
         self.enabled = True
+        print(self.camera_tracker)
+        print(self.undistorter)
 
     def __digest_video_path(self, video_path):
         # TODO: Validate the path
@@ -586,7 +588,8 @@ class TrackingScenario():
             otrack._track(frame)
             roi_array.append(otrack.roi._get_bounds())
 
-        ret, message = self.camera_tracker._track(self.prev_frame, frame,
+        if self.camera_tracker:
+            ret, message = self.camera_tracker._track(self.prev_frame, frame,
                                                  roi_array)
         frame_id = self.iteration_counter + self.first_frame
 
