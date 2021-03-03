@@ -1,5 +1,5 @@
 import numpy as np
-from yupi.tracking.affine_estimator import affine_matrix
+from yupi.affine_estimator import affine_matrix
 
 def add_dynamic_reference(trajectory, reference, start_in_origin=True):
     """ 

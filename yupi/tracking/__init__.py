@@ -1,4 +1,33 @@
-from yupi.tracking.trackers import *
-from yupi.tracking.affine_estimator import *
-from yupi.tracking.algorithms import *
-from yupi.tracking.undistorters import *
+"""
+Tracking package docstring
+"""
+
+from yupi.tracking.trackers import (
+    ROI,
+    ObjectTracker,
+    CameraTracker,
+    TrackingScenario
+)
+from yupi.tracking.algorithms import (
+    Algorithm,
+    IntensityMatching
+)
+from yupi.tracking.undistorters import (
+    Undistorter,
+    ClassicUndistorter,
+    RemapUndistorter,
+    NoUndistorter
+)
+
+__all__ = [
+    'ROI',
+    'ObjectTracker',
+    'CameraTracker',
+    'TrackingScenario',
+    'Algorithm',
+    'IntensityMatching',
+    'Undistorter',
+    'ClassicUndistorter',
+    'RemapUndistorter',
+    'NoUndistorter'
+]
