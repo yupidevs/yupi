@@ -5,7 +5,8 @@ Tracking
    :maxdepth: 2
    :caption: Contents:
 
-   affine_estimator
    algorithms
    trackers
    undistorters
+
+.. automodule:: tracking

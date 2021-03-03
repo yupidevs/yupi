@@ -15,6 +15,7 @@ import sys
 sys.path.insert(0, os.path.abspath('../../'))
 sys.path.insert(0, os.path.abspath('../../yupi/'))
 sys.path.insert(0, os.path.abspath('../../yupi/tracking/'))
+sys.path.insert(0, os.path.abspath('../../yupi/analyzing/'))
 
 
 # -- Project information -----------------------------------------------------
