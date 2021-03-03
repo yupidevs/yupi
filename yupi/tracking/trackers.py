@@ -2,7 +2,7 @@ import cv2
 import json
 import numpy as np
 from yupi.tracking.algorithms import Algorithm, resize_frame
-from yupi.tracking.affine_estimator import get_affine
+from yupi.affine_estimator import get_affine
 from yupi.trajectory import Trajectory
 from yupi.analyzing.reference import add_dynamic_reference
 
