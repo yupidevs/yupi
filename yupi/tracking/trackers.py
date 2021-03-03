@@ -3,6 +3,7 @@ import json
 import numpy as np
 from yupi.tracking.algorithms import Algorithm, resize_frame
 from yupi.tracking.affine_estimator import get_affine
+from yupi.trajectory import Trajectory
 
 
 class ROI():
@@ -519,7 +520,7 @@ class TrackingScenario():
                         cv2.LINE_AA)
 
         frame = resize_frame(frame)
-        cv2.imshow('PYTANAL processing window', frame)
+        cv2.imshow('yupi processing window', frame)
         # return frame
 
     def __first_iteration__(self, start_in_frame):
@@ -644,6 +645,19 @@ class TrackingScenario():
         with open(data_file_dir, 'w') as json_file:
             json.dump(data, json_file)
 
+    def __export_trajectories__(self):
+        t_list = []
+        for otrack in self.object_trackers:
+            dt = self.fps
+            id = otrack.name
+            x, y = map(list, zip(*otrack.history))
+            x_arr = np.array(x) 
+            y_arr = np.array(y) 
+            t_list.append(Trajectory(x_arr=x_arr, y_arr=y_arr, dt=dt, id=id))
+        return t_list
+
+
+
     def track(self, video_path, start_in_frame=0):
         self.__digest_video_path(video_path)
 
@@ -662,4 +676,5 @@ class TrackingScenario():
 
         self.__release_cap__()
         self.__export_data__()
-        return retval, message
+        tl = self.__export_trajectories__()
+        return retval, message, tl

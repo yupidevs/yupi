@@ -6,9 +6,10 @@ TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
 
 class Trajectory():
 
-    def __init__(self, x_arr: np.ndarray, y_arr: np.ndarray,
+    def __init__(self, x_arr: np.ndarray, y_arr: np.ndarray = None,
                  z_arr: np.ndarray = None, t_arr: np.ndarray = None,
-                 theta_arr: np.ndarray = None, dt: float = None):
+                 theta_arr: np.ndarray = None, dt: float = None, 
+                 id: str = None):
 
         if x_arr is None:
             raise ValueError('Trajectory requires at least one dimension')
@@ -31,6 +32,7 @@ class Trajectory():
         self.t_arr = t_arr
         self.theta_arr = theta_arr
         self.dt = dt
+        self.id = id
 
     def __len__(self):
         return len(self.x_arr)
@@ -47,7 +49,7 @@ class Trajectory():
                 y = self.y_arr[i]
             if not self.z_arr is None:
                 z = self.z_arr[i]
-            if not self.time_arr is None:
+            if not self.t_arr is None:
                 t = self.t_arr[i]
             if not self.theta_arr is None:
                 theta = self.theta_arr[i]

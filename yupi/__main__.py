@@ -12,6 +12,7 @@ if __name__ == '__main__':
     scenario = TrackingScenario([ant], camera, undistorter)
 
     # Track the video using the preconfigured scenario
-    retval, message = scenario.track('videos/video2_short.mp4')
+    retval, message, tl = scenario.track('videos/video2_short.mp4')
     print(message)
+    print(tl)
     # plot_results('videos/video2_short_[0.2min-100.0%].json')
