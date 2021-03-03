@@ -119,14 +119,27 @@ class ROI():
         cX = self.__prev_cXY[0] - int(self.width/2) + cX_roi
         cY = self.__prev_cXY[1] - int(self.height/2) + cY_roi
 
+        cX = min(cX, self.__global_width)
+        cX = max(cX, 0)
+        cY = min(cY, self.__global_height)
+        cY = max(cY, 0)
+       
         self.__cXY = cX, cY
 
-    def _get_bounds(self) -> tuple:
+
+
+
+    def _get_bounds(self, prev: bool = False) -> tuple:
         """
         ROI's bounds.
 
         Calculates the ROI's bounds according to its center, width, height and
         the global bounds.
+
+        Parameters
+        ----------
+        prev : bool
+            Use previous roi center instead of current
 
         Returns
         -------
@@ -139,8 +152,11 @@ class ROI():
         ymax : int
             Maximum bound on Y axis.
         """
+        if prev:
+            cX, cY = self.__prev_cXY
+        else:
+            cX, cY = self.__cXY
 
-        cX, cY = self.__cXY
         half_width, half_height = int(self.width/2), int(self.height/2)
         xmin = max(cX - half_width, 0)
         xmax = min(cX + half_width, self.__global_width)
@@ -288,7 +304,7 @@ class ROI():
 
         return self._check_roi_init(name)
 
-    def _crop(self, frame: np.ndarray) -> np.ndarray:
+    def _crop(self, frame: np.ndarray, prev: bool = False) -> np.ndarray:
         """
         Crops a frame according to the ROI's bounds.
 
@@ -296,6 +312,8 @@ class ROI():
         ----------
         frame : np.ndarray
             Frame that will be cropped.
+        prev : bool
+            Use previous roi center instead of current
 
         Returns
         -------
@@ -305,7 +323,7 @@ class ROI():
 
         self.__global_height, self.__global_width = frame.shape[:2]
         # bounds of the roi
-        xmin, xmax, ymin, ymax = self._get_bounds()
+        xmin, xmax, ymin, ymax = self._get_bounds(prev)
         window = frame[ymin:ymax, xmin:xmax, :]
         return window
 
@@ -357,7 +375,6 @@ class ObjectTracker():
             Frame used by the algorithm to detect the tracked object's new
             center.
         """
-
         # get only the ROI from the current frame
         window = self.roi._crop(frame)
 
@@ -369,7 +386,6 @@ class ObjectTracker():
 
         # update data
         self.history.append(self.roi._ROI__cXY)
-        self.roi._ROI__prev_cXY = self.roi._ROI__cXY
 
 
 class CameraTracker():
@@ -445,8 +461,6 @@ class TrackingScenario():
         self.auto_mode = True
         self.undistorter = undistorter
         self.enabled = True
-        print(self.camera_tracker)
-        print(self.undistorter)
 
     def __digest_video_path(self, video_path):
         # TODO: Validate the path
@@ -501,7 +515,7 @@ class TrackingScenario():
         for otrack in self.object_trackers:
             # TODO: Do this better:
             # alter the blue channel in ant-related pixels
-            window = otrack.roi._crop(frame)
+            window = otrack.roi._crop(frame, prev=True)
             window[:, :, 0] = otrack.mask
 
             # draw a point over the roi center and draw bounds
@@ -599,6 +613,9 @@ class TrackingScenario():
         # display the full image with the ant in blue (TODO: Refactor this to
         # make more general)
         self.show_frame(frame)
+
+        for otrack in self.object_trackers:
+            otrack.roi._ROI__prev_cXY = otrack.roi._ROI__cXY
 
         # save current frame and ROI center as previous for next iteration
         self.prev_frame = frame.copy()
