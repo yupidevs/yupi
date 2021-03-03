@@ -4,10 +4,13 @@ import csv
 from typing import NamedTuple
 from pathlib import Path
 
-TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
+__TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
 
 class Trajectory():
+    """
+    Trajectory class dosctring
+    """
 
     def __init__(self, x_arr: np.ndarray, y_arr: np.ndarray = None,
                  z_arr: np.ndarray = None, t_arr: np.ndarray = None,
@@ -56,7 +59,7 @@ class Trajectory():
                 t = self.t_arr[i]
             if self.theta_arr is not None:
                 theta = self.theta_arr[i]
-            yield TrajectoryPoint(x, y, z, t, theta)
+            yield __TrajectoryPoint(x, y, z, t, theta)
 
     def write(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
