@@ -12,7 +12,7 @@ Welcome to Yupi's documentation!
 
    getting_started/getting_started
    examples/examples
-   reference/reference
+   api_reference/api_reference
 
 
 
