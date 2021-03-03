@@ -8,7 +8,7 @@ if __name__ == '__main__':
     algorithm = IntensityMatching(20, 180, 180)
     ant = ObjectTracker('ant', algorithm, ROI((120, 120)))
     camera = CameraTracker(ROI((.65, .65), ROI.CENTER_INIT_MODE))
-    undistorter = RemapUndistorter('cameras/gph3+1080-60fps-NARROW.npz')
+    undistorter = RemapUndistorter('yupi/cameras/gph3+1080-60fps-NARROW.npz')
     scenario = TrackingScenario([ant], camera, undistorter)
 
     # Track the video using the preconfigured scenario
