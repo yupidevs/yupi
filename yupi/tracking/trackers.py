@@ -4,7 +4,7 @@ import numpy as np
 from yupi.tracking.algorithms import Algorithm, resize_frame
 from yupi.tracking.affine_estimator import get_affine
 from yupi.trajectory import Trajectory
-
+from yupi.analyzing.reference import add_dynamic_reference
 
 class ROI():
     """
@@ -612,53 +612,35 @@ class TrackingScenario():
         self.cap.release()
         cv2.destroyAllWindows()
 
-    def __export_data__(self):
-        # TODO: This function needs to be rewritten to be able to handle more
-        # than 1 object tracker and also to provide more general purpe semantic
-        # information
-        last_frame = self.first_frame + self.iteration_counter
-        percent_video = 100 * last_frame / self.frame_count
-        minutes_video = last_frame / self.fps / 60
 
-        data = {
-            'fps': self.fps,
-            'first_frame': self.first_frame,
-            'last_frame': last_frame,
-            'percent': percent_video,
-            'r_ac': self.object_trackers[0].history,
-            'affine_params': self.camera_tracker.history,
-            'mse': self.camera_tracker.mse
-        }
-        self.__save_data__(data, minutes_video, percent_video)
+    def _tracker2trajectory(self, tracker, pix_per_m):
+        dt = self.fps
+        id = tracker.name
+        x, y = map(list, zip(*tracker.history))
+        x_arr = np.array(x) / pix_per_m
+        y_arr = -1 * np.array(y) / pix_per_m
+        return Trajectory(x_arr=x_arr, y_arr=y_arr, dt=dt, id=id)
 
-    def __save_data__(self, data, minutes=None, percent=None):
-        if not (minutes or percent):
-            progress = ''
-        else:
-            summary = f'{minutes:.1f}min' if minutes else ''
-            summary += '-' if (minutes and percent) else ''
-            summary += f'{percent:.1f}%' if percent else ''
-            progress = '_[{}]'.format(summary)
-
-        data_file_dir = '{}{}.json'.format(self.video_path[:-4], progress)
-
-        with open(data_file_dir, 'w') as json_file:
-            json.dump(data, json_file)
-
-    def __export_trajectories__(self):
+    def __export_trajectories__(self, pix_per_m):
         t_list = []
+        # Extract camera reference
+        if self.camera_tracker:
+            affine_params = np.array(self.camera_tracker.history)
+            theta, tx, ty, _ = affine_params.T
+            tx, ty = tx / pix_per_m, ty / pix_per_m
+            # invert axis
+            theta *= -1
+            ty *= -1
+            reference = theta, tx, ty
+        # Output the trajectory of each tracker
         for otrack in self.object_trackers:
-            dt = self.fps
-            id = otrack.name
-            x, y = map(list, zip(*otrack.history))
-            x_arr = np.array(x) 
-            y_arr = np.array(y) 
-            t_list.append(Trajectory(x_arr=x_arr, y_arr=y_arr, dt=dt, id=id))
+            t = self._tracker2trajectory(otrack, pix_per_m)
+            if self.camera_tracker:
+                t = add_dynamic_reference(t, reference)
+            t_list.append(t)        
         return t_list
 
-
-
-    def track(self, video_path, start_in_frame=0):
+    def track(self, video_path, start_in_frame=0, pix_per_m=1):
         self.__digest_video_path(video_path)
 
         if self.iteration_counter == 0:
@@ -675,6 +657,5 @@ class TrackingScenario():
             retval = True
 
         self.__release_cap__()
-        self.__export_data__()
-        tl = self.__export_trajectories__()
+        tl = self.__export_trajectories__(pix_per_m)
         return retval, message, tl

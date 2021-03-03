@@ -1,6 +1,5 @@
 from tracking.trackers import ROI, ObjectTracker, CameraTracker, TrackingScenario
 from tracking.undistorters import RemapUndistorter
-from tracking.show_path import plot_results
 from tracking.algorithms import IntensityMatching
 from analyzing.visualization import plot_trajectories
 
@@ -13,8 +12,8 @@ if __name__ == '__main__':
     scenario = TrackingScenario([ant], camera, undistorter)
 
     # Track the video using the preconfigured scenario
-    retval, message, tl = scenario.track('videos/video2_short.mp4')
+    retval, message, tl = scenario.track('videos/video2_short.mp4', 
+        pix_per_m=6300)
     print(message)
     print(tl)
     plot_trajectories(tl)
-    # plot_results('videos/video2_short_[0.2min-100.0%].json')
