@@ -62,20 +62,3 @@ def plot_results(file_dir):
     x = x_al - x_al[0]
     y = y_al - y_al[0]
 
-
-    # plotting
-    plt.plot(x, y, '-')
-    plt.plot(x[0], y[0], 'go', mfc='white', zorder=2)
-    plt.plot(x[-1], y[-1], 'ro', mfc='white', zorder=2)
-    plt.plot(x[0], y[0], 'go', mec='g', alpha=.5, label='initial position')
-    plt.plot(x[-1], y[-1], 'ro', mec='r', alpha=.5, label='final position')
-    plt.legend(fontsize=12)
-
-    plt.title('ant position with respect to the lab')
-    plt.tick_params(direction='in', labelsize=12)
-    plt.axis('equal')
-    plt.grid(True)
-    plt.xlabel('x [m]', fontsize=12)
-    plt.ylabel('y [m]', fontsize=12)
-
-    plt.show()
