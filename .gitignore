@@ -142,6 +142,8 @@ cython_debug/
 *.mp4
 videos
 
+# Cameras
+cameras
 
 # Datafiles
 *.json

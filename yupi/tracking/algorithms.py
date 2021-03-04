@@ -7,6 +7,16 @@ def resize_frame(frame, scale=0.5):
     short_frame = cv2.resize(frame, (w_, h_), interpolation=cv2.INTER_AREA)
     return short_frame
 
+
+def change_colorspace(image, color_space):
+    if color_space == 'BGR':
+        return image.copy()
+    if color_space == 'GRAY':
+        return cv2.cvtColor(current_chunk.copy(), cv2.COLOR_BGR2GRAY)
+    if color_space == 'HSV':
+        return cv2.cvtColor(current_chunk.copy(), cv2.COLOR_BGR2HSV)
+
+        
 class Algorithm(metaclass=abc.ABCMeta):
     """docstring for Algorithm"""
     def __init__(self):
@@ -33,7 +43,7 @@ class Algorithm(metaclass=abc.ABCMeta):
 # TODO: Fix this to emulate the previous algorithm including this:
 # ant_ratio = ant_pixels / (roi_width * roi_heigh) # approximate ratio of the ant compare to the roi
 class IntensityMatching(Algorithm):
-    """docstring for ColorMatching"""
+    """docstring for IntensityMatching"""
     def __init__(self, min_val=0, max_val=255, max_pixels=None):
         super(IntensityMatching, self).__init__()
         self.min_val = min_val
@@ -65,6 +75,26 @@ class IntensityMatching(Algorithm):
         # convert the grayscale image to binary image
         return mask, centroid
 
+
+class ColorMatching(Algorithm):
+    """docstring for ColorMatching"""
+    def __init__(self, lower_bound=(0,0,0), upper_bound=(255,255,255), 
+        color_space='BGR', max_pixels=None):
+        super(ColorMatching, self).__init__()
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+        self.color_space = color_space
+        self.max_pixels = max_pixels
+
+    def detect(self, current_chunk, previous_chunk=None):
+
+        # convert image to desired colorspace
+        copied_image = change_colorspace(current_chunk, self.color_space)
+
+        mask = cv2.inRange(copied_image, self.lower_bound, self.upper_bound) 
+        centroid = self.get_centroid(mask)
+        # convert the grayscale image to binary image
+        return mask, centroid
 # TODO: Convert this to Algorithm Class
 
 # def frame_diff_detector(frame1, frame2):
