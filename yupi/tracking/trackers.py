@@ -154,6 +154,7 @@ class ROI():
         ymax : int
             Maximum bound on Y axis.
         """
+
         if prev:
             cX, cY = self.__prev_cXY
         else:
@@ -224,16 +225,21 @@ class ROI():
 
                 # draw a circle in the selected pixel
                 cv2.circle(img_, (x, y), 3, (0, 255, 255), 1)
+                xmin, xmax, ymin, ymax = self._get_bounds()
+                pt1 = (xmin * self.scale, ymin * self.scale)
+                pt2 = (xmax * self.scale, ymax * self.scale)
+                cv2.rectangle(img_, pt1, pt2, (0, 255, 255), 1)
                 cv2.imshow(win1_name, img_)
 
                 # get roi in the full size frame
-                cv2.circle(img, self.__cXY, 3, (0, 255, 255), 1)
-                roi = self._crop(img)
+
+                # cv2.circle(img_, (x, y), 3, (0, 255, 255), 1)
+                # roi = self._crop(img_)
 
                 # roi padding just to display the new window
-                padL, padR = np.hsplit(np.zeros_like(roi), 2)
-                roi_ = np.hstack([padL, roi, padR])
-                cv2.imshow(win2_name, roi_)
+                # padL, padR = np.hsplit(np.zeros_like(roi), 2)
+                # roi_ = np.hstack([padL, roi, padR])
+                # cv2.imshow(win2_name, roi_)
 
                 logging.info('ROI initialized, now press any key to continue')
 
@@ -453,13 +459,15 @@ class CameraTracker():
 
 class TrackingScenario():
     """docstring for TrackingScenario"""
-    def __init__(self, object_trackers, camera_tracker=None, undistorter=None):
+    def __init__(self, object_trackers, camera_tracker=None, undistorter=None,
+                 preview_scale=1):
         self.object_trackers = object_trackers
         self.camera_tracker = camera_tracker
         self.iteration_counter = 0
         self.auto_mode = True
         self.undistorter = undistorter
         self.enabled = True
+        self.preview_scale = preview_scale
 
     def __digest_video_path(self, video_path):
         # TODO: Validate the path
@@ -534,7 +542,7 @@ class TrackingScenario():
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0, 255, 255), 1,
                         cv2.LINE_AA)
 
-        frame = resize_frame(frame)
+        frame = resize_frame(frame, self.preview_scale)
         cv2.imshow('yupi processing window', frame)
         # return frame
 
