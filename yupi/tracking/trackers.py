@@ -226,8 +226,8 @@ class ROI():
                 # draw a circle in the selected pixel
                 cv2.circle(img_, (x, y), 3, (0, 255, 255), 1)
                 xmin, xmax, ymin, ymax = self._get_bounds()
-                pt1 = (xmin * self.scale, ymin * self.scale)
-                pt2 = (xmax * self.scale, ymax * self.scale)
+                pt1 = (int(xmin * self.scale), int(ymin * self.scale))
+                pt2 = (int(xmax * self.scale), int(ymax * self.scale))
                 cv2.rectangle(img_, pt1, pt2, (0, 255, 255), 1)
                 cv2.imshow(win1_name, img_)
 
