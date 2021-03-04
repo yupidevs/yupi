@@ -1,10 +1,12 @@
 import cv2
 import json
 import numpy as np
+import logging
 from yupi.tracking.algorithms import Algorithm, resize_frame
 from yupi.affine_estimator import get_affine
 from yupi.trajectory import Trajectory
 from yupi.analyzing.reference import add_dynamic_reference
+
 
 class ROI():
     """
@@ -84,7 +86,7 @@ class ROI():
         if init_mode != ROI.CENTER_INIT_MODE and \
            init_mode != ROI.MANUAL_INIT_MODE:
             raise ValueError(f"ROI '{init_mode}' initialization mode unknown")
-
+        
         self.width, self.height = size
         self.init_mode = init_mode
         self.scale = scale
@@ -233,7 +235,7 @@ class ROI():
                 roi_ = np.hstack([padL, roi, padR])
                 cv2.imshow(win2_name, roi_)
 
-                print('ROI Initialized, now press any key to continue')
+                logging.info('ROI initialized, now press any key to continue')
 
         cv2.setMouseCallback(win1_name, on_click)
         cv2.waitKey(0)
@@ -242,7 +244,7 @@ class ROI():
     # TODO: check for 'name' utility. It is only use for the return message
     # I think this method should only return True/False and then handle the
     # error in the tracking scenario
-    def _check_roi_init(self, name: str) -> tuple:
+    def _check_roi_init(self, name: str) -> bool:
         """
         Checks for ROI initialization.
 
@@ -255,18 +257,17 @@ class ROI():
         -------
         bool
             Whether or not the ROI is initialized.
-        str
-            Information message.
         """
 
         if not self.__prev_cXY[0]:
-            return False, "[ERROR] ROI was not Initialized " \
-                            "(in {})".format(name)
+            logging.error(f'ROI was not initialized in {name}')
+            return False
         else:
             cv2.destroyAllWindows()
-            return True, '[INFO] ROI was Initialized (in {})'.format(name)
+            logging.info(f'ROI initialized in {name}')
+            return True
 
-    def _initialize(self, name: str, first_frame: np.ndarray) -> tuple:
+    def _initialize(self, name: str, first_frame: np.ndarray) -> bool:
         """
         Initialize ROI.
 
@@ -284,8 +285,6 @@ class ROI():
         -------
         bool
             Whether or not the ROI was initialized.
-        str
-            Information message.
         """
 
         h, w = first_frame.shape[:2]
@@ -359,7 +358,7 @@ class ObjectTracker():
         self.history = []
         self.algorithm = algorithm
 
-    def _init_roi(self, frame: np.ndarray) -> tuple:
+    def _init_roi(self, frame: np.ndarray) -> bool:
         return self.roi._initialize(self.name, frame)
 
     def _track(self, frame: np.ndarray) -> tuple:
@@ -410,12 +409,12 @@ class CameraTracker():
         self.mse = []
         self.roi = roi
 
-    def _init_roi(self, prev_frame: np.ndarray) -> tuple:
+    def _init_roi(self, prev_frame: np.ndarray) -> bool:
         return self.roi._initialize('Camera', prev_frame)
 
     # track the floor
     def _track(self, prev_frame: np.ndarray, frame: np.ndarray,
-              ignored_regions: list) -> tuple:
+              ignored_regions: list) -> bool:
         """
         Tracks the camera movements according to the changing background
         inside the ROI.
@@ -444,12 +443,12 @@ class CameraTracker():
         self.features = p_good[1:]
 
         if err is None:
-            return False, 'No matrix was estimated'
+            return False
 
         self.history.append(aff_params)
         self.mse.append(err)
 
-        return True, 'Camera Tracked'
+        return True
 
 
 class TrackingScenario():
@@ -553,9 +552,9 @@ class TrackingScenario():
 
         # Initialize the roi of all the trackers
         for otrack in self.object_trackers:
-            retval, message = otrack._init_roi(self.prev_frame)
+            retval = otrack._init_roi(self.prev_frame)
             if not retval:
-                return retval, message
+                return retval
 
         # Initialize the region of the camera tracker
         if self.camera_tracker:
@@ -564,7 +563,8 @@ class TrackingScenario():
         # Increase the iteration counter
         self.iteration_counter += 1
 
-        return True, '[INFO] All trackers were initialized'
+        logging.info('All trackers were initialized')
+        return True
 
     def keyboard_controller(self):
         # keyboard events
@@ -588,7 +588,8 @@ class TrackingScenario():
         # detected
         ret, frame = self.cap.read()
         if not ret:
-            return False, '[INFO] All frames were processed.'
+            logging.info('All frames were processed')
+            return False, True
 
         # correct spherical distortion
         frame = self.__undistort__(frame)
@@ -603,12 +604,14 @@ class TrackingScenario():
             roi_array.append(otrack.roi._get_bounds())
 
         if self.camera_tracker:
-            ret, message = self.camera_tracker._track(self.prev_frame, frame,
+            ret = self.camera_tracker._track(self.prev_frame, frame,
                                                  roi_array)
         frame_id = self.iteration_counter + self.first_frame
 
         if not ret:
-            return False, '[Error] {} (Frame {})'.format(message, frame_id)
+            msg = f'CameraTracker - No matrix was estimated (Frame {frame_id})'
+            logging.error(msg)
+            return False, False
 
         # display the full image with the ant in blue (TODO: Refactor this to
         # make more general)
@@ -626,7 +629,7 @@ class TrackingScenario():
         # Increase the iteration counter
         self.iteration_counter += 1
 
-        return True, '[INFO] Frame {} was processed'.format(frame_id)
+        return True, False
 
     def __release_cap__(self):
         self.cap.release()
@@ -663,19 +666,21 @@ class TrackingScenario():
     def track(self, video_path, start_in_frame=0, pix_per_m=1):
         self.__digest_video_path(video_path)
 
+        end = False
         if self.iteration_counter == 0:
-            retval, message = self.__first_iteration__(start_in_frame)
+            retval = self.__first_iteration__(start_in_frame)
             if not retval:
-                return retval, message
+                return retval, None
 
+        logging.info('Processing frames')
         while self.enabled:
-            retval, message = self.__regular_iteration__()
+            retval, end = self.__regular_iteration__()
             if not retval:
                 break
 
-        if message == '[INFO] All frames were processed.':
+        if end:
             retval = True
 
         self.__release_cap__()
         tl = self.__export_trajectories__(pix_per_m)
-        return retval, message, tl
+        return retval, tl
