@@ -7,11 +7,15 @@ def plot_trajectories(trajectories):
     for t in trajectories:
 
         # plotting
-        plt.plot(t.x_arr, t.y_arr, '-')
-        plt.plot(t.x_arr[0], t.y_arr[0], 'go', mfc='white', zorder=2)
-        plt.plot(t.x_arr[-1], t.y_arr[-1], 'ro', mfc='white', zorder=2)
-        plt.plot(t.x_arr[0], t.y_arr[0], 'go', mec='g', alpha=.5, label='{} initial position'.format(t.id))
-        plt.plot(t.x_arr[-1], t.y_arr[-1], 'ro', mec='r', alpha=.5, label='{} final position'.format(t.id))
+        traj_plot = plt.plot(t.x_arr, t.y_arr, '-')
+        color = traj_plot[-1].get_color()
+        plt.plot(t.x_arr[0], t.y_arr[0], 'o', mfc='white', zorder=2,
+                 label=f'{t.id} initial position', color=color)
+        plt.plot(t.x_arr[-1], t.y_arr[-1], 'o', mfc='white', zorder=2,
+                 color=color)
+        plt.plot(t.x_arr[-1], t.y_arr[-1], 'o', alpha=.5,
+                 label=f'{t.id} final position', color=color)
+
         plt.legend(fontsize=12)
 
         plt.title('Trajectories in global coordinates')
@@ -21,4 +25,4 @@ def plot_trajectories(trajectories):
         plt.xlabel('x [m]', fontsize=12)
         plt.ylabel('y [m]', fontsize=12)
 
-        plt.show()
+    plt.show()
