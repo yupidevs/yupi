@@ -55,3 +55,30 @@ class RandomWalk:
 
 
 
+# testing
+if __name__ == '__main__':
+
+    import matplotlib.pyplot as plt
+
+    np.random.seed(0)
+
+    # set parameter values
+    n = 500
+    dim = 2
+    N = 5
+    dt = 1
+    actions = [1, 0, -1]
+    prob = [[.5, .1, .4],
+            [.5, 0, .5]]
+
+    # get RandomWalk object and get position vectors
+    rw = RandomWalk(n, dim, N, dt, actions, prob)
+    r = rw.get_r()
+    x, y = r[:,0,:], r[:,1,:]
+
+    # plotting
+    plt.plot(x, y)
+    plt.axis('equal')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.show()
