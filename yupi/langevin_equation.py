@@ -82,3 +82,16 @@ class LE:
 		return
 
 
+	# simulate the process
+	def simulate(self):
+		# set initial conditions
+		if not self._r0_:
+			self.set_r_init_cond()
+		if not self._v0_:
+			self.set_v_init_cond()
+
+		self.get_noise()  # create the attribute self.noise
+		self.solve_rv()   # solve the Langevin equation
+
+		return self.r, self.v
+
