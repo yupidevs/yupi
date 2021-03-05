@@ -95,3 +95,37 @@ class LE:
 
 		return self.r, self.v
 
+
+
+# testing
+if __name__ == '__main__':
+
+	import matplotlib.pyplot as plt
+
+	np.random.seed(0)
+
+	# set parameter values
+	dim = 2
+	T = 5 * 60
+	dt = .05
+	N = 5
+	tau = 1.	
+
+	kTm = 10
+	scale = np.sqrt(2 * kTm / tau)
+	noise_params = {'pdf_name': 'normal', 'scale': scale}
+
+	# get LE object and get position vectors
+	le = LE(T, tau, noise_params, dim, N, dt)
+	le.set_v_init_cond(scale * np.random.randn(le.N))
+
+	r, v = le.simulate()
+	x, y = r[:,0,:], r[:,1,:]
+
+	# plotting
+	plt.plot(x, y)
+	plt.axis('equal')
+	plt.grid(True)
+	plt.xlabel('x')
+	plt.ylabel('y')
+	plt.show()
