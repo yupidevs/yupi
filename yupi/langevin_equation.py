@@ -68,3 +68,17 @@ class LE:
 		return
 
 
+	# solve Langevin Equation using the numerical method of Euler-Maruyama
+	def solve_rv(self):
+		for i in range(self.n - 1):
+			# solving for position
+			self.r[i + 1] = self.r[i] + \
+							self.v[i] * self.dt
+
+			# solving for velocity
+			self.v[i + 1] = self.v[i] + \
+							-np.dot(1 / self.tau, self.v[i]) * self.dt + \
+							self.noise[i] * np.sqrt(self.dt)
+		return
+
+
