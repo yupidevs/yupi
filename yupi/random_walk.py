@@ -36,3 +36,22 @@ class RandomWalk:
             self.jump_len = np.ones((dim, N))
 
 
+    # compute vector position as a function of time for
+    # all the walkers of the ensemble
+    def get_r(self):
+        # get movements for every space coordinates according 
+        # to the sample space of probabilities in self.actions_prob
+        dr = [np.random.choice(actions, p=p, size=(self.n - 1, self.N)) for p in self.actions_prob]
+        
+        # set time/coordinates as the first/second axis
+        dr = np.swapaxes(dr, 0, 1)
+        
+        # scale displacements according to the jump length statistics
+        dr = dr * self.jump_len
+
+        # integrate displacements to get position vectors
+        self.r[1:] = np.cumsum(dr, axis=0)
+        return self.r
+
+
+
