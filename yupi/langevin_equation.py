@@ -56,3 +56,15 @@ class LE:
 		return
 
 
+	# fill noise array with custom noise properties
+	def get_noise(self):
+		pdf_name = self.noise_params['pdf_name']  # noise PDF
+		scale = self.noise_params['scale']        # scale parameter (not stan. dev.)
+
+		dist = getattr(np.random, pdf_name)
+		noise = dist(scale=scale, size=self.size)
+
+		self.noise = noise
+		return
+
+
