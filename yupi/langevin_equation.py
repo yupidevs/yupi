@@ -34,4 +34,25 @@ class LE:
 		self._v0_ = False                  # True if initial velocities are set by the user
 
 
+	# set initial condition for position vectors
+	def set_r_init_cond(self, r0=None):
+		if r0 is None:
+			self.r[0] = self.r0  # set as default
+		else:
+			self.r[0] = r0       # set by the user
+
+		self._r0_ = True
+		return
+
+
+	# set initial condition for velocity vectors
+	def set_v_init_cond(self, v0=None):
+		if v0 is None:
+			self.v[0] = self.v0  # set as default
+		else:
+			self.v[0] = v0       # set by the user
+
+		self._v0_ = True
+		return
+
 
