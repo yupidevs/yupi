@@ -1,7 +1,7 @@
 import abc
 import cv2
 
-def resize_frame(frame, scale=0.5):
+def resize_frame(frame, scale=1):
     h, w = frame.shape[:2]
     w_, h_ = int(scale * w), int(scale * h)
     short_frame = cv2.resize(frame, (w_, h_), interpolation=cv2.INTER_AREA)
