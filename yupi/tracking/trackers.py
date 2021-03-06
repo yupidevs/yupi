@@ -7,6 +7,7 @@ from yupi.tracking.algorithms import Algorithm, resize_frame
 from yupi.affine_estimator import get_affine
 from yupi.trajectory import Trajectory
 from yupi.analyzing.reference import add_dynamic_reference
+from yupi.tracking.undistorters import Undistorter
 
 
 class ROI():
@@ -346,7 +347,7 @@ class ObjectTracker():
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
-    preprocessing : Callable[[np.ndarray], np.ndarray]
+    preprocessing : Callable[[np.ndarray], np.ndarray], optional
         Preprocessing function aplied to the frame before being used by the
         algorithm 
 
@@ -447,6 +448,11 @@ class CameraTracker():
 
             Tracked object's does not form part of the background so they
             should be ignored.
+
+        Returns
+        -------
+        bool
+            Whether or not good points were found or sucessfully tracked.
         """
         # Initialize a mask of what to track
         h, w = frame.shape[:2]
@@ -471,18 +477,64 @@ class CameraTracker():
 
 
 class TrackingScenario():
-    """docstring for TrackingScenario"""
-    def __init__(self, object_trackers, camera_tracker=None, undistorter=None,
-                 preview_scale=1):
+    """
+    Controls all the tracking process along the video.
+
+    Parameters
+    ----------
+    object_trackers : list
+        Trackers of all the objects.
+    camera_tracker : CameraTracker
+        Tracker used to detect camera movements. (Default is None).
+    undistorter : Undistorter
+        Undistorted used to correct each video frame. (Default is None).
+    preview_scale : float
+        Scale of the video preview. (Default is 1.0).
+    auto_mode : bool
+        If True the video is processed auomtically otherwise it's processed
+        manually. (Default is True).
+
+        If the video is processed manually, pressing ``ENTER`` key is
+        necessary in every frame to continue.
+
+        This mode can be changed in the middle of the processing by pressing
+        ``M`` key.
+
+    Attributes
+    ----------
+    object_trackers : list
+        Trackers of all the objects
+    camera_tracker : CameraTracker
+        Tracker used to detect camera movements.
+    undistorter : Undistorter
+        Undistorted used to correct each video frame.
+    preview_scale : float
+        Scale of the video preview.
+    auto_mode : bool
+        If True the video is processed auomtically otherwise it's processed
+        manually. (Default is True).
+
+        If the video is processed manually, pressing ``Enter`` key is
+        necessary in every frame to continue.
+
+        This mode can be changed in the middle of the processing by pressing
+        ``M`` key.    
+    """
+
+    def __init__(self, object_trackers: list,
+                 camera_tracker: CameraTracker = None,
+                 undistorter: Undistorter = None,
+                 preview_scale: float = 1,
+                 auto_mode: bool = True):
         self.object_trackers = object_trackers
         self.camera_tracker = camera_tracker
-        self.iteration_counter = 0
-        self.auto_mode = True
         self.undistorter = undistorter
-        self.enabled = True
         self.preview_scale = preview_scale
+        self.auto_mode = True
+        self._enabled = True
+        self._iteration_counter = 0
 
-    def __digest_video_path(self, video_path):
+    def _digest_video_path(self, video_path):
         # TODO: Validate the path
         self.video_path = video_path
 
@@ -505,12 +557,12 @@ class TrackingScenario():
 
         self.first_frame = 0
 
-    def __undistort__(self, frame):
+    def _undistort(self, frame):
         if self.undistorter:
             frame = self.undistorter.fix(frame)
         return frame
 
-    def show_frame(self, frame, show_frame_id=True):
+    def _show_frame(self, frame, show_frame_id=True):
         # cXY, region, features, frame_numb, mask
         frame = frame.copy()
 
@@ -548,7 +600,7 @@ class TrackingScenario():
 
         if show_frame_id:
             h, w = frame.shape[:2]
-            frame_id = self.iteration_counter + self.first_frame
+            frame_id = self._iteration_counter + self.first_frame
             x_, y_ = .02, .05
             x, y = int(x_ * w), int(y_ * h)
             cv2.putText(frame, str(frame_id), (x, y),
@@ -559,7 +611,7 @@ class TrackingScenario():
         cv2.imshow('yupi processing window', frame)
         # return frame
 
-    def __first_iteration__(self, start_in_frame):
+    def _first_iteration(self, start_in_frame):
         # Start processing frams at the given index
         if start_in_frame:
             self.first_frame = start_in_frame
@@ -569,7 +621,7 @@ class TrackingScenario():
         ret, prev_frame = self.cap.read()
 
         # correct spherical distortion
-        self.prev_frame = self.__undistort__(prev_frame)
+        self.prev_frame = self._undistort(prev_frame)
 
         # Initialize the roi of all the trackers
         for otrack in self.object_trackers:
@@ -582,12 +634,12 @@ class TrackingScenario():
             self.camera_tracker._init_roi(self.prev_frame)
 
         # Increase the iteration counter
-        self.iteration_counter += 1
+        self._iteration_counter += 1
 
         logging.info('All trackers were initialized')
         return True
 
-    def keyboard_controller(self):
+    def _keyboard_controller(self):
         # keyboard events
         wait_key = 0 if not self.auto_mode else 10
 
@@ -599,12 +651,12 @@ class TrackingScenario():
             self.__export_data__()
 
         elif k == ord('q'):
-            self.enabled = False
+            self._enabled = False
 
         elif k == ord('e'):
             exit()
 
-    def __regular_iteration__(self):
+    def _regular_iteration(self):
         # get current frame and ends the processing when no more frames are
         # detected
         ret, frame = self.cap.read()
@@ -613,7 +665,7 @@ class TrackingScenario():
             return False, True
 
         # correct spherical distortion
-        frame = self.__undistort__(frame)
+        frame = self._undistort(frame)
 
         # ROI Arrays of tracking objects
         roi_array = []
@@ -627,7 +679,7 @@ class TrackingScenario():
         if self.camera_tracker:
             ret = self.camera_tracker._track(self.prev_frame, frame,
                                                  roi_array)
-        frame_id = self.iteration_counter + self.first_frame
+        frame_id = self._iteration_counter + self.first_frame
 
         if not ret:
             msg = f'CameraTracker - No matrix was estimated (Frame {frame_id})'
@@ -636,7 +688,7 @@ class TrackingScenario():
 
         # display the full image with the ant in blue (TODO: Refactor this to
         # make more general)
-        self.show_frame(frame)
+        self._show_frame(frame)
 
         for otrack in self.object_trackers:
             otrack.roi._ROI__prev_cXY = otrack.roi._ROI__cXY
@@ -645,14 +697,14 @@ class TrackingScenario():
         self.prev_frame = frame.copy()
 
         # Call the keyboard controller to handle key interruptions
-        self.keyboard_controller()
+        self._keyboard_controller()
 
         # Increase the iteration counter
-        self.iteration_counter += 1
+        self._iteration_counter += 1
 
         return True, False
 
-    def __release_cap__(self):
+    def _release_cap(self):
         self.cap.release()
         cv2.destroyAllWindows()
 
@@ -665,7 +717,7 @@ class TrackingScenario():
         y_arr = -1 * np.array(y) / pix_per_m
         return Trajectory(x_arr=x_arr, y_arr=y_arr, dt=dt, id=id)
 
-    def __export_trajectories__(self, pix_per_m):
+    def _export_trajectories(self, pix_per_m):
         t_list = []
         # Extract camera reference
         if self.camera_tracker:
@@ -684,24 +736,48 @@ class TrackingScenario():
             t_list.append(t)        
         return t_list
 
-    def track(self, video_path, start_in_frame=0, pix_per_m=1):
-        self.__digest_video_path(video_path)
+    def track(self, video_path: str, start_in_frame: int = 0,
+              pix_per_m: int = 1):
+        """
+        Starts the tracking process.
+
+        Parameters
+        ----------
+        video_path : str
+            Path of the video used to track the objects.
+        start_in_frame : int, optional
+            Initial frame in which starts the processing. (Default is 0)
+        pix_per_m : int, optional
+            Pixel per meters. (Default is 1)
+
+            This value is used to readjuts the trajectories points to a real
+            scale.
+
+        Returns
+        -------
+        bool
+            Whether or not the tracking process ended succefully.
+        list
+            List of all the trajectories extracted in the tracking process.
+        """
+
+        self._digest_video_path(video_path)
 
         end = False
-        if self.iteration_counter == 0:
-            retval = self.__first_iteration__(start_in_frame)
+        if self._iteration_counter == 0:
+            retval = self._first_iteration(start_in_frame)
             if not retval:
                 return retval, None
 
         logging.info('Processing frames')
-        while self.enabled:
-            retval, end = self.__regular_iteration__()
+        while self._enabled:
+            retval, end = self._regular_iteration()
             if not retval:
                 break
 
         if end:
             retval = True
 
-        self.__release_cap__()
-        tl = self.__export_trajectories__(pix_per_m)
-        return retval, tl
+        self._release_cap()
+        trajectories = self._export_trajectories(pix_per_m)
+        return retval, trajectories
