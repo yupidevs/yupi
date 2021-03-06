@@ -2,6 +2,7 @@ import cv2
 import json
 import numpy as np
 import logging
+from typing import Callable
 from yupi.tracking.algorithms import Algorithm, resize_frame
 from yupi.affine_estimator import get_affine
 from yupi.trajectory import Trajectory
@@ -345,7 +346,7 @@ class ObjectTracker():
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
-    preprocessing : func
+    preprocessing : Callable[[np.ndarray], np.ndarray]
         Preprocessing function aplied to the frame before being used by the
         algorithm 
 
@@ -359,13 +360,13 @@ class ObjectTracker():
         Region of interest where the object will be tracked.
     history : list of tuple
         ROI's position in every frame of the video.
-    preprocessing : func
+    preprocessing : Callable[[np.ndarray], np.ndarray]
         Preprocessing function aplied to the frame before being used by the
         algorithm
     """
 
     def __init__(self, name: str, algorithm: Algorithm, roi: ROI,
-                 preprocessing = None):
+                 preprocessing: Callable[[np.ndarray], np.ndarray] = None):
         self.name = name
         self.roi = roi
         self.history = []
