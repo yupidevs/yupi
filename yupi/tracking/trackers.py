@@ -345,6 +345,9 @@ class ObjectTracker():
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
+    preprocessing : func
+        Preprocessing function aplied to the frame before being used by the
+        algorithm 
 
     Attributes
     ----------
@@ -356,13 +359,18 @@ class ObjectTracker():
         Region of interest where the object will be tracked.
     history : list of tuple
         ROI's position in every frame of the video.
+    preprocessing : func
+        Preprocessing function aplied to the frame before being used by the
+        algorithm
     """
 
-    def __init__(self, name: str, algorithm: Algorithm, roi: ROI):
+    def __init__(self, name: str, algorithm: Algorithm, roi: ROI,
+                 preprocessing = None):
         self.name = name
         self.roi = roi
         self.history = []
         self.algorithm = algorithm
+        self.preprocessing = preprocessing
 
     def _init_roi(self, frame: np.ndarray) -> bool:
         return self.roi._initialize(self.name, frame)
@@ -382,6 +390,10 @@ class ObjectTracker():
         """
         # get only the ROI from the current frame
         window = self.roi._crop(frame)
+
+        # Preprocess the image
+        if self.preprocessing is not None:
+            window = self.preprocessing(window)
 
         # detect the object using the tracking algorithm
         self.mask, centroid = self.algorithm.detect(window)
