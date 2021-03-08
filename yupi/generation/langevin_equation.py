@@ -1,5 +1,5 @@
 import numpy as np
-
+from yupi import Trajectory
 
 
 class LE:
@@ -42,18 +42,12 @@ class LE:
 			self.r[0] = r0       # set by the user
 
 		self._r0_ = True
-		return
 
 
 	# set initial condition for velocity vectors
 	def set_v_init_cond(self, v0=None):
-		if v0 is None:
-			self.v[0] = self.v0  # set as default
-		else:
-			self.v[0] = v0       # set by the user
-
+		self.v[0] = self.v0 if v0 is None else v0 # set as default
 		self._v0_ = True
-		return
 
 
 	# fill noise array with custom noise properties
@@ -65,7 +59,6 @@ class LE:
 		noise = dist(scale=scale, size=self.size)
 
 		self.noise = noise
-		return
 
 
 	# solve Langevin Equation using the numerical method of Euler-Maruyama
@@ -79,7 +72,6 @@ class LE:
 			self.v[i + 1] = self.v[i] + \
 							-np.dot(1 / self.tau, self.v[i]) * self.dt + \
 							self.noise[i] * np.sqrt(self.dt)
-		return
 
 
 	# simulate the process
@@ -93,15 +85,17 @@ class LE:
 		self.get_noise()  # create the attribute self.noise
 		self.solve_rv()   # solve the Langevin equation
 
-		return self.r, self.v
+		x, y = self.r[:,0,:], self.r[:,1,:]
+		# return self.r, self.v
+		return Trajectory(x_arr=x, y_arr=y, dt=self.dt,
+                                  id="LangevinSolution")
 
 
 
 # testing
 if __name__ == '__main__':
-
-	import matplotlib.pyplot as plt
-
+	from yupi.analyzing.visualization import plot_trajectories
+	
 	np.random.seed(0)
 
 	# set parameter values
@@ -119,13 +113,5 @@ if __name__ == '__main__':
 	le = LE(T, tau, noise_params, dim, N, dt)
 	le.set_v_init_cond(scale * np.random.randn(le.N))
 
-	r, v = le.simulate()
-	x, y = r[:,0,:], r[:,1,:]
-
-	# plotting
-	plt.plot(x, y)
-	plt.axis('equal')
-	plt.grid(True)
-	plt.xlabel('x')
-	plt.ylabel('y')
-	plt.show()
+	tr = le.simulate()
+	plot_trajectories([tr])
