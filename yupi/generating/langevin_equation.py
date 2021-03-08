@@ -85,10 +85,14 @@ class LE:
 		self.get_noise()  # create the attribute self.noise
 		self.solve_rv()   # solve the Langevin equation
 
-		x, y = self.r[:,0,:], self.r[:,1,:]
-		# return self.r, self.v
-		return Trajectory(x_arr=x, y_arr=y, dt=self.dt,
-                                  id="LangevinSolution")
+		trajs  = []
+
+		for i in range(self.N):
+			x, y = self.r[:,0,i], self.r[:,1,i]
+			trajs.append(Trajectory(x_arr=x, y_arr=y, dt=self.dt,
+                                  id="LangevinSolution {}".format(i+1)))
+
+		return trajs
 
 
 
@@ -114,4 +118,4 @@ if __name__ == '__main__':
 	le.set_v_init_cond(scale * np.random.randn(le.N))
 
 	tr = le.simulate()
-	plot_trajectories([tr])
+	plot_trajectories(tr)

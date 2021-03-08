@@ -1,0 +1,3 @@
+"""
+Generating package docstring
+"""

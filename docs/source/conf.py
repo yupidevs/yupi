@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 sys.path.insert(0, os.path.abspath('../../yupi/'))
 sys.path.insert(0, os.path.abspath('../../yupi/tracking/'))
 sys.path.insert(0, os.path.abspath('../../yupi/analyzing/'))
+sys.path.insert(0, os.path.abspath('../../yupi/generating/'))
 
 
 # -- Project information -----------------------------------------------------
@@ -40,6 +41,8 @@ extensions = [
     # 'numpydoc',
     'sphinx_rtd_theme'
 ]
+autodoc_typehints = 'description'
+add_module_names = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
