@@ -34,7 +34,7 @@ class ROI():
         stored in ``ROI.MANUAL_INIT_MODE`` and ``ROI.CENTER_INIT_MODE``.
     scale : float, optional
         Scale of the sample frame to set ROI initial position if
-        ``init_method`` is set to ``'manual'``. (Default is 0.5).
+        ``init_method`` is set to ``'manual'``. (Default is 1).
 
     Attributes
     ----------
@@ -57,7 +57,7 @@ class ROI():
     Examples
     --------
     >>> ROI((120, 120), ROI.MANUAL_INIT_MODE)
-    ROI: size=(120, 120) init_mode=manual scale=0.5
+    ROI: size=(120, 120) init_mode=manual scale=1
 
     Raises
     ------
@@ -75,7 +75,7 @@ class ROI():
     """Center initialization mode for the ROI"""
 
     def __init__(self, size: tuple, init_mode: str = MANUAL_INIT_MODE,
-                 scale: float = 0.5):
+                 scale: float = 1):
 
         if size[0] <= 0 or size[1] <= 0:
             raise ValueError("ROI's size values must be positives")
