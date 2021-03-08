@@ -12,9 +12,9 @@ def change_colorspace(image, color_space):
     if color_space == 'BGR':
         return image.copy()
     if color_space == 'GRAY':
-        return cv2.cvtColor(current_chunk.copy(), cv2.COLOR_BGR2GRAY)
+        return cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
     if color_space == 'HSV':
-        return cv2.cvtColor(current_chunk.copy(), cv2.COLOR_BGR2HSV)
+        return cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
 
         
 class Algorithm(metaclass=abc.ABCMeta):
