@@ -1,5 +1,5 @@
-Analyzing
-=========
+yupi.analyzing
+==============
 
 .. toctree::
    :maxdepth: 2
