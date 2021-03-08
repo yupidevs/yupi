@@ -1,5 +1,5 @@
-API References
-==============
+API Reference
+=============
 
 .. toctree::
    :maxdepth: 2
@@ -9,4 +9,3 @@ API References
    tracking/tracking
    
 .. automodule:: yupi
-  :members:

@@ -1,5 +1,0 @@
-Algorithms
-==========
-
-.. automodule:: algorithms
-  :members:

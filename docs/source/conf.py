@@ -20,9 +20,9 @@ sys.path.insert(0, os.path.abspath('../../yupi/analyzing/'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Yupi'
-copyright = '2021, Gustavo Viera, Alfredo Reyes, Jorge Morgado, Ernesto Altshuler'
-author = 'Gustavo Viera, Alfredo Reyes, Jorge Morgado, Ernesto Altshuler'
+project = 'yupi'
+copyright = '2021, Gustavo Viera-López, Alfredo Reyes, Jorge Morgado, Ernesto Altshuler'
+author = 'Gustavo Viera-López, Alfredo Reyes, Jorge Morgado, Ernesto Altshuler'
 
 # The full version, including alpha/beta/rc tags
 release = '0.2.1'

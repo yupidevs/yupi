@@ -1,5 +1,0 @@
-Undistorters
-============
-
-.. automodule:: undistorters
-  :members:

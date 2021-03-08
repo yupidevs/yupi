@@ -17,12 +17,9 @@ Standing for Yet Underused Path Instruments, yupi is a set of tools designed for
    api_reference/api_reference
 
 
-
-
-
-Indices and tables
-==================
+Indices
+-------
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
+
