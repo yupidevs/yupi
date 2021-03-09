@@ -12,6 +12,7 @@ Standing for Yet Underused Path Instruments, yupi is a set of tools designed for
    :maxdepth: 2
    :caption: Contents:
 
+   about/about
    getting_started/getting_started
    examples/examples
    api_reference/api_reference
