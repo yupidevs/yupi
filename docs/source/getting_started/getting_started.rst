@@ -18,7 +18,7 @@ We can see from the figure that everything is supposed to work with Trayectory o
 Converting your data into Trajectory objects
 ++++++++++++++++++++++++++++++++++++++++++++
 
-Yupi stores the data using an efficient internal representation based on Numpy arrays. If you already have some trajectory data, convert it to a yupi Trajectory can be done by creating an instance of the class using the expected parameters.  For instance, if you have a bidimensional trajectory sampled at a constant time *dt*. 
+Yupi stores the data using an efficient internal representation based on Numpy arrays. If you already have some trajectory data, convert it to a yupi Trajectory can be done by creating an instance of the class using the expected parameters.  A simple example:
 
 .. code-block:: python
 
