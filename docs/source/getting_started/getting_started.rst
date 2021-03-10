@@ -60,7 +60,7 @@ You can create a TrackingScenario to capture the center of the red ball using:
 Writting and Reading Trajectory objects
 ---------------------------------------
 
-Regardless the source of the Trajectory object, you can store it on disk and later load it for further processing.
+Regardless the source of the Trajectory object, you can save it on disk and later load it for further processing.
 
 Writting Trajectory objects
 +++++++++++++++++++++++++++
@@ -69,8 +69,7 @@ To store your Trajectory object:
 
 .. code-block:: python
 
-   from yupi import Trajectory
-   Writting("Comming Soon")
+   track.save('spiral', file_type='json')
 
 
 Reading Trajectory objects
@@ -81,7 +80,7 @@ To load a previously written Trajectory object:
 .. code-block:: python
 
    from yupi import Trajectory
-   Reading("Comming Soon")
+   track2 = Trajectory.load('spiral.json')
 
 
 Sample analysis of Trajectory objects

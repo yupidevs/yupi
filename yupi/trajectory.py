@@ -4,12 +4,56 @@ import csv
 from typing import NamedTuple
 from pathlib import Path
 
-__TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
+TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
 
 class Trajectory():
     """
-    Trajectory class dosctring
+    Represents a trajectory.
+
+    Parameters
+    ----------
+    x_arr : np.ndarray
+        Array containing position data of X axis.
+    y_arr : np.ndarray
+        Array containing position data of Y axis. (Default is None).
+    z_arr : np.ndarray
+        Array containing position data of X axis. (Default is None).
+    t_arr : np.ndarray
+        Array containing time data. (Default is None).
+    theta_arr : np.ndarray
+        Array containing angle data. (Default is None).
+    dt : float
+        If no time data (``t_arr``) is given this represents the time
+        between each position data value.
+    id : str
+        Id of the trajectory.
+
+    Attributes
+    ----------
+    x_arr : np.ndarray
+        Array containing position data of X axis.
+    y_arr : np.ndarray
+        Array containing position data of Y axis.
+    z_arr : np.ndarray
+        Array containing position data of X axis.
+    t_arr : np.ndarray
+        Array containing time data.
+    theta_arr : np.ndarray
+        Array containing angle data.
+    dt : float
+        If no time data (``t_arr``) is given this represents the time
+        between each position data value.
+    id : str
+        Id of the trajectory.
+
+    Raises
+    ------
+    ValueError
+        If ``x_arr`` is not given.
+    ValueError
+        If all the given position data (``x_arr``, ``y_arr`` and/or ``z_arr``)
+        does not have the same shape.
     """
 
     def __init__(self, x_arr: np.ndarray, y_arr: np.ndarray = None,
@@ -44,6 +88,7 @@ class Trajectory():
         return len(self.x_arr)
 
     def __iter__(self):
+        current_time = 0
         for i in range(len(self)):
 
             x = self.x_arr[i]
@@ -57,12 +102,40 @@ class Trajectory():
                 z = self.z_arr[i]
             if self.t_arr is not None:
                 t = self.t_arr[i]
+            elif self.dt is not None:
+                t = current_time
+                current_time += self.dt
             if self.theta_arr is not None:
                 theta = self.theta_arr[i]
-            yield __TrajectoryPoint(x, y, z, t, theta)
 
-    def write(self, file_name: str, path: str = '.', file_type: str = 'json',
+            yield TrajectoryPoint(x, y, z, t, theta)
+
+    def save(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
+        """
+        Saves a trajectory
+
+        Parameters
+        ----------
+        file_name : str
+            Name of the file.
+        path : str
+            Path where to save the trajectory. (Default is ``'.'``).
+        file_time : str
+            Type of the file. (Default is ``json``).
+
+            The only types avaliable are: ``json`` and ``csv``.
+        overwrite : bool
+            Wheter or not to overwrite the file if it already exists. (Default
+            is True)
+
+        Raises
+        ------        
+        ValueError
+            If ``override`` parameter is ``False`` and the file already exists.
+        ValueError
+            If ``file_type`` is not ``json`` or ``csv``.
+        """
 
         # Contruct full path
         full_path = Path(path) / Path(f'{file_name}.{file_type}')
@@ -100,13 +173,36 @@ class Trajectory():
         else:
             raise ValueError(f"Invalid export file type '{file_type}'")
 
-    def read(file_path: str):
+    @staticmethod
+    def load(file_path: str):
+        """
+        Loads a trajectory
+
+        Parameters
+        ----------
+        file_path : str
+            Path of the trajectory file
+        
+        Returns
+        -------
+        Trajecotry
+            Trajectory loaded.
+
+        Raises
+        ------
+        ValueError
+            If ``file_path`` is a non existing path.
+        ValueError
+            If ``file_path`` is a not a file.
+        ValueError
+            If ``file_path`` extension is not ``json`` or ```csv``.        
+        """
 
         path = Path(file_path)
 
         # Check valid path
         if not path.exists():
-            raise ValueError()
+            raise ValueError('Path does not exist.')
         if not path.is_file():
             raise ValueError("Path must be a file.")
     
@@ -117,14 +213,18 @@ class Trajectory():
 
         with open(file_path, 'r') as f:
             if file_type == '.json':
+                def get_array_data(field_name):
+                    val = data[field_name]
+                    return None if not val else np.array(val)
+
                 data = json.load(f)
                 dt = data['dt']
                 traj_id = data['id']
-                x_arr = np.array(data['x_arr'])
-                y_arr = np.array(data['y_arr'])
-                z_arr = np.array(data['z_arr'])
-                t_arr = np.array(data['t_arr'])
-                theta_arr = np.array(data['theta_arr'])
+                x_arr = get_array_data('x_arr')
+                y_arr = get_array_data('y_arr')
+                z_arr = get_array_data('z_arr')
+                t_arr = get_array_data('t_arr')
+                theta_arr = get_array_data('theta_arr')
                 return Trajectory(x_arr=x_arr, y_arr=y_arr, z_arr=z_arr,
                                   t_arr=t_arr, theta_arr=theta_arr, dt=dt,
                                   id=traj_id)
