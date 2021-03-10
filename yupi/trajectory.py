@@ -213,14 +213,18 @@ class Trajectory():
 
         with open(file_path, 'r') as f:
             if file_type == '.json':
+                def get_array_data(field_name):
+                    val = data[field_name]
+                    return None if not val else np.array(val)
+
                 data = json.load(f)
                 dt = data['dt']
                 traj_id = data['id']
-                x_arr = np.array(data['x_arr'])
-                y_arr = np.array(data['y_arr'])
-                z_arr = np.array(data['z_arr'])
-                t_arr = np.array(data['t_arr'])
-                theta_arr = np.array(data['theta_arr'])
+                x_arr = get_array_data('x_arr')
+                y_arr = get_array_data('y_arr')
+                z_arr = get_array_data('z_arr')
+                t_arr = get_array_data('t_arr')
+                theta_arr = get_array_data('theta_arr')
                 return Trajectory(x_arr=x_arr, y_arr=y_arr, z_arr=z_arr,
                                   t_arr=t_arr, theta_arr=theta_arr, dt=dt,
                                   id=traj_id)
