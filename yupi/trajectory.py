@@ -7,6 +7,7 @@ from pathlib import Path
 TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
 
+
 class Trajectory():
     """
     Represents a trajectory.
@@ -81,9 +82,21 @@ class Trajectory():
         self.z_arr = z_arr
         self.t_arr = t_arr
         self.theta_arr = theta_arr
+
+        if self.x_arr is not None:
+            self.x_arr = np.array(x_arr)
+        if self.y_arr is not None:
+            self.y_arr = np.array(y_arr)
+        if self.z_arr is not None:
+            self.z_arr = np.array(z_arr)
+        if self.t_arr is not None:
+            self.t_arr = np.array(t_arr)
+        if self.theta_arr is not None:
+            self.theta_arr = np.array(theta_arr)
+
         self.dt = dt
         self.id = id
-
+    
     def __len__(self):
         return len(self.x_arr)
 
@@ -213,18 +226,15 @@ class Trajectory():
 
         with open(file_path, 'r') as f:
             if file_type == '.json':
-                def get_array_data(field_name):
-                    val = data[field_name]
-                    return None if not val else np.array(val)
 
                 data = json.load(f)
                 dt = data['dt']
                 traj_id = data['id']
-                x_arr = get_array_data('x_arr')
-                y_arr = get_array_data('y_arr')
-                z_arr = get_array_data('z_arr')
-                t_arr = get_array_data('t_arr')
-                theta_arr = get_array_data('theta_arr')
+                x_arr = data['x_arr']
+                y_arr = data['y_arr']
+                z_arr = data['z_arr']
+                t_arr = data['t_arr']
+                theta_arr = data['theta_arr']
                 return Trajectory(x_arr=x_arr, y_arr=y_arr, z_arr=z_arr,
                                   t_arr=t_arr, theta_arr=theta_arr, dt=dt,
                                   id=traj_id)
@@ -256,11 +266,11 @@ class Trajectory():
                     add_val(t_arr, check_empty_val(row[3]))
                     add_val(theta_arr, check_empty_val(row[4]))
                 
-                x_arr = None if not x_arr else np.array(x_arr)               
-                y_arr = None if not y_arr else np.array(y_arr)
-                z_arr = None if not z_arr else np.array(z_arr)
-                t_arr = None if not t_arr else np.array(t_arr)
-                theta_arr = None if not theta_arr else np.array(theta_arr)
+                x_arr = None if not x_arr else x_arr
+                y_arr = None if not y_arr else y_arr
+                z_arr = None if not z_arr else z_arr
+                t_arr = None if not t_arr else t_arr
+                theta_arr = None if not theta_arr else theta_arr
 
                 return Trajectory(x_arr=x_arr, y_arr=y_arr, z_arr=z_arr,
                                   t_arr=t_arr, theta_arr=theta_arr, dt=dt,
