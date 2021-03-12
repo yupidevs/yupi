@@ -7,13 +7,13 @@ def plot_trajectories(trajectories):
     for t in trajectories:
 
         # plotting
-        traj_plot = plt.plot(t.x_arr, t.y_arr, '-')
+        traj_plot = plt.plot(t.x, t.y, '-')
         color = traj_plot[-1].get_color()
-        plt.plot(t.x_arr[0], t.y_arr[0], 'o', mfc='white', zorder=2,
+        plt.plot(t.x[0], t.y[0], 'o', mfc='white', zorder=2,
                  label=f'{t.id} initial position', color=color)
-        plt.plot(t.x_arr[-1], t.y_arr[-1], 'o', mfc='white', zorder=2,
+        plt.plot(t.x[-1], t.y[-1], 'o', mfc='white', zorder=2,
                  color=color)
-        plt.plot(t.x_arr[-1], t.y_arr[-1], 'o', alpha=.5,
+        plt.plot(t.x[-1], t.y[-1], 'o', alpha=.5,
                  label=f'{t.id} final position', color=color)
 
         plt.legend(fontsize=12)

@@ -39,13 +39,13 @@ def add_dynamic_reference(trajectory, reference, start_in_origin=True):
 
     theta, tx, ty = reference
 
-    x_al, y_al = affine2obj(theta, tx, ty, trajectory.x_arr, trajectory.y_arr)
+    x_al, y_al = affine2obj(theta, tx, ty, trajectory.x, trajectory.y)
     
     if start_in_origin:
         x_al = x_al - x_al[0]
         y_al = y_al - y_al[0]
 
-    trajectory.x_arr = x_al
-    trajectory.y_arr = y_al
+    trajectory.x = x_al
+    trajectory.y = y_al
 
     return trajectory

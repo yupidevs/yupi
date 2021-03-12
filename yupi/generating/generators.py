@@ -66,7 +66,7 @@ class RandomWalkGenerator(Generator):
             x = r[:,0,i]
             y = r[:,1,i] if self.dim > 1 else None
             z = r[:,2,i] if self.dim > 2 else None
-            trajs.append(Trajectory(x_arr=x, y_arr=y, z_arr=z, dt=self.dt,
+            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt,
                                   id="Random Walker {}".format(i+1)))
         return trajs
 
@@ -132,7 +132,7 @@ class LangevinGenerator(Generator):
             x = self.r[:,0,i]
             y = self.r[:,1,i] if self.dim > 1 else None
             z = self.r[:,2,i] if self.dim > 2 else None
-            trajs.append(Trajectory(x_arr=x, y_arr=y, z_arr=z, dt=self.dt,
+            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt,
                                   id="LangevinSolution {}".format(i+1)))
         return trajs
 
