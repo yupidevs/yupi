@@ -715,7 +715,7 @@ class TrackingScenario():
         x, y = map(list, zip(*tracker.history))
         x_arr = np.array(x) / pix_per_m
         y_arr = -1 * np.array(y) / pix_per_m
-        return Trajectory(x_arr=x_arr, y_arr=y_arr, dt=dt, id=id)
+        return Trajectory(x=x_arr, y=y_arr, dt=dt, id=id)
 
     def _export_trajectories(self, pix_per_m):
         t_list = []
