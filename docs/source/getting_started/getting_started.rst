@@ -27,7 +27,7 @@ Yupi stores the data using an efficient internal representation based on Numpy a
    x = [0, 1.0, 0.63, -0.37, -1.24, -1.5, -1.08, -0.19, 0.82, 1.63, 1.99, 1.85]
    y = [0, 0, 0.98, 1.24, 0.69, -0.3, -1.23, -1.72, -1.63, -1.01, -0.06, 0.94]
 
-   track = Trajectory(x_arr=x, y_arr=y, id="Spiral")
+   track = Trajectory(x=x, y=y, id="Spiral")
 
 
 Generating artificial Trajectory objects
