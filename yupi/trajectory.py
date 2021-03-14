@@ -409,7 +409,7 @@ class Trajectory():
     # get the mean of the pairwise dot product for velocity
     # vectors for a given trajectory to be used in VACF
     def get_vacf_traj(self, time_avg=True, lag=None):
-        self.get_jumps(self, v=True)
+        self.get_jumps(v=True)
         vx, vy = self.vx, self.vy 
 
         # ensemble average
@@ -432,6 +432,6 @@ class Trajectory():
     # velocity autocorrelation function
     @classmethod
     def get_vacf(cls, time_avg=True, lag=None):
-        v1v2 = [cls.get_vacf_traj(traj, time_avg, lag) for traj in cls.trajs]
+        v1v2 = [traj.get_vacf_traj(time_avg, lag) for traj in cls.trajs]
         vacf = np.transpose(v1v2)
         return vacf
