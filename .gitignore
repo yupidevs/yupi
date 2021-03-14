@@ -139,7 +139,6 @@ cython_debug/
 
 
 # Videos
-*.mp4
 videos
 
 # Cameras
