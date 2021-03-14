@@ -3,6 +3,7 @@ import json
 import csv
 from typing import NamedTuple
 from pathlib import Path
+import scipy.stats
 
 TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
@@ -368,3 +369,37 @@ class Trajectory():
         msd = np.transpose(dr2)
         return msd
 
+
+    # get displacements for ensemble average and
+    # kurtosis for time average
+    def get_kurtosis_traj(self, time_avg=True, lag=None):
+        # ensemble average
+        if not time_avg:
+            dx = self.x - self.x[0]
+            dy = self.y - self.y[0]
+            dr = np.sqrt(dx**2 + dy**2)
+            return dr
+
+        # time average
+        else:
+            kurt = np.empty(lag)
+            for lag_ in range(1, lag + 1):
+                dx = self.x[lag_:] - self.x[:-lag_]
+                dy = self.y[lag_:] - self.y[:-lag_]
+                dr = np.sqrt(dx**2 + dy**2)
+
+                kurt[lag_ - 1] = scipy.stats.kurtosis(dr, fisher=False)
+        
+            return kurt
+
+
+    @classmethod
+    def get_kurtosis(cls, time_avg=True, lag=None):
+        dr_k = [cls.get_kurtosis_traj(traj, time_avg, lag) for traj in cls.trajs]
+
+        if not time_avg:
+            kurtosis = scipy.stats.kurtosis(dr_k, axis=0, fisher=False)
+        else:
+            kurtosis = np.mean(dr_k, axis=0)
+
+        return kurtosis
