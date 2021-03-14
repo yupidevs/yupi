@@ -13,12 +13,12 @@ With yupi you can handle trajectory data in many different ways. You can generat
 Creating Trajectory objects
 ---------------------------
 
-We can see from the figure that everything is supposed to work with Trayectory objects. There are 3 different ways to construct this kind of object and next we are going to cover them all.
+We can see from the figure that everything is supposed to work with :py:class:`~yupi.Trajectory` objects. There are 3 different ways to construct this kind of object and next we are going to cover them all.
 
 Converting your data into Trajectory objects
 ++++++++++++++++++++++++++++++++++++++++++++
 
-Yupi stores the data using an efficient internal representation based on Numpy arrays. If you already have some trajectory data, convert it to a yupi Trajectory can be done by creating an instance of the class using the expected parameters.  A simple example:
+Yupi stores the data using an efficient internal representation based on Numpy arrays. If you already have some trajectory data, convert it to a yupi :py:class:`~yupi.Trajectory` can be done by creating an instance of the class using the expected parameters.  A simple example:
 
 .. code-block:: python
 
@@ -33,7 +33,7 @@ Yupi stores the data using an efficient internal representation based on Numpy a
 Generating artificial Trajectory objects
 ++++++++++++++++++++++++++++++++++++++++
 
-If you want to generate Trajectory objects based on some statistical constrains, you can use a Generator to construct a list of Trajectory objects:
+If you want to generate :py:class:`~yupi.Trajectory` objects based on some statistical constrains, you can use a Generator to construct a list of :py:class:`~yupi.Trajectory` objects:
 
 .. code-block:: python
 
@@ -85,17 +85,17 @@ You can exploit this fact to capture the whole trajectory using a yupi script li
    # Track the video using the preconfigured scenario
    retval, tl = scenario.track('resources/videos/demo.avi', pix_per_m=10)
 
-The value of tl, will contain a list of all the Trajectory objects the TrackingScenario tracked among all the frames of the video. In this case, the list will contain only one object describing the trajectory of the blue ball in the video.
+The value of ``tl``, will contain a list of all the :py:class:`~yupi.Trajectory` objects the :py:class:`~tracking.trackers.TrackingScenario` tracked among all the frames of the video. In this case, the list will contain only one object describing the trajectory of the blue ball in the video.
 
 Writting and Reading Trajectory objects
 ---------------------------------------
 
-Regardless the source of the Trajectory object, you can save it on disk and later load it for further processing.
+Regardless the source of the :py:class:`~yupi.Trajectory` object, you can save it on disk and later load it for further processing.
 
 Writting Trajectory objects
 +++++++++++++++++++++++++++
 
-To store your Trajectory object, for instance the same we build at the begining, you only need to call the save method as in:
+To store your :py:class:`~yupi.Trajectory` object, for instance the same we build at the begining, you only need to call the :py:class:`~yupi.Trajectory.save` method as in:
 
 .. code-block:: python
 
@@ -105,7 +105,7 @@ To store your Trajectory object, for instance the same we build at the begining,
 Reading Trajectory objects
 ++++++++++++++++++++++++++
 
-To load a previously written Trajectory object:
+To :py:class:`~yupi.Trajectory.load` a previously written :py:class:`~yupi.Trajectory` object:
 
 .. code-block:: python
 
@@ -116,7 +116,7 @@ To load a previously written Trajectory object:
 Sample analysis of Trajectory objects
 -------------------------------------
 
-There are several tools you can use to analyze Trajectory objects. The most basic one is the plot of the trajectories in the space. If you have a list of Trajectory objects, like the ones you get from a generator, you can plot them with:
+There are several tools you can use to analyze :py:class:`~yupi.Trajectory` objects. The most basic one is the plot of the trajectories in the space. If you have a list of :py:class:`~yupi.Trajectory` objects, like the ones you get from a generator, you can plot them with:
 
 
 .. code-block:: python
