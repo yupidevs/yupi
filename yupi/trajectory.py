@@ -275,3 +275,13 @@ class Trajectory():
                 return Trajectory(x=x, y=y, z=z,
                                   t=t, theta=theta, dt=dt,
                                   id=traj_id)
+
+
+    # create a copy instance that is sampled at step increments
+    def sample_traj(self, step=1, step_in_seconds=False):
+        if step_in_seconds:
+            step = int(step / self.dt)
+        x = self.x[::step]
+        y = self.y[::step]
+        traj = Trajectory(x, y, dt=step*self.dt)
+        return traj
