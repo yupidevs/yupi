@@ -33,12 +33,28 @@ Yupi stores the data using an efficient internal representation based on Numpy a
 Generating artificial Trajectory objects
 ++++++++++++++++++++++++++++++++++++++++
 
-If you want to generate Trajectory objects based on some statistical constrains, you can use a Generator:
+If you want to generate Trajectory objects based on some statistical constrains, you can use a Generator to construct a list of Trajectory objects:
 
 .. code-block:: python
 
-   from yupi import Trajectory
-   Generators('Comming Soon')
+   from yupi.generating import LangevinGenerator
+
+   # Define general Generator parameter values
+   N = 3           # Number of trajectories
+   dim = 2         # Number of dimensions
+   T = 5 * 60      # Total simulation time
+   dt = .05        # Time step
+
+   # Define model-specific Generator values
+   tau = 1.	
+   scale = 4.5
+   pdf_name = 'normal'
+
+   # Create the Generator object
+   le = LangevinGenerator(T, dim, N, dt, tau, pdf_name, scale)
+
+   # Generate the trajectories
+   tr = le.generate()
 
 
 Extracting Trajectory objects from videos
@@ -65,7 +81,7 @@ Regardless the source of the Trajectory object, you can save it on disk and late
 Writting Trajectory objects
 +++++++++++++++++++++++++++
 
-To store your Trajectory object:
+To store your Trajectory object, for instance the same we build at the begining, you only need to call the save method as in:
 
 .. code-block:: python
 
@@ -86,7 +102,14 @@ To load a previously written Trajectory object:
 Sample analysis of Trajectory objects
 -------------------------------------
 
-coming soon...
+There are several tools you can use to analyze Trajectory objects. The most basic one is the plot of the trajectories in the space. If you have a list of Trajectory objects, like the ones you get from a generator, you can plot them with:
+
+
+.. code-block:: python
+
+   from yupi.analyzing import plot_trajectories
+   plot_trajectories(tr)
+
 
 .. toctree::
    :maxdepth: 2
