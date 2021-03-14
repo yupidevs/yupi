@@ -62,11 +62,13 @@ Extracting Trajectory objects from videos
 
 There are several methods to discern the position of an object through the frames. If your input is a video where the color of the object you want to track is quite different from everything else, like this one:
 
-.. .. video:: /images/demo.avi
-..    :width: 500
-..    :height: 500
-..    :autoplay:
-..    :nocontrols:
+.. raw:: html
+
+   <center>
+   <video width="400" controls>   
+      <source src="../_static/demo.mp4" type="video/mp4">
+   </video>
+   </center>
 
 You can exploit this fact to capture the whole trajectory using a yupi script like:
 
