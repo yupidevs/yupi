@@ -27,7 +27,7 @@ Yupi stores the data using an efficient internal representation based on Numpy a
    x = [0, 1.0, 0.63, -0.37, -1.24, -1.5, -1.08, -0.19, 0.82, 1.63, 1.99, 1.85]
    y = [0, 0, 0.98, 1.24, 0.69, -0.3, -1.23, -1.72, -1.63, -1.01, -0.06, 0.94]
 
-   track = Trajectory(x_arr=x, y_arr=y, id="Spiral")
+   track = Trajectory(x=x, y=y, id="Spiral")
 
 
 Generating artificial Trajectory objects
@@ -60,18 +60,30 @@ If you want to generate Trajectory objects based on some statistical constrains,
 Extracting Trajectory objects from videos
 +++++++++++++++++++++++++++++++++++++++++
 
-If your input data is a video like this one:
+There are several methods to discern the position of an object through the frames. If your input is a video where the color of the object you want to track is quite different from everything else, like this one:
 
-VIDEO SHOWN HERE
+.. .. video:: /images/demo.avi
+..    :width: 500
+..    :height: 500
+..    :autoplay:
+..    :nocontrols:
 
-You can create a TrackingScenario to capture the center of the red ball using:
+You can exploit this fact to capture the whole trajectory using a yupi script like:
 
 .. code-block:: python
 
-   from yupi import Trajectory
-   TrackingScenario('Comming Soon')
+   from yupi.tracking import ROI, ObjectTracker, TrackingScenario
+   from yupi.tracking import ColorMatching
 
+   # Initialize main tracking objects
+   algorithm = ColorMatching((180,125,35), (190,135,45))
+   blue_ball = ObjectTracker('blue', algorithm, ROI((100, 100)))
+   scenario = TrackingScenario([blue_ball])
 
+   # Track the video using the preconfigured scenario
+   retval, tl = scenario.track('resources/videos/demo.avi', pix_per_m=10)
+
+The value of tl, will contain a list of all the Trajectory objects the TrackingScenario tracked among all the frames of the video. In this case, the list will contain only one object describing the trajectory of the blue ball in the video.
 
 Writting and Reading Trajectory objects
 ---------------------------------------
