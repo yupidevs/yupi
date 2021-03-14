@@ -359,3 +359,12 @@ class Trajectory():
                 dr_n[lag_ - 1] = np.mean(dx_n + dy_n)
         
         return dr_n
+
+
+    # mean square displacement
+    @classmethod
+    def get_msd(cls, time_avg=True, lag=None):
+        dr2 = [cls.get_dr_n(traj, time_avg, lag, order=2) for traj in cls.trajs]
+        msd = np.transpose(dr2)
+        return msd
+
