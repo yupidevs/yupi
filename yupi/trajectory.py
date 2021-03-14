@@ -320,3 +320,19 @@ class Trajectory():
             raise ValueError("wrapper must be one of '-pipi', or '02pi' (got {})".format(wrapper))
         
         return theta
+
+
+    # relative and cumulative turning angles
+    def turning_angles(self, accumulate=False, 
+                        degrees=False, wrapper='-pipi'):
+        dx = np.ediff1d(self.x)
+        dy = np.ediff1d(self.y)
+        theta = np.arctan2(dy, dx)
+
+        if not accumulate:
+            theta = np.ediff1d(theta)  # relative turning angles
+        else:
+            theta -= theta[0]          # cumulative turning angles
+
+        theta = self.wrap(theta, degrees, wrapper)
+        return theta
