@@ -285,3 +285,22 @@ class Trajectory():
         y = self.y[::step]
         traj = Trajectory(x, y, dt=step*self.dt)
         return traj
+
+    
+    # set jump length / velocity attributes
+    def get_jumps(self, v=False):
+        dx = np.ediff1d(self.x)
+        dy = np.ediff1d(self.y)
+        dr = np.sqrt(dx**2 + dy**2)
+        jumps = np.array([dx, dy, dr])
+
+        if not v:
+            attr = ['dx', 'dy', 'dr']
+        else:
+            attr = ['vx', 'vy', 'v']
+            jumps /= self.dt
+
+        for i in range(3):
+            setattr(self, attr[i], jumps[i])
+        
+        return self
