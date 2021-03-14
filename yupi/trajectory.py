@@ -290,6 +290,7 @@ class Trajectory():
         x = self.x[::step]
         y = self.y[::step]
         traj = Trajectory(x, y, dt=step*self.dt)
+        Trajectory.trajs.pop(-1)
         return traj
 
     
