@@ -57,6 +57,9 @@ class Trajectory():
         does not have the same shape.
     """
 
+    # class variable to store all Trajecory objects
+    trajs = []
+
     def __init__(self, x: np.ndarray, y: np.ndarray = None,
                  z: np.ndarray = None, t: np.ndarray = None,
                  theta: np.ndarray = None, dt: float = None, 
@@ -96,6 +99,8 @@ class Trajectory():
 
         self.dt = dt
         self.id = id
+
+        Trajectory.trajs.append(self)
     
     def __len__(self):
         return len(self.x)
