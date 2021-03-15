@@ -278,11 +278,8 @@ class Trajectory():
                 return Trajectory(x=x, y=y, z=z,
                                   t=t, theta=theta, dt=dt,
                                   id=traj_id)
-
-
-
-
-    
+                                  
+                                     
     # set jump length / velocity attributes
     def get_jumps(self, v=False):
         dx = np.ediff1d(self.x)
@@ -300,22 +297,6 @@ class Trajectory():
             setattr(self, attr[i], jumps[i])
         
         return self
-
-
-    # wrap angles in the interval [0,2pi] or [-pi,pi]
-    @staticmethod
-    def wrap(theta, degrees=False, wrapper='-pipi'):
-        discont = 360 if degrees else 2 * np.pi
-
-        if wrapper == '02pi':
-            theta = theta % discont
-        elif wrapper == '-pipi':
-            discont_half = discont / 2
-            theta = -((discont_half - theta) % discont - discont_half)
-        else:
-            raise ValueError("wrapper must be one of '-pipi', or '02pi' (got {})".format(wrapper))
-        
-        return theta
 
 
     # relative and cumulative turning angles

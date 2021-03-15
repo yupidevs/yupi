@@ -51,6 +51,7 @@ def add_dynamic_reference(trajectory, reference, start_in_origin=True):
 
     return trajectory
 
+
 def subsample_trajectory(trajectory, step=1, step_in_seconds=False):
     if step_in_seconds:
         step = int(step / trajectory.dt)
@@ -61,3 +62,13 @@ def subsample_trajectory(trajectory, step=1, step_in_seconds=False):
     t = trajectory.t[::step] if trajectory.t is not None else None
     traj = Trajectory(x, y, z, t, theta, dt=step*trajectory.dt)
     return traj
+
+
+# wrap angles in the interval [0,2pi] or [-pi,pi]
+def wrap_theta(theta, degrees=False, centered=False):
+    discont = 360 if degrees else 2 * np.pi
+    if not centered:
+        return theta % discont
+    else:
+        discont_half = discont / 2
+        return -((discont_half - theta) % discont - discont_half)
