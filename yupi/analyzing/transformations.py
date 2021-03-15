@@ -87,3 +87,24 @@ def estimate_turning_angles(trajectory, accumulate=False,
         theta -= theta[0]          # cumulative turning angles
 
     return wrap_theta(theta, degrees, centered)
+
+
+# mean square displacement
+# TODO: Fix this implementation for dim != 2 Traj
+def get_msd(trajectories, time_avg=True, lag=None):
+    dr2 = []
+    for trajectory in trajectories:
+        # ensemble average
+        if not time_avg:
+            dx_n = (trajectory.x - trajectory.x[0])**2
+            dy_n = (trajectory.y - trajectory.y[0])**2
+            dr_n = (dx_n + dy_n)
+        # time average
+        else:
+            dr_n = np.empty(lag)
+            for lag_ in range(1, lag + 1):
+                dx_n = (trajectory.x[lag_:] - trajectory.x[:-lag_])**2
+                dy_n = (trajectory.y[lag_:] - trajectory.y[:-lag_])**2
+                dr_n[lag_ - 1] = np.mean(dx_n + dy_n)    
+        dr2.append(dr_n)
+    return np.transpose(dr2)

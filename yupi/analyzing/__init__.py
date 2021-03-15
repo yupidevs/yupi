@@ -6,7 +6,8 @@ from yupi.analyzing.transformations import (
     add_dynamic_reference,
     subsample_trajectory,
     wrap_theta,
-    estimate_turning_angles
+    estimate_turning_angles,
+    get_msd
 )
 from yupi.analyzing.visualization import plot_trajectories
 
@@ -15,5 +16,6 @@ __all__ = [
     'plot_trajectories',
     'subsample_trajectory',
     'wrap_theta',
-    'estimate_turning_angles'
+    'estimate_turning_angles',
+    'get_msd'
 ]

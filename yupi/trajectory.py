@@ -329,32 +329,6 @@ class Trajectory():
         return self.get_diff()/self.dt
 
 
-    # get displacements to the n-th order
-    def get_dr_n(self, time_avg=True, lag=None, order=2):
-        # ensemble average
-        if not time_avg:
-            dx_n = (self.x - self.x[0])**order
-            dy_n = (self.y - self.y[0])**order
-            dr_n = (dx_n + dy_n)**(order / 2)
-        # time average
-        else:
-            dr_n = np.empty(lag)
-            for lag_ in range(1, lag + 1):
-                dx_n = (self.x[lag_:] - self.x[:-lag_])**order
-                dy_n = (self.y[lag_:] - self.y[:-lag_])**order
-                dr_n[lag_ - 1] = np.mean(dx_n + dy_n)
-        
-        return dr_n
-
-
-    # mean square displacement
-    @classmethod
-    def get_msd(cls, time_avg=True, lag=None):
-        dr2 = [cls.get_dr_n(traj, time_avg, lag, order=2) for traj in cls.trajs]
-        msd = np.transpose(dr2)
-        return msd
-
-
     # get displacements for ensemble average and
     # kurtosis for time average
     def get_kurtosis_traj(self, time_avg=True, lag=None):
