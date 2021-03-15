@@ -72,3 +72,18 @@ def wrap_theta(theta, degrees=False, centered=False):
     else:
         discont_half = discont / 2
         return -((discont_half - theta) % discont - discont_half)
+
+
+# relative and cumulative turning angles
+def estimate_turning_angles(trajectory, accumulate=False, 
+                    degrees=False, centered=False):
+    dx = trajectory.get_x_diff()
+    dy = trajectory.get_y_diff()
+    theta = np.arctan2(dy, dx)
+
+    if not accumulate:
+        theta = np.ediff1d(theta)  # relative turning angles
+    else:
+        theta -= theta[0]          # cumulative turning angles
+
+    return wrap_theta(theta, degrees, centered)

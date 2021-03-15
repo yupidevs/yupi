@@ -328,21 +328,6 @@ class Trajectory():
     def get_velocity(self):
         return self.get_diff()/self.dt
 
-    # relative and cumulative turning angles
-    def turning_angles(self, accumulate=False, 
-                        degrees=False, wrapper='-pipi'):
-        dx = np.ediff1d(self.x)
-        dy = np.ediff1d(self.y)
-        theta = np.arctan2(dy, dx)
-
-        if not accumulate:
-            theta = np.ediff1d(theta)  # relative turning angles
-        else:
-            theta -= theta[0]          # cumulative turning angles
-
-        theta = self.wrap(theta, degrees, wrapper)
-        return theta
-
 
     # get displacements to the n-th order
     def get_dr_n(self, time_avg=True, lag=None, order=2):
