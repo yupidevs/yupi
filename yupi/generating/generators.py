@@ -129,20 +129,17 @@ class LangevinGenerator(Generator):
         self.get_noise()  # create the attribute self.noise
         self.solve_rv()   # solve the Langevin equation
 
-    # generate yupi Trajectory objects
-    def unpack(self):
+    # Generate yupi Trajectory objects
+    def generate(self):
+        self.simulate()
+
+        trajs  = []
         for i in range(self.N):
             x = self.r[:,0,i]
             y = self.r[:,1,i] if self.dim > 1 else None
             z = self.r[:,2,i] if self.dim > 2 else None
-            Trajectory(x=x, y=y, z=z, dt=self.dt,
-                    id="LangevinSolution {}".format(i+1))
-        return Trajectory.trajs
-
-    # simulate and generate yupi objects
-    def generate(self):
-        self.simulate
-        trajs = self.unpack
+            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt,
+                                  id="LangevinSolution {}".format(i+1)))
         return trajs
 
 
