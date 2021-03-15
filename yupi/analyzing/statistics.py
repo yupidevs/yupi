@@ -62,3 +62,31 @@ def estimate_kurtosis(trajectories, time_avg=True, lag=None):
         return scipy.stats.kurtosis(dr_k, axis=0, fisher=False)
     else:
         return np.mean(dr_k, axis=0)
+
+
+# get the mean of the pairwise dot product for velocity
+# vectors for a given trajectory to be used in VACF
+# velocity autocorrelation function
+# TODO: Fix this implementation for dim != 2 Traj
+def estimate_vacf(trajectories, time_avg=True, lag=None):
+    v1v2_ = []
+    for trajectory in trajectories:
+        vx = trajectory.get_x_velocity()
+        vy = trajectory.get_y_velocity()
+
+        # ensemble average
+        if not time_avg:
+            v1v2x = vx[0] * vx
+            v1v2y = vy[0] * vy
+            v1v2 = v1v2x + v1v2y
+
+        # time average
+        else:
+            v1v2 = np.empty(lag)
+            for lag_ in range(1, lag + 1):
+                v1v2x = vx[:-lag_] * vx[lag_:]
+                v1v2y = vy[:-lag_] * vy[lag_:]
+                v1v2[lag_ - 1] = np.mean(v1v2x + v1v2y)
+
+        v1v2_.append(v1v2)
+    return np.transpose(v1v2_)

@@ -60,8 +60,7 @@ def subsample_trajectory(trajectory, step=1, step_in_seconds=False):
     z = trajectory.z[::step] if trajectory.z is not None else None
     theta = trajectory.theta[::step] if trajectory.theta is not None else None
     t = trajectory.t[::step] if trajectory.t is not None else None
-    traj = Trajectory(x, y, z, t, theta, dt=step*trajectory.dt)
-    return traj
+    return Trajectory(x, y, z, t, theta, dt=step*trajectory.dt)
 
 
 # wrap angles in the interval [0,2pi] or [-pi,pi]
