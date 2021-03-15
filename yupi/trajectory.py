@@ -279,25 +279,54 @@ class Trajectory():
                                   t=t, theta=theta, dt=dt,
                                   id=traj_id)
                                   
-                                     
-    # set jump length / velocity attributes
-    def get_jumps(self, v=False):
-        dx = np.ediff1d(self.x)
-        dy = np.ediff1d(self.y)
-        dr = np.sqrt(dx**2 + dy**2)
-        jumps = np.array([dx, dy, dr])
+    def get_t_diff(self):
+        if self.t is not None:
+            return np.ediff1d(self.t)
 
-        if not v:
-            attr = ['dx', 'dy', 'dr']
+    def get_x_diff(self):
+        return np.ediff1d(self.x)
+
+    def get_y_diff(self):
+        if self.y is not None:
+            return np.ediff1d(self.y)
+
+    def get_z_diff(self):
+        if self.z is not None:
+            return np.ediff1d(self.z)
+
+    def get_theta_diff(self):
+        if self.theta is not None:
+            return np.ediff1d(self.theta)
+
+    def get_diff(self):
+        dx = self.get_x_diff()
+        dy = self.get_y_diff()
+        if dy is not None:
+            dz = self.get_y_diff()
+            if dz is not None:
+                return np.sqrt(dx**2 + dy**2 + dz**2)
+            else:
+                return np.sqrt(dx**2 + dy**2)
         else:
-            attr = ['vx', 'vy', 'v']
-            jumps /= self.dt
+            return dx
 
-        for i in range(3):
-            setattr(self, attr[i], jumps[i])
-        
-        return self
+    def get_x_velocity(self):
+        return self.get_x_diff()/self.dt
 
+    def get_y_velocity(self):
+        if self.y is not None:
+            return self.get_y_diff()/self.dt
+
+    def get_z_velocity(self):
+        if self.z is not None:
+            return self.get_z_diff()/self.dt
+
+    def get_theta_velocity(self):
+        if self.theta is not None:
+            return self.get_theta_diff()/self.dt
+
+    def get_velocity(self):
+        return self.get_diff()/self.dt
 
     # relative and cumulative turning angles
     def turning_angles(self, accumulate=False, 
