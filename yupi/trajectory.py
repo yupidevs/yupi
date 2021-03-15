@@ -3,6 +3,7 @@ import json
 import csv
 from typing import NamedTuple
 from pathlib import Path
+import scipy.stats
 
 TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
@@ -59,7 +60,7 @@ class Trajectory():
 
     def __init__(self, x: np.ndarray, y: np.ndarray = None,
                  z: np.ndarray = None, t: np.ndarray = None,
-                 theta: np.ndarray = None, dt: float = None, 
+                 theta: np.ndarray = None, dt: float = 1, 
                  id: str = None):
 
         if x is None:
@@ -275,3 +276,53 @@ class Trajectory():
                 return Trajectory(x=x, y=y, z=z,
                                   t=t, theta=theta, dt=dt,
                                   id=traj_id)
+                                  
+    def get_t_diff(self):
+        if self.t is not None:
+            return np.ediff1d(self.t)
+
+    def get_x_diff(self):
+        return np.ediff1d(self.x)
+
+    def get_y_diff(self):
+        if self.y is not None:
+            return np.ediff1d(self.y)
+
+    def get_z_diff(self):
+        if self.z is not None:
+            return np.ediff1d(self.z)
+
+    def get_theta_diff(self):
+        if self.theta is not None:
+            return np.ediff1d(self.theta)
+
+    def get_diff(self):
+        dx = self.get_x_diff()
+        dy = self.get_y_diff()
+        if dy is not None:
+            dz = self.get_y_diff()
+            if dz is not None:
+                return np.sqrt(dx**2 + dy**2 + dz**2)
+            else:
+                return np.sqrt(dx**2 + dy**2)
+        else:
+            return dx
+
+    def get_x_velocity(self):
+        return self.get_x_diff()/self.dt
+
+    def get_y_velocity(self):
+        if self.y is not None:
+            return self.get_y_diff()/self.dt
+
+    def get_z_velocity(self):
+        if self.z is not None:
+            return self.get_z_diff()/self.dt
+
+    def get_theta_velocity(self):
+        if self.theta is not None:
+            return self.get_theta_diff()/self.dt
+
+    def get_velocity(self):
+        return self.get_diff()/self.dt
+

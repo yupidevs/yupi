@@ -3,14 +3,16 @@ import abc
 from yupi import Trajectory
 
 class Generator():
+
     """docstring for Generator"""
+
     def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1):
         # siulation parameters
-        self.T = T                    # total time
-        self.dt = dt                  # time step of the simulation
-        self.N = N                    # number of trajectories
-        self.n = int(T / dt)          # number of time steps
-        self.dim = dim
+        self.T = T            # total time
+        self.dim = dim        # trajectory dimensions
+        self.N = N            # number of trajectories
+        self.dt = dt          # time step of the simulation
+        self.n = int(T / dt)  # number of time steps
 
     @abc.abstractmethod
     def generate(self):
@@ -24,8 +26,10 @@ class RandomWalkGenerator(Generator):
     """
     
     def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1,
-            actions:np.ndarray=None, actions_prob:np.ndarray=None, 
+            actions:np.ndarray=None, 
+            actions_prob:np.ndarray=None, 
             jump_len:np.ndarray=None):
+
         super().__init__(T, dim, N, dt) 
 
         # dynamic variables
@@ -58,7 +62,7 @@ class RandomWalkGenerator(Generator):
         self.r[1:] = np.cumsum(dr, axis=0)
         return self.r
 
-    def generate(self,):
+    def generate(self):
         # get RandomWalk object and get position vectors
         r = self.get_r()
         trajs  = []
@@ -76,34 +80,36 @@ class LangevinGenerator(Generator):
     """
 
     def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1,
-        tau:float=1., pdf_name:str='normal', scale:float=5.,
-        r0:np.ndarray=None, v0:np.ndarray=None):
+        tau:float=1.,
+        noise_pdf:str='normal',
+        noise_scale:float=1,
+        v0:np.ndarray=None, r0:np.ndarray=None):
+        
         super().__init__(T, dim, N, dt) 
 
-        self.size = (self.n, dim, N)  # shape of the dynamic variables
-
         # model parameters
-        self.tau = tau                    # relaxation characteristic time
-        self.pdf_name = pdf_name          # noise PDF
-        self.scale = scale                # scale parameter (not stan. dev.)
-        self.noise = np.ndarray           # noise array that will be fill in get_noise method
+        self.tau = tau                  # relaxation characteristic time
+        self.noise_pdf = noise_pdf      # noise PDF
+        self.noise_scale = noise_scale  # scale parameter (not stan. dev.)
+        self.noise = np.ndarray         # noise array that will be fill in get_noise method
 
         # dynamic variables
+        self.shape = (self.n, dim, N)           # shape of the dynamic variables
         self.t = np.linspace(0, T, num=self.n)  # time array
-        self.r = np.empty(self.size)            # position array
-        self.v = np.empty(self.size)            # velocity array
+        self.r = np.empty(self.shape)           # position array
+        self.v = np.empty(self.shape)           # velocity array
 
         # initial conditions
         # TODO: Check that r0 have the rigth shape
-        self.r[0] = np.zeros((dim, self.N)) if r0 is None else r0
+        self.r[0] = np.zeros((dim, N)) if r0 is None else r0
         # TODO: Check that v0 have the rigth shape
-        self.v[0] = np.zeros((dim, self.N)) if v0 is None else v0
+        self.v[0] = np.zeros((dim, N)) if v0 is None else v0
 
 
     # fill noise array with custom noise properties
     def get_noise(self):
-        dist = getattr(np.random, self.pdf_name)
-        self.noise = dist(scale=self.scale, size=self.size)
+        dist = getattr(np.random, self.noise_pdf)
+        self.noise = dist(scale=self.noise_scale, size=self.shape)
 
 
     # solve Langevin Equation using the numerical method of Euler-Maruyama
@@ -143,26 +149,6 @@ if __name__ == '__main__':
     from yupi.analyzing.visualization import plot_trajectories
     
     np.random.seed(0)
-
-    print("Testing Langevin")
-
-    # set parameter values
-    dim = 2
-    T = 5 * 60
-    dt = .05
-    N = 5
-    tau = 1.	
-
-    kTm = 10
-    scale = np.sqrt(2 * kTm / tau)
-    pdf_name = 'normal'
-    v0 = scale * np.random.randn(N)
-
-    # get LE object and get position vectors
-    le = LangevinGenerator(T, dim, N, dt, tau, pdf_name, scale, v0=v0)
-    tr = le.generate()
-    plot_trajectories(tr)
-
 
     print("Testing RandomWalker")
     

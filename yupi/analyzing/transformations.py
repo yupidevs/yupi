@@ -1,4 +1,5 @@
 import numpy as np
+from yupi import Trajectory
 from yupi.affine_estimator import affine_matrix
 
 def add_dynamic_reference(trajectory, reference, start_in_origin=True):
@@ -49,3 +50,24 @@ def add_dynamic_reference(trajectory, reference, start_in_origin=True):
     trajectory.y = y_al
 
     return trajectory
+
+
+def subsample_trajectory(trajectory, step=1, step_in_seconds=False):
+    if step_in_seconds:
+        step = int(step / trajectory.dt)
+    x = trajectory.x[::step]
+    y = trajectory.y[::step] if trajectory.y is not None else None
+    z = trajectory.z[::step] if trajectory.z is not None else None
+    theta = trajectory.theta[::step] if trajectory.theta is not None else None
+    t = trajectory.t[::step] if trajectory.t is not None else None
+    return Trajectory(x, y, z, t, theta, dt=step*trajectory.dt)
+
+
+# wrap angles in the interval [0,2pi] or [-pi,pi]
+def wrap_theta(theta, degrees=False, centered=False):
+    discont = 360 if degrees else 2 * np.pi
+    if not centered:
+        return theta % discont
+    else:
+        discont_half = discont / 2
+        return -((discont_half - theta) % discont - discont_half)
