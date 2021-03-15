@@ -5,9 +5,13 @@ Analyzing package dosctring
 from yupi.analyzing.transformations import (
     add_dynamic_reference,
     subsample_trajectory,
-    wrap_theta,
+    wrap_theta
+)
+
+from yupi.analyzing.statistics import (
     estimate_turning_angles,
-    get_msd
+    estimate_msd,
+    estimate_kurtosis
 )
 from yupi.analyzing.visualization import plot_trajectories
 
@@ -17,5 +21,6 @@ __all__ = [
     'subsample_trajectory',
     'wrap_theta',
     'estimate_turning_angles',
-    'get_msd'
+    'estimate_msd',
+    'estimate_kurtosis'
 ]
