@@ -58,12 +58,9 @@ class Trajectory():
         does not have the same shape.
     """
 
-    # class variable to store all Trajecory objects
-    trajs = []
-
     def __init__(self, x: np.ndarray, y: np.ndarray = None,
                  z: np.ndarray = None, t: np.ndarray = None,
-                 theta: np.ndarray = None, dt: float = None, 
+                 theta: np.ndarray = None, dt: float = 1, 
                  id: str = None):
 
         if x is None:
@@ -283,15 +280,7 @@ class Trajectory():
                                   id=traj_id)
 
 
-    # create a copy instance that is sampled at step increments
-    def sample_traj(self, step=1, step_in_seconds=False):
-        if step_in_seconds:
-            step = int(step / self.dt)
-        x = self.x[::step]
-        y = self.y[::step]
-        traj = Trajectory(x, y, dt=step*self.dt)
-        Trajectory.trajs.pop(-1)
-        return traj
+
 
     
     # set jump length / velocity attributes
