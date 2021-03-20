@@ -20,22 +20,29 @@ def estimate_turning_angles(traj, accumulate=False,
 # mean square displacement
 # TODO: Fix this implementation for dim != 2 Traj
 def estimate_msd(trajs, time_avg=True, lag=None):
-    dr2 = []
+    msd = []
     for traj in trajs:
         # ensemble average
         if not time_avg:
-            dx_n = (traj.x - traj.x[0])**2
-            dy_n = (traj.y - traj.y[0])**2
-            dr_n = (dx_n + dy_n)
+            dx = traj.x - traj.x[0]
+            dy = traj.y - traj.y[0]
+            dr_2 = dx**2 + dy**2
+
         # time average
         else:
-            dr_n = np.empty(lag)
+            dr_2 = np.empty(lag)
             for lag_ in range(1, lag + 1):
-                dx_n = (traj.x[lag_:] - traj.x[:-lag_])**2
-                dy_n = (traj.y[lag_:] - traj.y[:-lag_])**2
-                dr_n[lag_ - 1] = np.mean(dx_n + dy_n)    
-        dr2.append(dr_n)
-    return np.transpose(dr2)
+                dx = traj.x[lag_:] - traj.x[:-lag_]
+                dy = traj.y[lag_:] - traj.y[:-lag_]
+                dr_2[lag_ - 1] = np.mean(dx**2 + dy**2)
+
+        # append all squared displacements
+        msd.append(dr_2)
+    
+    msd = np.transpose(msd)
+    msd_mean = np.mean(msd, axis=1)
+    msd_std = np.std(msd, axis=1)
+    return msd_mean, msd_std
 
 
 # get displacements for ensemble average and
@@ -66,12 +73,10 @@ def estimate_kurtosis(trajs, time_avg=True, lag=None):
         return np.mean(kurtosis, axis=0)
 
 
-# get the mean of the pairwise dot product for velocity
-# vectors for a given trajectory to be used in VACF
 # velocity autocorrelation function
 # TODO: Fix this implementation for dim != 2
 def estimate_vacf(trajs, time_avg=True, lag=None):
-    v1v2_ = []
+    vacf = []
     for traj in trajs:
         vx = traj.get_x_velocity()
         vy = traj.get_y_velocity()
@@ -89,6 +94,11 @@ def estimate_vacf(trajs, time_avg=True, lag=None):
                 v1v2x = vx[:-lag_] * vx[lag_:]
                 v1v2y = vy[:-lag_] * vy[lag_:]
                 v1v2[lag_ - 1] = np.mean(v1v2x + v1v2y)
-
-        v1v2_.append(v1v2)
-    return np.transpose(v1v2_)
+        
+        # append all pair-wise veloctiy dot products
+        vacf.append(v1v2)
+    
+    vacf = np.transpose(vacf)
+    vacf_mean = np.mean(vacf, axis=1)
+    vacf_std = np.std(vacf, axis=1)
+    return vacf_mean, vacf_std
