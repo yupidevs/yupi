@@ -45,6 +45,7 @@ class RandomWalkGenerator(Generator):
         self.jump_len = np.ones((dim, N)) if jump_len is None else jump_len
 
 
+
     # compute vector position as a function of time for
     # all the walkers of the ensemble
     def get_r(self):
@@ -62,15 +63,17 @@ class RandomWalkGenerator(Generator):
         self.r[1:] = np.cumsum(dr, axis=0)
         return self.r
 
+
     def generate(self):
         # get RandomWalk object and get position vectors
         r = self.get_r()
+
         trajs  = []
         for i in range(self.N):
             x = r[:,0,i]
             y = r[:,1,i] if self.dim > 1 else None
             z = r[:,2,i] if self.dim > 2 else None
-            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt,
+            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt, t=self.t,
                                   id="Random Walker {}".format(i+1)))
         return trajs
 
@@ -105,6 +108,17 @@ class LangevinGenerator(Generator):
         # TODO: Check that v0 have the rigth shape
         self.v[0] = np.zeros((dim, N)) if v0 is None else v0
 
+        self.v_scale = 1
+        self.r_scale = 1
+        self.t_scale = 1
+
+    def set_scale(self, v_scale=None, r_scale=None, t_scale=None):
+        if v_scale:
+            self.v_scale = v_scale
+        if r_scale:
+            self.r_scale = r_scale
+        if t_scale:
+            self.t_scale = t_scale
 
     # fill noise array with custom noise properties
     def get_noise(self):
@@ -133,12 +147,17 @@ class LangevinGenerator(Generator):
     def generate(self):
         self.simulate()
 
+        self.r *= self.r_scale 
+        self.v *= self.v_scale 
+        self.t *= self.t_scale 
+        self.dt *= self.t_scale 
+
         trajs  = []
         for i in range(self.N):
             x = self.r[:,0,i]
             y = self.r[:,1,i] if self.dim > 1 else None
             z = self.r[:,2,i] if self.dim > 2 else None
-            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt,
+            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt, t=self.t,
                                   id="LangevinSolution {}".format(i+1)))
         return trajs
 
