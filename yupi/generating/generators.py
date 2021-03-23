@@ -20,7 +20,7 @@ class Generator():
 
 
 
-class RandomWalkGenerator(Generator):
+class LatticeRandomWalkGenerator(Generator):
     """
     Multidimensional Random Walk class.
     """
@@ -181,6 +181,6 @@ if __name__ == '__main__':
             [.5, 0, .5]]
 
     # get RandomWalk object and get position vectors
-    rw = RandomWalkGenerator(T, dim, N, dt, actions, prob)
+    rw = LatticeRandomWalkGenerator(T, dim, N, dt, actions, prob)
     tr = rw.generate()
     plot_trajectories(tr)
