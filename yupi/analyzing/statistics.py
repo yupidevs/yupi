@@ -3,10 +3,10 @@ import scipy
 from yupi.analyzing import wrap_theta
 
 # relative and cumulative turning angles
-def estimate_turning_angles(trajectory, accumulate=False, 
+def estimate_turning_angles(traj, accumulate=False, 
                     degrees=False, centered=False):
-    dx = trajectory.get_x_diff()
-    dy = trajectory.get_y_diff()
+    dx = traj.get_x_diff()
+    dy = traj.get_y_diff()
     theta = np.arctan2(dy, dx)
 
     if not accumulate:
@@ -19,60 +19,67 @@ def estimate_turning_angles(trajectory, accumulate=False,
 
 # mean square displacement
 # TODO: Fix this implementation for dim != 2 Traj
-def estimate_msd(trajectories, time_avg=True, lag=None):
-    dr2 = []
-    for trajectory in trajectories:
+def estimate_msd(trajs, time_avg=True, lag=None):
+    msd = []
+    for traj in trajs:
         # ensemble average
         if not time_avg:
-            dx_n = (trajectory.x - trajectory.x[0])**2
-            dy_n = (trajectory.y - trajectory.y[0])**2
-            dr_n = (dx_n + dy_n)
+            dx = traj.x - traj.x[0]
+            dy = traj.y - traj.y[0]
+            dr_2 = dx**2 + dy**2
+
         # time average
         else:
-            dr_n = np.empty(lag)
+            dr_2 = np.empty(lag)
             for lag_ in range(1, lag + 1):
-                dx_n = (trajectory.x[lag_:] - trajectory.x[:-lag_])**2
-                dy_n = (trajectory.y[lag_:] - trajectory.y[:-lag_])**2
-                dr_n[lag_ - 1] = np.mean(dx_n + dy_n)    
-        dr2.append(dr_n)
-    return np.transpose(dr2)
+                dx = traj.x[lag_:] - traj.x[:-lag_]
+                dy = traj.y[lag_:] - traj.y[:-lag_]
+                dr_2[lag_ - 1] = np.mean(dx**2 + dy**2)
+
+        # append all squared displacements
+        msd.append(dr_2)
+    
+    msd = np.transpose(msd)
+    msd_mean = np.mean(msd, axis=1)
+    msd_std = np.std(msd, axis=1)
+    return msd_mean, msd_std
 
 
 # get displacements for ensemble average and
 # kurtosis for time average
 # TODO: Fix this implementation for dim != 2 Traj
-def estimate_kurtosis(trajectories, time_avg=True, lag=None):
-    dr_k = []
-    for trajectory in trajectories:
+def estimate_kurtosis(trajs, time_avg=True, lag=None):
+    kurtosis = []
+    for traj in trajs:
         if not time_avg:
-            dx = trajectory.x - trajectory.x[0]
-            dy = trajectory.y - trajectory.y[0]
+            dx = traj.x - traj.x[0]
+            dy = traj.y - traj.y[0]
             kurt = np.sqrt(dx**2 + dy**2)
 
         # time average
         else:
             kurt = np.empty(lag)
             for lag_ in range(1, lag + 1):
-                dx = trajectory.x[lag_:] - trajectory.x[:-lag_]
-                dy = trajectory.y[lag_:] - trajectory.y[:-lag_]
+                dx = traj.x[lag_:] - traj.x[:-lag_]
+                dy = traj.y[lag_:] - traj.y[:-lag_]
                 dr = np.sqrt(dx**2 + dy**2)
                 kurt[lag_ - 1] = scipy.stats.kurtosis(dr, fisher=False)
 
+        kurtosis.append(kurt)
+
     if not time_avg:
-        return scipy.stats.kurtosis(dr_k, axis=0, fisher=False)
+        return scipy.stats.kurtosis(kurtosis, axis=0, fisher=False)
     else:
-        return np.mean(dr_k, axis=0)
+        return np.mean(kurtosis, axis=0)
 
 
-# get the mean of the pairwise dot product for velocity
-# vectors for a given trajectory to be used in VACF
 # velocity autocorrelation function
-# TODO: Fix this implementation for dim != 2 Traj
-def estimate_vacf(trajectories, time_avg=True, lag=None):
-    v1v2_ = []
-    for trajectory in trajectories:
-        vx = trajectory.get_x_velocity()
-        vy = trajectory.get_y_velocity()
+# TODO: Fix this implementation for dim != 2
+def estimate_vacf(trajs, time_avg=True, lag=None):
+    vacf = []
+    for traj in trajs:
+        vx = traj.get_x_velocity()
+        vy = traj.get_y_velocity()
 
         # ensemble average
         if not time_avg:
@@ -87,6 +94,11 @@ def estimate_vacf(trajectories, time_avg=True, lag=None):
                 v1v2x = vx[:-lag_] * vx[lag_:]
                 v1v2y = vy[:-lag_] * vy[lag_:]
                 v1v2[lag_ - 1] = np.mean(v1v2x + v1v2y)
-
-        v1v2_.append(v1v2)
-    return np.transpose(v1v2_)
+        
+        # append all pair-wise veloctiy dot products
+        vacf.append(v1v2)
+    
+    vacf = np.transpose(vacf)
+    vacf_mean = np.mean(vacf, axis=1)
+    vacf_std = np.std(vacf, axis=1)
+    return vacf_mean, vacf_std
