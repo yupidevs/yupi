@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yupi"
-version = "0.2.6"
+version = "0.3.0"
 description = "A package for tracking and analysing objects trajectories"
 authors = [
     "Gustavo Viera-López <gvieralopez@gmail.com>",
@@ -20,6 +20,7 @@ matplotlib = ">=3.2.0"
 PyQt5 = "^5.15.3"
 
 [tool.poetry.dev-dependencies]
+autopep8 = "^1.5.6"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

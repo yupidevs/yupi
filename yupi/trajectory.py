@@ -1,9 +1,9 @@
 import numpy as np
 import json
 import csv
+import os
 from typing import NamedTuple
 from pathlib import Path
-import scipy.stats
 
 TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
@@ -33,16 +33,6 @@ class Trajectory():
 
     Attributes
     ----------
-    x : np.ndarray
-        Array containing position data of X axis.
-    y : np.ndarray
-        Array containing position data of Y axis.
-    z : np.ndarray
-        Array containing position data of X axis.
-    t : np.ndarray
-        Array containing time data.
-    theta : np.ndarray
-        Array containing angle data.
     dt : float
         If no time data (``t``) is given this represents the time
         between each position data value.
@@ -60,69 +50,103 @@ class Trajectory():
 
     def __init__(self, x: np.ndarray, y: np.ndarray = None,
                  z: np.ndarray = None, t: np.ndarray = None,
-                 theta: np.ndarray = None, dt: float = 1, 
+                 theta: np.ndarray = None, dt: float = 1.0, 
                  id: str = None):
 
+        self.data = [x, y, z, t, theta]        
+
+
+        for i, item in enumerate(self.data):
+            if item is not None:
+                self.data[i] = np.array(item)
+
+        lengths = [len(item) for item in self.data if item is not None]
+        
         if x is None:
             raise ValueError('Trajectory requires at least one dimension')
-        elif y is not None and z is None:
-            if len(x) != len(y):
-                raise ValueError('X and Y arrays must have the same shape')
-        elif y is not None and z is not None:
-            if len(x) != len(y) != len(z):
-                raise ValueError('X and Z arrays must have the same shape')
-        if t is not None:
-            if len(x) != len(t):
-                raise ValueError('X and Time arrays must have the same shape')
-        if theta is not None:
-            if len(x) != len(theta):
-                raise ValueError('X and Theta arrays must have the same shape')
-
-        self.x = x
-        self.y = y
-        self.z = z
-        self.t = t
-        self.theta = theta
-
-        if self.x is not None:
-            self.x = np.array(x)
-        if self.y is not None:
-            self.y = np.array(y)
-        if self.z is not None:
-            self.z = np.array(z)
-        if self.t is not None:
-            self.t = np.array(t)
-        if self.theta is not None:
-            self.theta = np.array(theta)
+        elif lengths.count(lengths[0]) != len(lengths):
+            raise ValueError('All input arrays must have the same shape')
 
         self.dt = dt
         self.id = id
     
+    @property
+    def x(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of X axis."""
+        return self.data[0]
+
+    @property
+    def y(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of Y axis."""
+        return self.data[1]
+
+    @property
+    def z(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of Z axis."""
+        return self.data[2]
+
+    @property
+    def t(self) -> np.ndarray:
+        """np.ndarray : Array containing time data."""
+        return self.data[3]
+
+    @property
+    def theta(self) -> np.ndarray:
+        """np.ndarray : Array containing angle data."""
+        return self.data[4]
+    
+    @property
+    def dim(self) -> int:
+        """int : Trajectory dimension."""
+        for i, d in enumerate(self.data[:3]):
+            if d is None:
+                return i
+        return 3
+        
     def __len__(self):
         return len(self.x)
 
     def __iter__(self):
         current_time = 0
         for i in range(len(self)):
+            # x, y, z, t, theta
+            sp = [None]*5
 
-            x = self.x[i]
-            y = self.y[i]     
+            for j, d in enumerate(self.data):
+                sp[j] = d[i] if d is not None else None
 
-            y, z, t, theta, = None, None, None, None
-
-            if self.y is not None:
-                y = self.y[i]
-            if self.z is not None:
-                z = self.z[i]
-            if self.t is not None:
-                t = self.t[i]
-            elif self.dt is not None:
-                t = current_time
+            if sp[3] is None and self.dt is not None: 
+                sp[3] = current_time
                 current_time += self.dt
-            if self.theta is not None:
-                theta = self.theta[i]
 
+            x, y, z, t, theta = sp
             yield TrajectoryPoint(x, y, z, t, theta)
+
+    @staticmethod
+    def save_trajectories(trajectories: list, folder_path: str = '.',
+                          file_type: str = 'json', overwrite: bool = True):
+        """
+        Save a list of trajectories.
+
+        Parameters
+        ----------
+        trajectories : list[Trajectory]
+            List of trajectories that will be saved.
+        folder_path : str
+            Path where to save the trajectory. (Default is ``'.'``).
+        file_type : str
+            Type of the file. (Default is ``json``).
+
+            The only types avaliable are: ``json`` and ``csv``.
+        overwrite : bool
+            Wheter or not to overwrite the file if it already exists. (Default
+            is True).
+        """
+
+        for i, traj in enumerate(trajectories):
+            path = str(Path(folder_path))
+            name = str(Path(f'trajectory_{i}'))
+            traj.save(name, path, file_type, overwrite)
 
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
@@ -141,7 +165,7 @@ class Trajectory():
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
             Wheter or not to overwrite the file if it already exists. (Default
-            is True)
+            is True).
 
         Raises
         ------        
@@ -187,6 +211,32 @@ class Trajectory():
         else:
             raise ValueError(f"Invalid export file type '{file_type}'")
 
+    @staticmethod
+    def load_folder(folder_path='.'):
+        """
+        Loads all the trajectories from a folder.
+
+        Parameters
+        ----------
+        folder_path : str
+            Path of the trajectories folder.
+
+        Returns
+        -------
+        List[Trajectory]
+            List of the loaded trajectories.
+        """
+        
+        trajectories = []
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                path = str(Path(root) / Path(file))
+                try:
+                    trajectories.append(Trajectory.load(path))
+                except:  # TODO: add errors
+                    pass
+        return trajectories
+    
     @staticmethod
     def load(file_path: str):
         """
@@ -277,30 +327,30 @@ class Trajectory():
                                   t=t, theta=theta, dt=dt,
                                   id=traj_id)
                                   
-    def get_t_diff(self):
+    def t_diff(self):
         if self.t is not None:
             return np.ediff1d(self.t)
 
-    def get_x_diff(self):
+    def x_diff(self):
         return np.ediff1d(self.x)
 
-    def get_y_diff(self):
+    def y_diff(self):
         if self.y is not None:
             return np.ediff1d(self.y)
 
-    def get_z_diff(self):
+    def z_diff(self):
         if self.z is not None:
             return np.ediff1d(self.z)
 
-    def get_theta_diff(self):
+    def theta_diff(self):
         if self.theta is not None:
             return np.ediff1d(self.theta)
 
-    def get_diff(self):
-        dx = self.get_x_diff()
-        dy = self.get_y_diff()
+    def diff(self):
+        dx = self.x_diff()
+        dy = self.y_diff()
         if dy is not None:
-            dz = self.get_y_diff()
+            dz = self.y_diff()
             if dz is not None:
                 return np.sqrt(dx**2 + dy**2 + dz**2)
             else:
@@ -308,21 +358,46 @@ class Trajectory():
         else:
             return dx
 
-    def get_x_velocity(self):
-        return self.get_x_diff()/self.dt
+    def x_velocity(self):
+        return self.x_diff() / self.dt
 
-    def get_y_velocity(self):
+    def y_velocity(self):
         if self.y is not None:
-            return self.get_y_diff()/self.dt
+            return self.y_diff() / self.dt
 
-    def get_z_velocity(self):
+    def z_velocity(self):
         if self.z is not None:
-            return self.get_z_diff()/self.dt
+            return self.z_diff() / self.dt
 
-    def get_theta_velocity(self):
+    def theta_velocity(self):
         if self.theta is not None:
-            return self.get_theta_diff()/self.dt
+            return self.theta_diff() / self.dt
 
-    def get_velocity(self):
-        return self.get_diff()/self.dt
+    def velocity(self):
+        return self.diff() / self.dt
 
+if __name__ == '__main__':
+
+    traj_1 = Trajectory(
+        x=[1.0, 2.0],
+        y=[2.0, 3.0]
+    )
+
+    traj_2 = Trajectory(
+        x=[10.0, 20.0],
+        y=[20.0, 30.0]
+    )
+
+    tps = [(tp.x, tp.y) for tp in traj_1]
+    assert tps == [(1,2),(2,3)]
+
+    Trajectory.save_trajectories([traj_1, traj_2])
+
+    trajs = Trajectory.load_folder('.')
+    
+    t1 = trajs[0]
+
+    assert t1.x[0] == 1.0
+    assert t1.x[1] == 2.0
+
+    

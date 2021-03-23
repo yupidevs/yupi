@@ -3,12 +3,12 @@ Generating package docstring
 """
 from yupi.generating.generators import (
     Generator,
-    RandomWalkGenerator,
+    LatticeRandomWalkGenerator,
     LangevinGenerator
 )
 
 __all__ = [
     'Generator',
-    'RandomWalkGenerator',
+    'LatticeRandomWalkGenerator',
     'LangevinGenerator'
 ]

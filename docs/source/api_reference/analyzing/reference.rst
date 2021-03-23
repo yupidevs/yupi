@@ -1,5 +1,0 @@
-Reference
-=========
-
-.. automodule:: reference
-  :members:

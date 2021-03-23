@@ -37,24 +37,20 @@ If you want to generate :py:class:`~yupi.Trajectory` objects based on some stati
 
 .. code-block:: python
 
-   from yupi.generating import LangevinGenerator
+   from yupi.generating import LatticeRandomWalkGenerator
+      
+   # set parameter values
+   T = 500
+   dim = 2
+   N = 5
+   dt = 1
+   actions = [1, 0, -1]
+   prob = [[.5, .1, .4],
+         [.5, 0, .5]]
 
-   # Define general Generator parameter values
-   N = 3           # Number of trajectories
-   dim = 2         # Number of dimensions
-   T = 5 * 60      # Total simulation time
-   dt = .05        # Time step
-
-   # Define model-specific Generator values
-   tau = 1.	
-   scale = 4.5
-   pdf_name = 'normal'
-
-   # Create the Generator object
-   le = LangevinGenerator(T, dim, N, dt, tau, pdf_name, scale)
-
-   # Generate the trajectories
-   tr = le.generate()
+   # get RandomWalk object and get position vectors
+   rw = LatticeRandomWalkGenerator(T, dim, N, dt, actions, prob)
+   tr = rw.generate()
 
 
 Extracting Trajectory objects from videos
