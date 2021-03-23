@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yupi"
-version = "0.3.0"
+version = "0.3.1"
 description = "A package for tracking and analysing objects trajectories"
 authors = [
     "Gustavo Viera-López <gvieralopez@gmail.com>",
