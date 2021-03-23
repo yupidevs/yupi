@@ -3,7 +3,7 @@ Generating package docstring
 """
 from yupi.generating.generators import (
     Generator,
-    RandomWalkGenerator,
+    LatticeRandomWalkGenerator,
     LangevinGenerator
 )
 

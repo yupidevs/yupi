@@ -1,6 +1,9 @@
 """
 Analyzing package dosctring
 """
+from yupi.analyzing.processing import (
+    turning_angles
+)
 
 from yupi.analyzing.transformations import (
     add_dynamic_reference,

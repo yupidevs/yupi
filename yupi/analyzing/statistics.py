@@ -1,20 +1,12 @@
 import numpy as np
 import scipy
-from yupi.analyzing import wrap_theta
+from yupi.analyzing import turning_angles
 
 # relative and cumulative turning angles
-def estimate_turning_angles(traj, accumulate=False, 
+def estimate_turning_angles(trajectories, accumulate=False, 
                     degrees=False, centered=False):
-    dx = traj.get_x_diff()
-    dy = traj.get_y_diff()
-    theta = np.arctan2(dy, dx)
-
-    if not accumulate:
-        theta = np.ediff1d(theta)  # relative turning angles
-    else:
-        theta -= theta[0]          # cumulative turning angles
-
-    return wrap_theta(theta, degrees, centered)
+    theta = [turning_angles(traj) for traj in trajectories]
+    return np.concatenate(theta)
 
 
 # mean square displacement
