@@ -15,7 +15,8 @@ from yupi.analyzing.statistics import (
     estimate_turning_angles,
     estimate_msd,
     estimate_kurtosis,
-    estimate_vacf
+    estimate_vacf,
+    estimate_velocity_samples
 )
 from yupi.analyzing.visualization import plot_trajectories
 
