@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 def plot_trajectories(trajectories, max_trajectories=None, title="", legend=True, plot=True):
     # TODO: Check if trajectories is list of Trajectory
@@ -54,5 +55,30 @@ def plot_angle_distribution(theta, bins=50, ax=None, plot=True):
     ax.set_rlabel_position(135)
     ax.set_axisbelow(True)
     plt.xlabel('turning angles pdf')
+    if plot:
+        plt.show()
+
+
+def plot_msd(msd, msd_std, dt, lag=30, plot=True):
+    lag_t_msd = dt * np.arange(lag)
+    plt.plot(lag_t_msd, msd, color='.2')
+    plt.fill_between(lag_t_msd, msd + msd_std, 
+            msd - msd_std, color='#afc0da')
+    plt.xlabel('lag time [s]')
+    plt.ylabel('$\mathrm{msd \; [m^2/s]}$')
+    if plot:
+        plt.show()
+
+
+def plot_kurtosis(kurtosis, dt=None, t_array=None, plot=True):
+    if dt:
+        t_array = np.linspace(0, dt*len(kurtosis), len(kurtosis))
+    if t_array is not None:
+        plt.plot(t_array, kurtosis)
+        plt.xlabel('time [s]')
+    else:
+        plt.plot(kurtosis)
+
+    plt.ylabel('kurtosis')
     if plot:
         plt.show()

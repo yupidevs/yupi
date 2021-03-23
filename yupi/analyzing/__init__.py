@@ -21,13 +21,17 @@ from yupi.analyzing.statistics import (
 from yupi.analyzing.visualization import (
     plot_trajectories, 
     plot_velocity_hist,
-    plot_angle_distribution
+    plot_angle_distribution,
+    plot_kurtosis,
+    plot_msd
 )
 
 __all__ = [
     'add_dynamic_reference',
     'plot_trajectories',
     'plot_velocity_hist',
+    'plot_kurtosis',
+    'plot_msd',
     'subsample_trajectory',
     'wrap_theta',
     'estimate_turning_angles',
