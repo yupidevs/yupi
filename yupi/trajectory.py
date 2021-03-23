@@ -4,6 +4,8 @@ import csv
 from typing import NamedTuple
 from pathlib import Path
 import scipy.stats
+import logging
+import os
 
 TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
@@ -60,7 +62,7 @@ class Trajectory():
 
     def __init__(self, x: np.ndarray, y: np.ndarray = None,
                  z: np.ndarray = None, t: np.ndarray = None,
-                 theta: np.ndarray = None, dt: float = 1, 
+                 theta: np.ndarray = None, dt: float = 1.0, 
                  id: str = None):
 
         self.data = [x, y, z, t, theta]        
@@ -126,6 +128,15 @@ class Trajectory():
             x, y, z, t, theta = sp
             yield TrajectoryPoint(x, y, z, t, theta)
 
+    @staticmethod
+    def save_trajectories(trajectories, folder_path='',
+                          file_type: str = 'json', overwrite: bool = True):
+
+        for i, traj in enumerate(trajectories):
+            path = str(Path(folder_path))
+            name = str(Path(f'trajectory_{i}'))
+            traj.save(name, path, file_type, overwrite)
+
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
         """
@@ -189,6 +200,18 @@ class Trajectory():
         else:
             raise ValueError(f"Invalid export file type '{file_type}'")
 
+    @staticmethod
+    def load_folder(folder_path=''):
+        trajectories = []
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                path = str(Path(root) / Path(file))
+                try:
+                    trajectories.append(Trajectory.load(path))
+                except:  # TODO: add errors
+                    pass
+        return trajectories
+    
     @staticmethod
     def load(file_path: str):
         """
@@ -330,12 +353,26 @@ class Trajectory():
 
 if __name__ == '__main__':
 
-    traj = Trajectory(
-        x=[1, 2],
-        y=[2, 3]
+    traj_1 = Trajectory(
+        x=[1.0, 2.0],
+        y=[2.0, 3.0]
     )
 
-    tps = [(tp.x, tp.y) for tp in traj]
+    traj_2 = Trajectory(
+        x=[10.0, 20.0],
+        y=[20.0, 30.0]
+    )
 
+    tps = [(tp.x, tp.y) for tp in traj_1]
     assert tps == [(1,2),(2,3)]
+
+    Trajectory.save_trajectories([traj_1, traj_2])
+
+    trajs = Trajectory.load_folder('.')
+    
+    t1 = trajs[0]
+
+    assert t1.x[0] == 1.0
+    assert t1.x[1] == 2.0
+
     
