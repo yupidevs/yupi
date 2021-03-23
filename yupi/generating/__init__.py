@@ -9,6 +9,6 @@ from yupi.generating.generators import (
 
 __all__ = [
     'Generator',
-    'RandomWalkGenerator',
+    'LatticeRandomWalkGenerator',
     'LangevinGenerator'
 ]
