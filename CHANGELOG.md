@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [0.3.1]
+
+### Added
+
+* Add scipy dependency
+### Fixed
+
+* Fix statistics imports
 ## [0.3.0]
 
 ### Added
