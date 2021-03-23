@@ -1,9 +1,9 @@
 import numpy as np
 import json
 import csv
+import os
 from typing import NamedTuple
 from pathlib import Path
-import os
 
 TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
@@ -123,8 +123,25 @@ class Trajectory():
             yield TrajectoryPoint(x, y, z, t, theta)
 
     @staticmethod
-    def save_trajectories(trajectories, folder_path='',
+    def save_trajectories(trajectories: list, folder_path: str = '.',
                           file_type: str = 'json', overwrite: bool = True):
+        """
+        Save a list of trajectories.
+
+        Parameters
+        ----------
+        trajectories : list[Trajectory]
+            List of trajectories that will be saved.
+        folder_path : str
+            Path where to save the trajectory. (Default is ``'.'``).
+        file_type : str
+            Type of the file. (Default is ``json``).
+
+            The only types avaliable are: ``json`` and ``csv``.
+        overwrite : bool
+            Wheter or not to overwrite the file if it already exists. (Default
+            is True).
+        """
 
         for i, traj in enumerate(trajectories):
             path = str(Path(folder_path))
@@ -148,7 +165,7 @@ class Trajectory():
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
             Wheter or not to overwrite the file if it already exists. (Default
-            is True)
+            is True).
 
         Raises
         ------        
@@ -195,9 +212,23 @@ class Trajectory():
             raise ValueError(f"Invalid export file type '{file_type}'")
 
     @staticmethod
-    def load_folder(folder_path=''):
+    def load_folder(folder_path='.'):
+        """
+        Loads all the trajectories from a folder.
+
+        Parameters
+        ----------
+        folder_path : str
+            Path of the trajectories folder.
+
+        Returns
+        -------
+        List[Trajectory]
+            List of the loaded trajectories.
+        """
+        
         trajectories = []
-        for root, dirs, files in os.walk(folder_path):
+        for root, _, files in os.walk(folder_path):
             for file in files:
                 path = str(Path(root) / Path(file))
                 try:
