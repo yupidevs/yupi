@@ -63,65 +63,67 @@ class Trajectory():
                  theta: np.ndarray = None, dt: float = 1, 
                  id: str = None):
 
+        self.data = [x, y, z, t, theta]        
+
+
+        for i, item in enumerate(self.data):
+            if item is not None:
+                self.data[i] = np.array(item)
+
+        lengths = [len(item) for item in self.data if item is not None]
+        
         if x is None:
             raise ValueError('Trajectory requires at least one dimension')
-        elif y is not None and z is None:
-            if len(x) != len(y):
-                raise ValueError('X and Y arrays must have the same shape')
-        elif y is not None and z is not None:
-            if len(x) != len(y) != len(z):
-                raise ValueError('X and Z arrays must have the same shape')
-        if t is not None:
-            if len(x) != len(t):
-                raise ValueError('X and Time arrays must have the same shape')
-        if theta is not None:
-            if len(x) != len(theta):
-                raise ValueError('X and Theta arrays must have the same shape')
-
-        self.x = x
-        self.y = y
-        self.z = z
-        self.t = t
-        self.theta = theta
-
-        if self.x is not None:
-            self.x = np.array(x)
-        if self.y is not None:
-            self.y = np.array(y)
-        if self.z is not None:
-            self.z = np.array(z)
-        if self.t is not None:
-            self.t = np.array(t)
-        if self.theta is not None:
-            self.theta = np.array(theta)
+        elif lengths.count(lengths[0]) != len(lengths):
+            raise ValueError('All input arrays must have the same shape')
 
         self.dt = dt
         self.id = id
     
+    @property
+    def x(self):
+        return self.data[0]
+
+    @property
+    def y(self):
+        return self.data[1]
+
+    @property
+    def z(self):
+        return self.data[2]
+
+    @property
+    def t(self):
+        return self.data[3]
+
+    @property
+    def theta(self):
+        return self.data[4]
+    
+    @property
+    def dim(self):
+        for i, d in enumerate(self.data[:3]):
+            if d is None:
+                return i
+        return 3
+        
     def __len__(self):
         return len(self.x)
 
     def __iter__(self):
         current_time = 0
         for i in range(len(self)):
+            # x, y, z, t, theta
+            sp = [None]*5
 
-            x = self.x[i]
-            y = self.y[i]     
+            for j, d in enumerate(self.data):
+                sp[j] = d[i] if d is not None else None
 
-            y, z, t, theta, = None, None, None, None
-
-            if self.y is not None:
-                y = self.y[i]
-            if self.z is not None:
-                z = self.z[i]
-            if self.t is not None:
-                t = self.t[i]
-            elif self.dt is not None:
-                t = current_time
+            if sp[3] is None and self.dt is not None: 
+                sp[3] = current_time
                 current_time += self.dt
-            if self.theta is not None:
-                theta = self.theta[i]
 
+            x, y, z, t, theta = sp
             yield TrajectoryPoint(x, y, z, t, theta)
 
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
@@ -309,20 +311,31 @@ class Trajectory():
             return dx
 
     def x_velocity(self):
-        return self.x_diff()/self.dt
+        return self.x_diff() / self.dt
 
     def y_velocity(self):
         if self.y is not None:
-            return self.y_diff()/self.dt
+            return self.y_diff() / self.dt
 
     def z_velocity(self):
         if self.z is not None:
-            return self.z_diff()/self.dt
+            return self.z_diff() / self.dt
 
     def theta_velocity(self):
         if self.theta is not None:
-            return self.theta_diff()/self.dt
+            return self.theta_diff() / self.dt
 
     def velocity(self):
-        return self.diff()/self.dt
+        return self.diff() / self.dt
 
+if __name__ == '__main__':
+
+    traj = Trajectory(
+        x=[1, 2],
+        y=[2, 3]
+    )
+
+    tps = [(tp.x, tp.y) for tp in traj]
+
+    assert tps == [(1,2),(2,3)]
+    
