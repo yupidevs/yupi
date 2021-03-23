@@ -2,8 +2,8 @@ import numpy as np
 from yupi.analyzing.transformations import wrap_theta
 
 def turning_angles(trajectory, accumulate=False, degrees=False, centered=False):
-    dx = trajectory.get_x_diff()
-    dy = trajectory.get_y_diff()
+    dx = trajectory.x_diff()
+    dy = trajectory.y_diff()
     theta = np.arctan2(dy, dx)
 
     if not accumulate:

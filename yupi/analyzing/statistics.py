@@ -14,7 +14,7 @@ def estimate_turning_angles(trajectories, accumulate=False,
 def estimate_velocity_samples(trajectories, step):
     step = 1
     trajs_ = [subsample_trajectory(traj, step) for traj in trajectories]
-    return np.concatenate([traj.get_velocity() for traj in trajs_])
+    return np.concatenate([traj.velocity() for traj in trajs_])
 
 
 # mean square displacement
@@ -78,8 +78,8 @@ def estimate_kurtosis(trajs, time_avg=True, lag=None):
 def estimate_vacf(trajs, time_avg=True, lag=None):
     vacf = []
     for traj in trajs:
-        vx = traj.get_x_velocity()
-        vy = traj.get_y_velocity()
+        vx = traj.x_velocity()
+        vy = traj.y_velocity()
 
         # ensemble average
         if not time_avg:

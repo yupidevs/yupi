@@ -277,30 +277,30 @@ class Trajectory():
                                   t=t, theta=theta, dt=dt,
                                   id=traj_id)
                                   
-    def get_t_diff(self):
+    def t_diff(self):
         if self.t is not None:
             return np.ediff1d(self.t)
 
-    def get_x_diff(self):
+    def x_diff(self):
         return np.ediff1d(self.x)
 
-    def get_y_diff(self):
+    def y_diff(self):
         if self.y is not None:
             return np.ediff1d(self.y)
 
-    def get_z_diff(self):
+    def z_diff(self):
         if self.z is not None:
             return np.ediff1d(self.z)
 
-    def get_theta_diff(self):
+    def theta_diff(self):
         if self.theta is not None:
             return np.ediff1d(self.theta)
 
-    def get_diff(self):
-        dx = self.get_x_diff()
-        dy = self.get_y_diff()
+    def diff(self):
+        dx = self.x_diff()
+        dy = self.y_diff()
         if dy is not None:
-            dz = self.get_y_diff()
+            dz = self.y_diff()
             if dz is not None:
                 return np.sqrt(dx**2 + dy**2 + dz**2)
             else:
@@ -308,21 +308,21 @@ class Trajectory():
         else:
             return dx
 
-    def get_x_velocity(self):
-        return self.get_x_diff()/self.dt
+    def x_velocity(self):
+        return self.x_diff()/self.dt
 
-    def get_y_velocity(self):
+    def y_velocity(self):
         if self.y is not None:
-            return self.get_y_diff()/self.dt
+            return self.y_diff()/self.dt
 
-    def get_z_velocity(self):
+    def z_velocity(self):
         if self.z is not None:
-            return self.get_z_diff()/self.dt
+            return self.z_diff()/self.dt
 
-    def get_theta_velocity(self):
+    def theta_velocity(self):
         if self.theta is not None:
-            return self.get_theta_diff()/self.dt
+            return self.theta_diff()/self.dt
 
-    def get_velocity(self):
-        return self.get_diff()/self.dt
+    def velocity(self):
+        return self.diff()/self.dt
 
