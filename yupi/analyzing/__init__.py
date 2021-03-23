@@ -23,7 +23,8 @@ from yupi.analyzing.visualization import (
     plot_velocity_hist,
     plot_angle_distribution,
     plot_kurtosis,
-    plot_msd
+    plot_msd,
+    plot_vacf
 )
 
 __all__ = [
@@ -32,6 +33,7 @@ __all__ = [
     'plot_velocity_hist',
     'plot_kurtosis',
     'plot_msd',
+    'plot_vacf',
     'subsample_trajectory',
     'wrap_theta',
     'estimate_turning_angles',

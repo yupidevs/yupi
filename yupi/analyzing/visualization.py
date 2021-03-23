@@ -1,5 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 def plot_trajectories(trajectories, max_trajectories=None, title="", legend=True, plot=True):
     # TODO: Check if trajectories is list of Trajectory
@@ -80,5 +81,24 @@ def plot_kurtosis(kurtosis, dt=None, t_array=None, plot=True):
         plt.plot(kurtosis)
 
     plt.ylabel('kurtosis')
+    if plot:
+        plt.show()
+
+
+def plot_vacf(vacf, dt, lag=50, plot=True):
+    lag_t_vacf = dt * np.arange(lag)
+
+    plt.plot(lag_t_vacf, vacf, '.', color='#870e11', mfc='w')
+    plt.xlabel('lag time [s]')
+    plt.ylabel('$\mathrm{vacf \; [(m/s)^2]}$')
+
+    ax = plt.gca()
+
+    inset_axes(ax, width='60%', height='60%', bbox_to_anchor=(0,0,1,1),
+    bbox_transform=ax.transAxes, loc='upper right')
+
+    plt.plot(lag_t_vacf, vacf, '.', color='#870e11', mfc='w')
+    plt.yscale('log')
+
     if plot:
         plt.show()
