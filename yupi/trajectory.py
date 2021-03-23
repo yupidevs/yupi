@@ -33,16 +33,6 @@ class Trajectory():
 
     Attributes
     ----------
-    x : np.ndarray
-        Array containing position data of X axis.
-    y : np.ndarray
-        Array containing position data of Y axis.
-    z : np.ndarray
-        Array containing position data of X axis.
-    t : np.ndarray
-        Array containing time data.
-    theta : np.ndarray
-        Array containing angle data.
     dt : float
         If no time data (``t``) is given this represents the time
         between each position data value.
@@ -81,27 +71,33 @@ class Trajectory():
         self.id = id
     
     @property
-    def x(self):
+    def x(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of X axis."""
         return self.data[0]
 
     @property
-    def y(self):
+    def y(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of Y axis."""
         return self.data[1]
 
     @property
-    def z(self):
+    def z(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of Z axis."""
         return self.data[2]
 
     @property
-    def t(self):
+    def t(self) -> np.ndarray:
+        """np.ndarray : Array containing time data."""
         return self.data[3]
 
     @property
-    def theta(self):
+    def theta(self) -> np.ndarray:
+        """np.ndarray : Array containing angle data."""
         return self.data[4]
     
     @property
-    def dim(self):
+    def dim(self) -> int:
+        """int : Trajectory dimension."""
         for i, d in enumerate(self.data[:3]):
             if d is None:
                 return i
