@@ -3,8 +3,6 @@ import json
 import csv
 from typing import NamedTuple
 from pathlib import Path
-import scipy.stats
-import logging
 import os
 
 TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
