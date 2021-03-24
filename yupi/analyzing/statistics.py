@@ -50,6 +50,57 @@ def get_velocity_vectors(traj):
     return v
 
 
+# mean square displacement (ensemble average)
+def estimate_msd_ensemble(trajs):
+    msd = []
+    for traj in trajs:
+        # position vectors
+        r = get_position_vectors(traj)
+
+        # square displacements
+        r_2 = (r - r[0])**2            # square coordinates
+        r2 = np.sum(r_2, axis=1)       # square distances
+        msd.append(r2)                 # append square distances
+    
+    # transpose to have time/trials as first/second axis
+    msd = np.transpose(msd)
+    return msd
+
+
+# mean square displacement (time average)
+def estimate_msd_time(trajs, lag):
+    msd = []
+    for traj in trajs:
+        # position vectors
+        r = get_position_vectors(traj)
+
+        # compute msd for a single trajectory
+        msd_ = np.empty(lag)
+        for lag_ in range(1, lag + 1):
+            dr = r[lag_:] - r[:-lag_]       # lag displacement vectors
+            dr2 = np.sum(dr**2, axis=1)    # lag displacement
+            msd_[lag_ - 1] = np.mean(dr2)  # averaging over a single realization
+        
+        # append all square displacements
+        msd.append(msd_)
+    
+    # transpose to have time/trials as first/second axis
+    msd = np.transpose(msd)
+    return msd
+
+
+# mean square displacement
+def estimate_msd(trajs, time_avg=True, lag=None):
+    if not time_avg:
+        msd = estimate_msd_ensemble(trajs)   # ensemble average
+    else:
+        msd = estimate_msd_time(trajs, lag)  # time average
+
+    msd_mean = np.mean(msd, axis=1)  # mean
+    msd_std = np.std(msd, axis=1)    # standard deviation
+    return msd_mean, msd_std
+
+
 # get displacements for ensemble average and
 # kurtosis for time average
 # TODO: Fix this implementation for dim != 2 Traj
