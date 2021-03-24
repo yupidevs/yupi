@@ -3,17 +3,17 @@ import scipy.stats
 from yupi.analyzing import turning_angles, subsample_trajectory
 
 # relative and cumulative turning angles
-def estimate_turning_angles(trajectories, accumulate=False, 
+def estimate_turning_angles(trajs, accumulate=False, 
                     degrees=False, centered=False):
-    theta = [turning_angles(traj) for traj in trajectories]
+    theta = [turning_angles(traj) for traj in trajs]
     return np.concatenate(theta)
 
 
 # Returns measured velocity samples on all the trajectories
 # subsampling them at a given stem
-def estimate_velocity_samples(trajectories, step):
+def estimate_velocity_samples(trajs, step):
     step = 1
-    trajs_ = [subsample_trajectory(traj, step) for traj in trajectories]
+    trajs_ = [subsample_trajectory(traj, step) for traj in trajs]
     return np.concatenate([traj.velocity() for traj in trajs_])
 
 
@@ -48,9 +48,9 @@ def get_velocity_vector(traj):
 
 
 # mean square displacement (ensemble average)
-def estimate_msd_ensemble(trajectories):
+def estimate_msd_ensemble(trajs):
     msd = []
-    for traj in trajectories:
+    for traj in trajs:
         r = get_position_vector(traj)  # position vectors
         r2 = (r - r[0])**2             # square distances
         msd.append(r2)                 # append square distances
@@ -60,9 +60,9 @@ def estimate_msd_ensemble(trajectories):
     return msd
 
 # mean square displacement (time average)
-def estimate_msd_time(trajectories, lag):
+def estimate_msd_time(trajs, lag):
     msd = []
-    for traj in trajectories:
+    for traj in trajs:
         dr2 = np.empty(lag)
         dr2_ = 0
         for lag_ in range(1, lag + 1):
@@ -96,9 +96,9 @@ def estimate_msd(trajs, time_avg=True, lag=None):
 
 
 # velocity autocorrelation function (ensemble average)
-def estimate_vacf_ensemble(trajectories):
+def estimate_vacf_ensemble(trajs):
     vacf = []
-    for traj in trajectories:
+    for traj in trajs:
         # cartesian velocity components
         v = get_velocity_vector(traj)
 
@@ -114,9 +114,9 @@ def estimate_vacf_ensemble(trajectories):
 
 
 # velocity autocorrelation function (time average)
-def estimate_vacf_time(trajectories, lag):
+def estimate_vacf_time(trajs, lag):
     vacf = []
-    for traj in trajectories:
+    for traj in trajs:
         # cartesian velocity components
         v = get_velocity_vector(traj)
 
