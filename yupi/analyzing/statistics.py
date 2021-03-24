@@ -17,18 +17,43 @@ def estimate_velocity_samples(trajectories, step):
     return np.concatenate([traj.velocity() for traj in trajs_])
 
 
+# get position vector by components
+def get_position_vector(traj):
+    # get the components of the position
+    r = traj.data[:traj.dim]
+
+    # transpose to have time/dimension as first/second axis
+    r = np.transpose(r)
+    return r
+
+
+# get velocity vector by components
+def get_velocity_vector(traj):
+    v = []
+    if traj.dim <= 1:
+        vx = traj.x_velocity()
+        v.append(vx)  # append velocity x-component
+
+    if traj.dim <= 2:
+        vy = traj.y_velocity()
+        v.append(vy)  # append velocity y-component
+
+    if traj.dim <= 3:
+        vz = traj.z_velocity()
+        v.append(vz)  # append velocity z-component
+
+    # transpose to have time/dimension as first/second axis
+    v = np.transpose(v)
+    return v
+
+
 # mean square displacement (ensemble average)
 def estimate_msd_ensemble(trajectories):
     msd = []
     for traj in trajectories:
-        r2 = 0
-        # iterating over all dimensions
-        for dim in traj.dim:
-            r_i = traj.data[dim - 1]  # position coordinates
-            r2 += (r_i - r_i[0])**2   # sum of square distances
-        
-        # append square distances
-        msd.append(r2)
+        r = get_position_vector(traj)  # position vectors
+        r2 = (r - r[0])**2             # square distances
+        msd.append(r2)                 # append square distances
     
     # transpose to have time/trials as first/second axis
     msd = np.transpose(msd)
@@ -68,26 +93,6 @@ def estimate_msd(trajs, time_avg=True, lag=None):
     msd_mean = np.mean(msd, axis=1)  # mean
     msd_std = np.std(msd, axis=1)    # standard deviation
     return msd_mean, msd_std
-
-
-# get velocity vector by components
-def get_velocity_vector(traj):
-    v = []
-    if traj.dim <= 1:
-        vx = traj.x_velocity()
-        v.append(vx)  # append velocity x-component
-
-    if traj.dim <= 2:
-        vy = traj.y_velocity()
-        v.append(vy)  # append velocity y-component
-
-    if traj.dim <= 3:
-        vz = traj.z_velocity()
-        v.append(vz)  # append velocity z-component
-
-    # transpose to have time/dimension as first/second axis
-    v = np.transpose(v)
-    return v
 
 
 # velocity autocorrelation function (ensemble average)
