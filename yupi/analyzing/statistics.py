@@ -30,7 +30,7 @@ def estimate_msd_ensemble(trajectories):
         # append square distances
         msd.append(r2)
     
-    # switch to have time/trials as first/second axis
+    # transpose to have time/trials as first/second axis
     msd = np.transpose(msd)
     return msd
 
@@ -53,9 +53,10 @@ def estimate_msd_time(trajectories, lag):
         # append all square displacements
         msd.append(dr2)
     
-    # switch to have time/trials as first/second axis
+    # transpose to have time/trials as first/second axis
     msd = np.transpose(msd)
     return msd
+
 
 # mean square displacement
 def estimate_msd(trajs, time_avg=True, lag=None):
@@ -67,6 +68,78 @@ def estimate_msd(trajs, time_avg=True, lag=None):
     msd_mean = np.mean(msd, axis=1)  # mean
     msd_std = np.std(msd, axis=1)    # standard deviation
     return msd_mean, msd_std
+
+
+# get velocity vector by components
+def get_velocity_vector(traj):
+    v = []
+    if traj.dim <= 1:
+        vx = traj.x_velocity()
+        v.append(vx)  # append velocity x-component
+
+    if traj.dim <= 2:
+        vy = traj.y_velocity()
+        v.append(vy)  # append velocity y-component
+
+    if traj.dim <= 3:
+        vz = traj.z_velocity()
+        v.append(vz)  # append velocity z-component
+
+    # transpose to have time/dimension as first/second axis
+    v = np.transpose(v)
+    return v
+
+
+# velocity autocorrelation function (ensemble average)
+def estimate_vacf_ensemble(trajectories):
+    vacf = []
+    for traj in trajectories:
+        # cartesian velocity components
+        v = get_velocity_vector(traj)
+
+        # pair-wise dot product between velocities at t0 and t
+        v0_dot_v = np.sum(v[0] * v, axis=1)
+        
+        # append all veloctiy dot products
+        vacf.append(v0_dot_v)
+
+    # transpose to have time/trials as first/second axis
+    vacf = np.transpose(vacf)
+    return vacf
+
+
+# velocity autocorrelation function (time average)
+def estimate_vacf_time(trajectories, lag):
+    vacf = []
+    for traj in trajectories:
+        # cartesian velocity components
+        v = get_velocity_vector(traj)
+
+        # compute vacf for a single trajectory
+        vacf_ = np.empty(lag)
+        for lag_ in range(1, lag + 1):
+            v1v2 = v[:-lag_] * v[lag_:]           # multiply components given lag
+            v1_dot_v2 = np.sum(v1v2, axis=1)      # dot product for a given lag time
+            vacf_[lag_ - 1] = np.mean(v1_dot_v2)  # averaging over a single realization
+
+        # append the vacf for a every single realization
+        vacf.append(vacf_)
+
+    # transpose to have time/trials as first/second axis
+    vacf = np.transpose(vacf)
+    return vacf
+
+
+# velocity autocorrelation function
+def estimate_vacf(trajs, time_avg=True, lag=None):
+    if not time_avg:
+        vacf = estimate_vacf_ensemble(trajs)   # ensemble average
+    else:
+        vacf = estimate_vacf_time(trajs, lag)  # time average
+
+    vacf_mean = np.mean(vacf, axis=1)  # mean
+    vacf_std = np.std(vacf, axis=1)    # standard deviation
+    return vacf_mean, vacf_std
 
 
 # get displacements for ensemble average and
@@ -95,34 +168,3 @@ def estimate_kurtosis(trajs, time_avg=True, lag=None):
         return scipy.stats.kurtosis(kurtosis, axis=0, fisher=False)
     else:
         return np.mean(kurtosis, axis=0)
-
-
-# velocity autocorrelation function
-# TODO: Fix this implementation for dim != 2
-def estimate_vacf(trajs, time_avg=True, lag=None):
-    vacf = []
-    for traj in trajs:
-        vx = traj.x_velocity()
-        vy = traj.y_velocity()
-
-        # ensemble average
-        if not time_avg:
-            v1v2x = vx[0] * vx
-            v1v2y = vy[0] * vy
-            v1v2 = v1v2x + v1v2y
-
-        # time average
-        else:
-            v1v2 = np.empty(lag)
-            for lag_ in range(1, lag + 1):
-                v1v2x = vx[:-lag_] * vx[lag_:]
-                v1v2y = vy[:-lag_] * vy[lag_:]
-                v1v2[lag_ - 1] = np.mean(v1v2x + v1v2y)
-        
-        # append all pair-wise veloctiy dot products
-        vacf.append(v1v2)
-    
-    vacf = np.transpose(vacf)
-    vacf_mean = np.mean(vacf, axis=1)
-    vacf_std = np.std(vacf, axis=1)
-    return vacf_mean, vacf_std
