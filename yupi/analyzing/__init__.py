@@ -6,6 +6,7 @@ All the resources of this module should be imported directly
 from ``yupi.analyzing``. However, we ordered the resources
 according the functionality into the following categories.
 """
+
 from yupi.analyzing.processing import (
     turning_angles
 )
