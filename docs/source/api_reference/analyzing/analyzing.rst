@@ -1,13 +1,13 @@
 yupi.analyzing
 ==============
 
+.. automodule:: analyzing
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Resources:
 
    processing
    statistics
    transformations
    visualization
-
-.. automodule:: analyzing

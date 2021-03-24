@@ -1,12 +1,13 @@
 yupi.tracking
 =============
 
+
+.. automodule:: tracking
+
 .. toctree::
   :maxdepth: 2
-  :caption: Contents:
+  :caption: Resources:
 
   algorithms
   undistorters
   trackers
-
-.. automodule:: tracking
