@@ -1,5 +1,5 @@
 import numpy as np
-import scipy
+import scipy.stats
 from yupi.analyzing import turning_angles, subsample_trajectory
 
 # relative and cumulative turning angles

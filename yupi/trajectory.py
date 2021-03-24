@@ -1,11 +1,9 @@
 import numpy as np
 import json
 import csv
+import os
 from typing import NamedTuple
 from pathlib import Path
-import scipy.stats
-import logging
-import os
 
 TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
                              t=float, theta=float)
@@ -35,16 +33,6 @@ class Trajectory():
 
     Attributes
     ----------
-    x : np.ndarray
-        Array containing position data of X axis.
-    y : np.ndarray
-        Array containing position data of Y axis.
-    z : np.ndarray
-        Array containing position data of X axis.
-    t : np.ndarray
-        Array containing time data.
-    theta : np.ndarray
-        Array containing angle data.
     dt : float
         If no time data (``t``) is given this represents the time
         between each position data value.
@@ -83,27 +71,33 @@ class Trajectory():
         self.id = id
     
     @property
-    def x(self):
+    def x(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of X axis."""
         return self.data[0]
 
     @property
-    def y(self):
+    def y(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of Y axis."""
         return self.data[1]
 
     @property
-    def z(self):
+    def z(self) -> np.ndarray:
+        """np.ndarray : Array containing position data of Z axis."""
         return self.data[2]
 
     @property
-    def t(self):
+    def t(self) -> np.ndarray:
+        """np.ndarray : Array containing time data."""
         return self.data[3]
 
     @property
-    def theta(self):
+    def theta(self) -> np.ndarray:
+        """np.ndarray : Array containing angle data."""
         return self.data[4]
     
     @property
-    def dim(self):
+    def dim(self) -> int:
+        """int : Trajectory dimension."""
         for i, d in enumerate(self.data[:3]):
             if d is None:
                 return i
@@ -129,8 +123,25 @@ class Trajectory():
             yield TrajectoryPoint(x, y, z, t, theta)
 
     @staticmethod
-    def save_trajectories(trajectories, folder_path='',
+    def save_trajectories(trajectories: list, folder_path: str = '.',
                           file_type: str = 'json', overwrite: bool = True):
+        """
+        Save a list of trajectories.
+
+        Parameters
+        ----------
+        trajectories : list[Trajectory]
+            List of trajectories that will be saved.
+        folder_path : str
+            Path where to save the trajectory. (Default is ``'.'``).
+        file_type : str
+            Type of the file. (Default is ``json``).
+
+            The only types avaliable are: ``json`` and ``csv``.
+        overwrite : bool
+            Wheter or not to overwrite the file if it already exists. (Default
+            is True).
+        """
 
         for i, traj in enumerate(trajectories):
             path = str(Path(folder_path))
@@ -154,7 +165,7 @@ class Trajectory():
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
             Wheter or not to overwrite the file if it already exists. (Default
-            is True)
+            is True).
 
         Raises
         ------        
@@ -201,9 +212,23 @@ class Trajectory():
             raise ValueError(f"Invalid export file type '{file_type}'")
 
     @staticmethod
-    def load_folder(folder_path=''):
+    def load_folder(folder_path='.'):
+        """
+        Loads all the trajectories from a folder.
+
+        Parameters
+        ----------
+        folder_path : str
+            Path of the trajectories folder.
+
+        Returns
+        -------
+        List[Trajectory]
+            List of the loaded trajectories.
+        """
+        
         trajectories = []
-        for root, dirs, files in os.walk(folder_path):
+        for root, _, files in os.walk(folder_path):
             for file in files:
                 path = str(Path(root) / Path(file))
                 try:

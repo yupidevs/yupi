@@ -5,7 +5,9 @@ yupi.analyzing
    :maxdepth: 2
    :caption: Contents:
 
-   reference
+   processing
+   statistics
+   transformations
    visualization
 
 .. automodule:: analyzing
