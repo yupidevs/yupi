@@ -2,7 +2,7 @@ import numpy as np
 from yupi import Trajectory
 from yupi.affine_estimator import affine_matrix
 
-def add_dynamic_reference(trajectory, reference, start_in_origin=True):
+def add_dynamic_reference(traj, reference, start_in_origin=True):
     """ 
     This functions fuse the information of a trajectory with an 
     external reference of the motion of the System of Reference
@@ -40,27 +40,27 @@ def add_dynamic_reference(trajectory, reference, start_in_origin=True):
 
     theta, tx, ty = reference
 
-    x_al, y_al = affine2obj(theta, tx, ty, trajectory.x, trajectory.y)
+    x_al, y_al = affine2obj(theta, tx, ty, traj.x, traj.y)
     
     if start_in_origin:
         x_al = x_al - x_al[0]
         y_al = y_al - y_al[0]
 
-    trajectory.x = x_al
-    trajectory.y = y_al
+    traj.x = x_al
+    traj.y = y_al
 
-    return trajectory
+    return traj
 
 
-def subsample_trajectory(trajectory, step=1, step_in_seconds=False):
+def subsample_trajectory(traj, step=1, step_in_seconds=False):
     if step_in_seconds:
-        step = int(step / trajectory.dt)
-    x = trajectory.x[::step]
-    y = trajectory.y[::step] if trajectory.y is not None else None
-    z = trajectory.z[::step] if trajectory.z is not None else None
-    theta = trajectory.theta[::step] if trajectory.theta is not None else None
-    t = trajectory.t[::step] if trajectory.t is not None else None
-    return Trajectory(x, y, z, t, theta, dt=step*trajectory.dt)
+        step = int(step / traj.dt)
+    x = traj.x[::step]
+    y = traj.y[::step] if traj.y is not None else None
+    z = traj.z[::step] if traj.z is not None else None
+    theta = traj.theta[::step] if traj.theta is not None else None
+    t = traj.t[::step] if traj.t is not None else None
+    return Trajectory(x, y, z, t, theta, dt=step*traj.dt)
 
 
 # wrap angles in the interval [0,2pi] or [-pi,pi]
