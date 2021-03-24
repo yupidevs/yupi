@@ -17,32 +17,37 @@ def estimate_velocity_samples(trajs, step):
     return np.concatenate([traj.velocity() for traj in trajs_])
 
 
-# mean square displacement
-# TODO: Fix this implementation for dim != 2 Traj
-def estimate_msd(trajs, time_avg=True, lag=None):
-    msd = []
-    for traj in trajs:
-        # ensemble average
-        if not time_avg:
-            dx = traj.x - traj.x[0]
-            dy = traj.y - traj.y[0]
-            dr_2 = dx**2 + dy**2
+# get position vectors by components
+def get_position_vectors(traj):
+    # get the components of the position
+    r = traj.data[:traj.dim]
 
-        # time average
-        else:
-            dr_2 = np.empty(lag)
-            for lag_ in range(1, lag + 1):
-                dx = traj.x[lag_:] - traj.x[:-lag_]
-                dy = traj.y[lag_:] - traj.y[:-lag_]
-                dr_2[lag_ - 1] = np.mean(dx**2 + dy**2)
+    # transpose to have time/dimension as first/second axis
+    r = np.transpose(r)
+    return r
 
-        # append all squared displacements
-        msd.append(dr_2)
+
+# get velocity vectors by components
+def get_velocity_vectors(traj):
+    v = []
     
-    msd = np.transpose(msd)
-    msd_mean = np.mean(msd, axis=1)
-    msd_std = np.std(msd, axis=1)
-    return msd_mean, msd_std
+    # append velocity x-component
+    vx = traj.x_velocity()
+    v.append(vx)
+
+    # append velocity y-component
+    if traj.dim >= 2:
+        vy = traj.y_velocity()
+        v.append(vy)
+
+    # append velocity z-component
+    if traj.dim == 3:
+        vz = traj.z_velocity()
+        v.append(vz)
+
+    # transpose to have time/dimension as first/second axis
+    v = np.transpose(v)
+    return v
 
 
 # get displacements for ensemble average and
@@ -71,34 +76,3 @@ def estimate_kurtosis(trajs, time_avg=True, lag=None):
         return scipy.stats.kurtosis(kurtosis, axis=0, fisher=False)
     else:
         return np.mean(kurtosis, axis=0)
-
-
-# velocity autocorrelation function
-# TODO: Fix this implementation for dim != 2
-def estimate_vacf(trajs, time_avg=True, lag=None):
-    vacf = []
-    for traj in trajs:
-        vx = traj.x_velocity()
-        vy = traj.y_velocity()
-
-        # ensemble average
-        if not time_avg:
-            v1v2x = vx[0] * vx
-            v1v2y = vy[0] * vy
-            v1v2 = v1v2x + v1v2y
-
-        # time average
-        else:
-            v1v2 = np.empty(lag)
-            for lag_ in range(1, lag + 1):
-                v1v2x = vx[:-lag_] * vx[lag_:]
-                v1v2y = vy[:-lag_] * vy[lag_:]
-                v1v2[lag_ - 1] = np.mean(v1v2x + v1v2y)
-        
-        # append all pair-wise veloctiy dot products
-        vacf.append(v1v2)
-    
-    vacf = np.transpose(vacf)
-    vacf_mean = np.mean(vacf, axis=1)
-    vacf_std = np.std(vacf, axis=1)
-    return vacf_mean, vacf_std
