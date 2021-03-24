@@ -16,7 +16,13 @@ Description of current examples
 
 In this table you can easily find the examples that better suits you.
 
+.. toctree::
+   :maxdepth: 2
+   :caption: The future table:
 
+   example1
+
+   
 .. .. list-table:: Title
 ..    :widths: 1 2 2
 ..    :header-rows: 1
