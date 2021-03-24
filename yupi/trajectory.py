@@ -431,17 +431,16 @@ class Trajectory():
         diff : np.ndarray
             Array containing the difference between consecutive samples.
         """
-        #TODO: Fix this to support different dims Trajectory
         dx = self.x_diff()
-        dy = self.y_diff()
-        if dy is not None:
-            dz = self.y_diff()
-            if dz is not None:
-                return np.sqrt(dx**2 + dy**2 + dz**2)
-            else:
-                return np.sqrt(dx**2 + dy**2)
-        else:
+        if self.dim == 1:
             return dx
+        dy = self.y_diff()
+        if self.dim == 2:
+            return np.sqrt(dx**2 + dy**2)
+        else:
+            dz = self.y_diff()
+            return np.sqrt(dx**2 + dy**2 + dz**2)
+            
 
     def x_velocity(self):
         """
@@ -531,5 +530,6 @@ if __name__ == '__main__':
 
     assert t1.x[0] == 1.0
     assert t1.x[1] == 2.0
+
 
     
