@@ -17,31 +17,55 @@ def estimate_velocity_samples(trajectories, step):
     return np.concatenate([traj.velocity() for traj in trajs_])
 
 
-# mean square displacement
-# TODO: Fix this implementation for dim != 2 Traj
-def estimate_msd(trajs, time_avg=True, lag=None):
+# mean square displacement (ensemble average)
+def estimate_msd_ensemble(trajectories):
     msd = []
-    for traj in trajs:
-        # ensemble average
-        if not time_avg:
-            dx = traj.x - traj.x[0]
-            dy = traj.y - traj.y[0]
-            dr_2 = dx**2 + dy**2
-
-        # time average
-        else:
-            dr_2 = np.empty(lag)
-            for lag_ in range(1, lag + 1):
-                dx = traj.x[lag_:] - traj.x[:-lag_]
-                dy = traj.y[lag_:] - traj.y[:-lag_]
-                dr_2[lag_ - 1] = np.mean(dx**2 + dy**2)
-
-        # append all squared displacements
-        msd.append(dr_2)
+    for traj in trajectories:
+        r2 = 0
+        # iterating over all dimensions
+        for dim in traj.dim:
+            r_i = traj.data[dim - 1]  # position coordinates
+            r2 += (r_i - r_i[0])**2   # sum of square distances
+        
+        # append square distances
+        msd.append(r2)
     
+    # switch to have time/trials as first/second axis
     msd = np.transpose(msd)
-    msd_mean = np.mean(msd, axis=1)
-    msd_std = np.std(msd, axis=1)
+    return msd
+
+# mean square displacement (time average)
+def estimate_msd_time(trajectories, lag):
+    msd = []
+    for traj in trajectories:
+        dr2 = np.empty(lag)
+        dr2_ = 0
+        for lag_ in range(1, lag + 1):
+            # iterating over all dimensions
+            for dim in traj.dim:
+                r_i = traj.data[dim - 1]         # position coordinates
+                dr_i = r_i[lag_:] - r_i[:-lag_]  # lag displacements
+                dr2_ += dr_i**2                  # sum of square displacements
+            
+            # averaging over a single realization
+            dr2[lag_ - 1] = np.mean(dr2_)
+        
+        # append all square displacements
+        msd.append(dr2)
+    
+    # switch to have time/trials as first/second axis
+    msd = np.transpose(msd)
+    return msd
+
+# mean square displacement
+def estimate_msd(trajs, time_avg=True, lag=None):
+    if not time_avg:
+        msd = estimate_msd_ensemble(trajs)   # ensemble average
+    else:
+        msd = estimate_msd_time(trajs, lag)  # time average
+
+    msd_mean = np.mean(msd, axis=1)  # mean
+    msd_std = np.std(msd, axis=1)    # standard deviation
     return msd_mean, msd_std
 
 
