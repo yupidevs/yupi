@@ -1,6 +1,7 @@
 yupi.analyzing
 ==============
 
+
 .. automodule:: analyzing
 
 .. toctree::
