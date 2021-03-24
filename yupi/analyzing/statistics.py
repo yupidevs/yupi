@@ -3,17 +3,17 @@ import scipy.stats
 from yupi.analyzing import turning_angles, subsample_trajectory
 
 # relative and cumulative turning angles
-def estimate_turning_angles(trajectories, accumulate=False, 
+def estimate_turning_angles(trajs, accumulate=False, 
                     degrees=False, centered=False):
-    theta = [turning_angles(traj) for traj in trajectories]
+    theta = [turning_angles(traj) for traj in trajs]
     return np.concatenate(theta)
 
 
 # Returns measured velocity samples on all the trajectories
 # subsampling them at a given stem
-def estimate_velocity_samples(trajectories, step):
+def estimate_velocity_samples(trajs, step):
     step = 1
-    trajs_ = [subsample_trajectory(traj, step) for traj in trajectories]
+    trajs_ = [subsample_trajectory(traj, step) for traj in trajs]
     return np.concatenate([traj.velocity() for traj in trajs_])
 
 
