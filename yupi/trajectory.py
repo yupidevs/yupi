@@ -11,7 +11,8 @@ TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
 
 class Trajectory():
     """
-    Represents a trajectory.
+    A Trajectory object represents a multidimensional trajectory. 
+    It can be iterated to obtain the corresponding point for each timestep.
 
     Parameters
     ----------
@@ -39,12 +40,21 @@ class Trajectory():
     id : str
         Id of the trajectory.
 
+    Examples
+    --------
+    You can create a trajectory object by giving the arrays that represent it:
+
+    >>> x = [0, 1.0, 0.63, -0.37, -1.24, -1.5, -1.08, -0.19, 0.82, 1.63, 1.99, 1.85]
+    >>> y = [0, 0, 0.98, 1.24, 0.69, -0.3, -1.23, -1.72, -1.63, -1.01, -0.06, 0.94]
+    >>> Trajectory(x=x, y=y, id="Spiral")
+
+
     Raises
     ------
     ValueError
         If ``x`` is not given.
     ValueError
-        If all the given position data (``x``, ``y`` and/or ``z``)
+        If all the given input data (``x``, ``y``, ``z``, ``t``, ``theta``)
         does not have the same shape.
     """
 
@@ -97,7 +107,7 @@ class Trajectory():
     
     @property
     def dim(self) -> int:
-        """int : Trajectory dimension."""
+        """int : Trajectory spacial dimensions (can be 1, 2 or 3)."""
         for i, d in enumerate(self.data[:3]):
             if d is None:
                 return i
@@ -126,14 +136,15 @@ class Trajectory():
     def save_trajectories(trajectories: list, folder_path: str = '.',
                           file_type: str = 'json', overwrite: bool = True):
         """
-        Save a list of trajectories.
+        Saves a list of trajectories to disk. Each Trajectory object will be saved
+        in a separate file inside the given folder.
 
         Parameters
         ----------
         trajectories : list[Trajectory]
-            List of trajectories that will be saved.
+            List of Trajectory objects that will be saved.
         folder_path : str
-            Path where to save the trajectory. (Default is ``'.'``).
+            Path where to save all the trajectory. (Default is ``'.'``).
         file_type : str
             Type of the file. (Default is ``json``).
 
@@ -141,6 +152,13 @@ class Trajectory():
         overwrite : bool
             Wheter or not to overwrite the file if it already exists. (Default
             is True).
+
+        Examples
+        --------
+        >>> trajectories = [
+            Trajectory(x=[0.37, 1.24, 1.5]), 
+            Trajectory(x=[1, 2], y=[3, 4])] 
+        >>> Trajectory.save_trajectories(trajectories)
         """
 
         for i, traj in enumerate(trajectories):
@@ -151,7 +169,7 @@ class Trajectory():
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
         """
-        Saves a trajectory
+        Saves the trajectory to disk.
 
         Parameters
         ----------
@@ -166,6 +184,11 @@ class Trajectory():
         overwrite : bool
             Wheter or not to overwrite the file if it already exists. (Default
             is True).
+
+        Examples
+        --------
+        >>> t = Trajectory(x=[0.37, 1.24, 1.5]) 
+        >>> t.save('my_track')
 
         Raises
         ------        
@@ -249,8 +272,7 @@ class Trajectory():
         
         Returns
         -------
-        Trajecotry
-            Trajectory loaded.
+            Loaded Trajectory object.
 
         Raises
         ------
@@ -276,6 +298,7 @@ class Trajectory():
             raise ValueError("Invalid file type.")
 
         with open(file_path, 'r') as f:
+            # TODO: Consider Split each file saver into a private function
             if file_type == '.json':
 
                 data = json.load(f)
@@ -328,25 +351,87 @@ class Trajectory():
                                   id=traj_id)
                                   
     def t_diff(self):
+        """
+        Estimates the time difference between each couple 
+        of consecutive samples in the Trajectory.
+
+        Returns
+        ----------
+        t_diff : np.ndarray
+            Array containing the time difference between consecutive samples.
+        """
         if self.t is not None:
             return np.ediff1d(self.t)
 
     def x_diff(self):
+        """
+        Estimates the spacial difference between each couple 
+        of consecutive samples in the x-axis of the Trajectory.
+
+        Returns
+        ----------
+        x_diff : np.ndarray
+            Array containing the x-axis difference between consecutive samples.
+        """
         return np.ediff1d(self.x)
 
     def y_diff(self):
+        """
+        Estimates the spacial difference between each couple 
+        of consecutive samples in the y-axis of the Trajectory.
+
+        Returns
+        ----------
+        y_diff : np.ndarray
+            Array containing the y-axis difference between consecutive samples.
+        None:
+            If Trajectory dim is less than 2
+        """
         if self.y is not None:
             return np.ediff1d(self.y)
 
     def z_diff(self):
+        """
+        Estimates the spacial difference between each couple 
+        of consecutive samples in the z-axis of the Trajectory.
+
+        Returns
+        ----------
+        z_diff : np.ndarray
+            Array containing the z-axis difference between consecutive samples.
+        None:
+            If Trajectory dim is less than 3
+        """
         if self.z is not None:
             return np.ediff1d(self.z)
 
     def theta_diff(self):
+        """
+        Estimates the spacial difference between each couple 
+        of consecutive samples in the theta array of the Trajectory.
+
+        Returns
+        ----------
+        theta_diff : np.ndarray
+            Array containing the theta array difference between consecutive samples.
+        None:
+            If Trajectory doesn't have theta informantion
+        """
         if self.theta is not None:
             return np.ediff1d(self.theta)
 
     def diff(self):
+        """
+        Estimates the spacial difference between each couple 
+        of consecutive samples across all the spacial dimensions 
+        of the Trajectory object.
+
+        Returns
+        ----------
+        diff : np.ndarray
+            Array containing the difference between consecutive samples.
+        """
+        #TODO: Fix this to support different dims Trajectory
         dx = self.x_diff()
         dy = self.y_diff()
         if dy is not None:
@@ -359,21 +444,68 @@ class Trajectory():
             return dx
 
     def x_velocity(self):
+        """
+        Computes the velocity in the x-axis of the Trajectory.
+
+        Returns
+        ----------
+        x_vel : np.ndarray
+            Array containing the x-axis velocity of the Trajectory.
+        """
         return self.x_diff() / self.dt
 
     def y_velocity(self):
+        """
+        Computes the velocity in the y-axis of the Trajectory.
+
+        Returns
+        ----------
+        y_vel : np.ndarray
+            Array containing the y-axis velocity of the Trajectory.
+        None:
+            If Trajectory dim is less than 2
+        """
         if self.y is not None:
             return self.y_diff() / self.dt
 
     def z_velocity(self):
+        """
+        Computes the velocity in the z-axis of the Trajectory.
+
+        Returns
+        ----------
+        z_vel : np.ndarray
+            Array containing the z-axis velocity of the Trajectory.
+        None:
+            If Trajectory dim is less than 3
+        """
         if self.z is not None:
             return self.z_diff() / self.dt
 
     def theta_velocity(self):
+        """
+        Computes the angular velocity from the theta array of the Trajectory.
+
+        Returns
+        ----------
+        omega : np.ndarray
+            Array containing the angular velocity of the Trajectory.
+        None:
+            If Trajectory doesn't have theta informantion
+        """
         if self.theta is not None:
             return self.theta_diff() / self.dt
 
     def velocity(self):
+        """
+        Estimates the velocity across all the spacial dimensions 
+        of the Trajectory object.
+
+        Returns
+        ----------
+        v : np.ndarray
+            Array containing the velocity of the Trajectory.
+        """
         return self.diff() / self.dt
 
 if __name__ == '__main__':
