@@ -77,7 +77,7 @@ def estimate_msd_time(trajs, lag):
         # compute msd for a single trajectory
         msd_ = np.empty(lag)
         for lag_ in range(1, lag + 1):
-            dr = r[lag_:] - r[:-lag_]       # lag displacement vectors
+            dr = r[lag_:] - r[:-lag_]      # lag displacement vectors
             dr2 = np.sum(dr**2, axis=1)    # lag displacement
             msd_[lag_ - 1] = np.mean(dr2)  # averaging over a single realization
         
