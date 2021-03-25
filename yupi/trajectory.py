@@ -142,6 +142,7 @@ class Trajectory():
         t_diff : np.ndarray
             Array containing the time difference between consecutive samples.
         """
+
         if self.t is not None:
             return np.ediff1d(self.t)
 
@@ -155,6 +156,7 @@ class Trajectory():
         x_diff : np.ndarray
             Array containing the x-axis difference between consecutive samples.
         """
+
         return np.ediff1d(self.x)
 
     def y_diff(self):
@@ -169,6 +171,7 @@ class Trajectory():
         None:
             If Trajectory dim is less than 2
         """
+
         if self.y is not None:
             return np.ediff1d(self.y)
 
@@ -184,6 +187,7 @@ class Trajectory():
         None:
             If Trajectory dim is less than 3
         """
+
         if self.z is not None:
             return np.ediff1d(self.z)
 
@@ -199,6 +203,7 @@ class Trajectory():
         None:
             If Trajectory doesn't have theta informantion
         """
+
         if self.theta is not None:
             return np.ediff1d(self.theta)
 
@@ -233,6 +238,7 @@ class Trajectory():
         x_vel : np.ndarray
             Array containing the x-axis velocity of the Trajectory.
         """
+
         return self.x_diff() / self.dt
 
     def y_velocity(self):
@@ -246,6 +252,7 @@ class Trajectory():
         None:
             If Trajectory dim is less than 2
         """
+
         if self.y is not None:
             return self.y_diff() / self.dt
 
@@ -260,6 +267,7 @@ class Trajectory():
         None:
             If Trajectory dim is less than 3
         """
+
         if self.z is not None:
             return self.z_diff() / self.dt
 
@@ -274,6 +282,7 @@ class Trajectory():
         None:
             If Trajectory doesn't have theta informantion
         """
+
         if self.theta is not None:
             return self.theta_diff() / self.dt
 
@@ -287,6 +296,7 @@ class Trajectory():
         v : np.ndarray
             Array containing the velocity of the Trajectory.
         """
+
         return self.diff() / self.dt
 
     def position_vectors(self):
@@ -298,6 +308,7 @@ class Trajectory():
         r : np.ndarray
             Array containing all the position arrays of the Trajectory.
         """
+
         # get the components of the position
         r = self.data[:self.dim]
 
@@ -314,6 +325,7 @@ class Trajectory():
         v : np.ndarray
             Array containing all the velocity arrays of the Trajectory.
         """
+
         v = []
         
         # append velocity x-component
@@ -331,6 +343,32 @@ class Trajectory():
         v = np.transpose(v)
         return v
 
+    def _save_json(self, path: str):
+        def convert_to_list(array_data):
+            if array_data is None:
+                return array_data
+            if array_data is not list:
+                array_data = list(array_data)
+            return array_data
+
+        json_dict = {
+            'dt' : self.dt,
+            'id' : self.id,
+            'x' : convert_to_list(self.x),
+            'y' : convert_to_list(self.y),
+            'z' : convert_to_list(self.z),
+            't' : convert_to_list(self.t),
+            'theta' : convert_to_list(self.theta)
+        }
+        with open(str(path), 'w') as f:
+            json.dump(json_dict, f)
+
+    def _save_csv(self, path):
+        with open(str(path), 'w', newline='') as f:
+            writer = csv.writer(f, delimiter=',')
+            writer.writerow([self.id, self.dt])
+            for tp in self:
+                writer.writerow([tp.x, tp.y, tp.z, tp.t, tp.theta])
 
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
@@ -371,32 +409,10 @@ class Trajectory():
         if not overwrite and full_path.exists():
             raise ValueError(f"File '{str(full_path)}' already exist")
 
-        def convert_to_list(array_data):
-            if array_data is None:
-                return array_data
-            if array_data is not list:
-                array_data = list(array_data)
-            return array_data
-
         if file_type == 'json':
-            json_dict = {
-                'dt' : self.dt,
-                'id' : self.id,
-                'x' : convert_to_list(self.x),
-                'y' : convert_to_list(self.y),
-                'z' : convert_to_list(self.z),
-                't' : convert_to_list(self.t),
-                'theta' : convert_to_list(self.theta)
-            }
-            with open(str(full_path), 'w') as f:
-                json.dump(json_dict, f)
-
+            self._save_json(full_path)
         elif file_type == 'csv':
-            with open(str(full_path), 'w', newline='') as f:
-                writer = csv.writer(f, delimiter=',')
-                writer.writerow([self.id, self.dt])
-                for tp in self:
-                    writer.writerow([tp.x, tp.y, tp.z, tp.t, tp.theta])
+            self._save_csv(full_path)
         else:
             raise ValueError(f"Invalid export file type '{file_type}'")
 
@@ -436,31 +452,57 @@ class Trajectory():
             traj.save(name, path, file_type, overwrite)
 
     @staticmethod
-    def load_folder(folder_path='.'):
-        """
-        Loads all the trajectories from a folder.
+    def _load_json(path: str):
+        with open(path, 'r') as f:
+            data = json.load(f)
+            dt = data['dt']
+            traj_id = data['id']
+            x = data['x']
+            y = data['y']
+            z = data['z']
+            t = data['t']
+            theta = data['theta']
+            return Trajectory(x=x, y=y, z=z,
+                                t=t, theta=theta, dt=dt,
+                                id=traj_id)
 
-        Parameters
-        ----------
-        folder_path : str
-            Path of the trajectories folder.
+    def _load_csv(path: str):
+        with open(path, 'r') as f:
+            def check_empty_val(val):
+                return None if val == '' else val               
 
-        Returns
-        -------
-        List[Trajectory]
-            List of the loaded trajectories.
-        """
-        
-        trajectories = []
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                path = str(Path(root) / Path(file))
-                try:
-                    trajectories.append(Trajectory.load(path))
-                except:  # TODO: add errors
-                    pass
-        return trajectories
-    
+            x, y, z = [], [], []
+            t, theta = [], []
+            traj_id, dt = None, None
+
+            def add_val(arr, val):
+                if arr is not None:
+                    arr.append(val)
+                
+            for i, row in enumerate(csv.reader(f)):
+                if i == 0:
+                    traj_id = check_empty_val(row[0])
+                    dt = check_empty_val(row[1])
+                    if dt is not None:
+                        dt = float(dt)
+                    continue
+
+                add_val(x, check_empty_val(row[0]))
+                add_val(y, check_empty_val(row[1]))
+                add_val(z, check_empty_val(row[2]))
+                add_val(t, check_empty_val(row[3]))
+                add_val(theta, check_empty_val(row[4]))
+            
+            x = None if not x else x
+            y = None if not y else y
+            z = None if not z else z
+            t = None if not t else t
+            theta = None if not theta else theta
+
+            return Trajectory(x=x, y=y, z=z,
+                                t=t, theta=theta, dt=dt,
+                                id=traj_id)
+
     @staticmethod
     def load(file_path: str):
         """
@@ -492,64 +534,41 @@ class Trajectory():
             raise ValueError('Path does not exist.')
         if not path.is_file():
             raise ValueError("Path must be a file.")
-    
-        # Check valid file type
+
         file_type = path.suffix
-        if not path.suffix in ['.json', '.csv']:
+
+        if file_type == '.json':
+            return Trajectory._load_json(file_path)
+        elif file_type == '.csv':
+            return Trajectory._load_csv(file_path)
+        else:
             raise ValueError("Invalid file type.")
 
-        with open(file_path, 'r') as f:
-            # TODO: Consider Split each file saver into a private function
-            if file_type == '.json':
+    @staticmethod
+    def load_folder(folder_path='.'):
+        """
+        Loads all the trajectories from a folder.
 
-                data = json.load(f)
-                dt = data['dt']
-                traj_id = data['id']
-                x = data['x']
-                y = data['y']
-                z = data['z']
-                t = data['t']
-                theta = data['theta']
-                return Trajectory(x=x, y=y, z=z,
-                                  t=t, theta=theta, dt=dt,
-                                  id=traj_id)
+        Parameters
+        ----------
+        folder_path : str
+            Path of the trajectories folder.
 
-            elif file_type == '.csv':
-
-                def check_empty_val(val):
-                    return None if val == '' else val               
-
-                x, y, z = [], [], []
-                t, theta = [], []
-                traj_id, dt = None, None
-
-                def add_val(arr, val):
-                    if arr is not None:
-                        arr.append(val)
-                    
-                for i, row in enumerate(csv.reader(f)):
-                    if i == 0:
-                        traj_id = check_empty_val(row[0])
-                        dt = check_empty_val(row[1])
-                        if dt is not None:
-                            dt = float(dt)
-                        continue
-
-                    add_val(x, check_empty_val(row[0]))
-                    add_val(y, check_empty_val(row[1]))
-                    add_val(z, check_empty_val(row[2]))
-                    add_val(t, check_empty_val(row[3]))
-                    add_val(theta, check_empty_val(row[4]))
-                
-                x = None if not x else x
-                y = None if not y else y
-                z = None if not z else z
-                t = None if not t else t
-                theta = None if not theta else theta
-
-                return Trajectory(x=x, y=y, z=z,
-                                  t=t, theta=theta, dt=dt,
-                                  id=traj_id)
+        Returns
+        -------
+        List[Trajectory]
+            List of the loaded trajectories.
+        """
+        
+        trajectories = []
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                path = str(Path(root) / Path(file))
+                try:
+                    trajectories.append(Trajectory.load(path))
+                except:  # TODO: add errors
+                    pass
+        return trajectories
 
 if __name__ == '__main__':
 
