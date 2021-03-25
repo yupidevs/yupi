@@ -455,53 +455,40 @@ class Trajectory():
     def _load_json(path: str):
         with open(path, 'r') as f:
             data = json.load(f)
-            dt = data['dt']
-            traj_id = data['id']
-            x = data['x']
-            y = data['y']
-            z = data['z']
-            t = data['t']
+            traj_id, dt = data['id'], data['dt']
+            x, y, z, t = data['x'], data['y'], data['z'], data['t']
             theta = data['theta']
-            return Trajectory(x=x, y=y, z=z,
-                                t=t, theta=theta, dt=dt,
-                                id=traj_id)
+            return Trajectory(x=x, y=y, z=z, t=t, theta=theta, dt=dt, 
+                              id=traj_id)
 
     def _load_csv(path: str):
         with open(path, 'r') as f:
-            def check_empty_val(val):
-                return None if val == '' else val               
 
-            x, y, z = [], [], []
-            t, theta = [], []
+            def check_empty_val(val, cast=True):
+                if val == '':
+                    return None
+                return float(val) if cast else val     
+
+            # x, y, z, t, theta
+            dat = [[], [], [], [], []]
             traj_id, dt = None, None
-
-            def add_val(arr, val):
-                if arr is not None:
-                    arr.append(val)
                 
             for i, row in enumerate(csv.reader(f)):
                 if i == 0:
-                    traj_id = check_empty_val(row[0])
+                    traj_id = check_empty_val(row[0], cast=False)
                     dt = check_empty_val(row[1])
-                    if dt is not None:
-                        dt = float(dt)
                     continue
 
-                add_val(x, check_empty_val(row[0]))
-                add_val(y, check_empty_val(row[1]))
-                add_val(z, check_empty_val(row[2]))
-                add_val(t, check_empty_val(row[3]))
-                add_val(theta, check_empty_val(row[4]))
+                for j in range(len(dat)):
+                    dat[j].append(check_empty_val(row[j]))
             
-            x = None if not x else x
-            y = None if not y else y
-            z = None if not z else z
-            t = None if not t else t
-            theta = None if not theta else theta
+            for i, d in enumerate(dat):
+                if any([item is None for item in d]):
+                    dat[i] = None
 
-            return Trajectory(x=x, y=y, z=z,
-                                t=t, theta=theta, dt=dt,
-                                id=traj_id)
+            x, y, z, t, theta = dat
+            return Trajectory(x=x, y=y, z=z, t=t, theta=theta, dt=dt,
+                              id=traj_id)
 
     @staticmethod
     def load(file_path: str):
@@ -585,9 +572,9 @@ if __name__ == '__main__':
     tps = [(tp.x, tp.y) for tp in traj_1]
     assert tps == [(1,2),(2,3)]
 
-    Trajectory.save_trajectories([traj_1, traj_2])
+    Trajectory.save_trajectories([traj_1, traj_2], file_type='csv')
 
-    trajs = Trajectory.load_folder('.')
+    trajs = Trajectory.load_folder()
     
     t1 = trajs[0]
 
