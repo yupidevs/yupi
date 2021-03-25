@@ -17,8 +17,8 @@ def change_colorspace(image, color_space):
         return cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
 
         
-class Algorithm(metaclass=abc.ABCMeta):
-    """docstring for Algorithm"""
+class TrackingAlgorithm(metaclass=abc.ABCMeta):
+    """docstring for TrackingAlgorithm"""
     def __init__(self):
         pass
         
@@ -40,9 +40,9 @@ class Algorithm(metaclass=abc.ABCMeta):
     def detect(self, current_chunk, previous_chunk):
         pass
 
-# TODO: Fix this to emulate the previous algorithm including this:
+# TODO: Fix this to emulate the previous Trackingalgorithm including this:
 # ant_ratio = ant_pixels / (roi_width * roi_heigh) # approximate ratio of the ant compare to the roi
-class IntensityMatching(Algorithm):
+class IntensityMatching(TrackingAlgorithm):
     """docstring for IntensityMatching"""
     def __init__(self, min_val=0, max_val=255, max_pixels=None):
         super(IntensityMatching, self).__init__()
@@ -76,7 +76,7 @@ class IntensityMatching(Algorithm):
         return mask, centroid
 
 
-class ColorMatching(Algorithm):
+class ColorMatching(TrackingAlgorithm):
     """docstring for ColorMatching"""
     def __init__(self, lower_bound=(0,0,0), upper_bound=(255,255,255), 
         color_space='BGR', max_pixels=None):
@@ -95,7 +95,7 @@ class ColorMatching(Algorithm):
         centroid = self.get_centroid(mask)
         # convert the grayscale image to binary image
         return mask, centroid
-# TODO: Convert this to Algorithm Class
+# TODO: Convert this to TrackingAlgorithm Class
 
 # def frame_diff_detector(frame1, frame2):
 #     # obtain the frame difference
