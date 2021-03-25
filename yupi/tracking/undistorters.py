@@ -3,9 +3,30 @@ import cv2
 import numpy as np
 import abc
 
-class Undistorter(metaclass=abc.ABCMeta):
 
-    """Undistorts images using camera calibration matrix"""
+class Undistorter(metaclass=abc.ABCMeta):
+    """
+    Abstract class to model an undistortion method to be aplied on images
+    in order to correct the spherical distortion caused by the camera lens.
+    Classes inheriting from this class should implement ``undistort`` method.
+
+    To use an undistorion method you will need to obtain the calibration matrix
+    of your camera. You can follow the guide in opencv docs until the end of the
+    section ``Undistortion`` to compute the matrix of your camera: 
+    
+    https://docs.opencv.org/master/dc/dbb/tutorial_py_calibration.html
+
+    Then you can save the matrix and other parameters in an npz file using numpy:
+
+    >>> np.savez("camera_file.npz", h=h, w=w, mtx=mtx, dist=dist, newcameramtx=newcameramtx)
+
+
+    Parameters
+    ----------
+    camera_file : str
+        Path to the camera calibration file ("camera_file.npz" in the above
+        example).
+    """
 
     def __init__(self, camera_file):
 
@@ -25,6 +46,11 @@ class Undistorter(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def undistort(self, frame):
+        """
+        Abstract method that is implemented on inheriting classes. It should
+        compute an undistorted version of frame using the given camera
+        calibration matrix and a method specific to the inheriting class.
+        """
         pass
 
     # method to be called to fix the distortion
@@ -49,27 +75,55 @@ class Undistorter(metaclass=abc.ABCMeta):
 
 
 class ClassicUndistorter(Undistorter):
-    """docstring for ClassicUndistorter"""
+    """
+    Undistorter that performs undistortion using ``cv2.undistort``.
+
+    Parameters
+    ----------
+    camera_file : str
+        Path to the camera calibration file ("camera_file.npz" in the above
+        example).
+    """
+
     def __init__(self, camera_file):
         super(ClassicUndistorter, self).__init__(camera_file)
 
     def undistort(self, frame):
-        return cv2.undistort(frame, self.c_mtx, self.c_dist, None, self.c_newcameramtx)  
+        """
+        Computes the undistorted version of ``frame`` using ``cv2.undistort``
+
+        Returns
+        ----------
+        np.ndarray
+            Undistorted version of frame.
+        """
+
+        return cv2.undistort(frame, self.c_mtx, self.c_dist, None,
+                             self.c_newcameramtx)  
 
 
 class RemapUndistorter(Undistorter):
-    """docstring for RemapUndistorter"""
+    """
+    Undistorter that performs undistortion using ``cv2.remap``.
+
+    Parameters
+    ----------
+    camera_file : str
+        Path to the camera calibration file ("camera_file.npz" in the above
+        example).
+    """
+
     def __init__(self, camera_file):
         super(RemapUndistorter, self).__init__(camera_file)
 
     def undistort(self, frame):
+        """
+        Computes the undistorted version of ``frame`` using ``cv2.remap``
+
+        Returns
+        ----------
+        np.ndarray
+            Undistorted version of frame.
+        """
+
         return cv2.remap(frame, self.c_mapx, self.c_mapy, cv2.INTER_LINEAR)
-
-
-class NoUndistorter(Undistorter):
-    """docstring for NoUndistorter"""
-    def __init__(self, camera_file):
-        super(NoUndistorter, self).__init__(camera_file)
-
-    def undistort(self, frame):
-        return frame

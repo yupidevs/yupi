@@ -2,11 +2,39 @@ import numpy as np
 import abc
 from yupi import Trajectory
 
-class Generator():
+class Generator(metaclass=abc.ABCMeta):
+    """
+    Abstract class to model a Trajectory Generator. Classes inheriting 
+    from this class should implement ``generate`` method.
 
-    """docstring for Generator"""
+    Parameters
+    ----------
+    T : float
+        Total duration of each Trajectory
+    dim : int, optional
+        Dimensions of each Trajectory, by default 1
+    N : int, optional
+        Number of Trajectories, by default 1
+    dt : float, optional
+        Sampling time of the Trajectory, by default 1.0
 
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1):
+    Attributes
+    ----------
+    T : float
+        Total duration of each Trajectory
+    dim : int, optional
+        Dimensions of each Trajectory, by default 1
+    N : int, optional
+        Number of Trajectories, by default 1
+    dt : float, optional
+        Sampling time of the Trajectory, by default 1.0
+    n  : int
+        Number of samples on each Trajectory
+    """  
+
+
+    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1.0):
+             
         # siulation parameters
         self.T = T            # total time
         self.dim = dim        # trajectory dimensions
@@ -16,19 +44,44 @@ class Generator():
 
     @abc.abstractmethod
     def generate(self):
+        """
+        Abstract method that is implemented on inheriting classes. It should compute
+        a list of ``N`` Trajectory objects with the given parameters using a method 
+        specific to the inheriting class.
+        """
         pass
 
 
 
 class LatticeRandomWalkGenerator(Generator):
     """
-    Multidimensional Random Walk class.
-    """
+    Multidimensional Lattice Random Walk Generator.
+
+
+    Parameters
+    ----------
+    T : float
+        Total duration of each Trajectory
+    dim : int, optional
+        Dimensions of each Trajectory, by default 1
+    N : int, optional
+        Number of Trajectories, by default 1
+    dt : float, optional
+        Sampling time of the Trajectory, by default 1.0
+    actions : np.ndarray, optional
+        Vector of actions the walker can take, by default None
+    actions_prob : np.ndarray, optional
+        Probability of every action to be taken according to 
+        every axis, by default None
+    jump_len : np.ndarray, optional
+        [description], by default None
+    """   
     
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1,
+    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1,
             actions:np.ndarray=None, 
             actions_prob:np.ndarray=None, 
             jump_len:np.ndarray=None):
+     
 
         super().__init__(T, dim, N, dt) 
 
@@ -80,14 +133,35 @@ class LatticeRandomWalkGenerator(Generator):
 class LangevinGenerator(Generator):
     """
     Random Walk class from a multidimensional Langevin Equation.
-    """
 
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1,
+    Parameters
+    ----------
+    T : float
+        Total duration of each Trajectory
+    dim : int, optional
+        Dimensions of each Trajectory, by default 1
+    N : int, optional
+        Number of Trajectories, by default 1
+    dt : float, optional
+        Sampling time of the Trajectory, by default 1.0
+    tau : float, optional
+        [description], by default 1.
+    noise_pdf : str, optional
+        [description], by default 'normal'
+    noise_scale : float, optional
+        [description], by default 1
+    v0 : np.ndarray, optional
+        [description], by default None
+    r0 : np.ndarray, optional
+        [description], by default None
+    """   
+
+    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1,
         tau:float=1.,
         noise_pdf:str='normal',
         noise_scale:float=1,
         v0:np.ndarray=None, r0:np.ndarray=None):
-        
+     
         super().__init__(T, dim, N, dt) 
 
         # model parameters

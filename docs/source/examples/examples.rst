@@ -16,34 +16,35 @@ Description of current examples
 
 In this table you can easily find the examples that better suits you.
 
-.. list-table:: Title
+.. list-table::
    :header-rows: 1
    
-   * - 
-     - Related API functions    
-     - Description   
-   * - :doc:`Example 1<example1>`
-     - | yupi.generating.LangevinGenerator
-       | yupi.analyzing.plot_trajectories
-       | yupi.analyzing.estimate_velocity_samples
-       | yupi.analyzing.plot_velocity_hist
-       | yupi.analyzing.estimate_turning_angles
-       | yupi.analyzing.plot_angle_distribution
-       | yupi.analyzing.estimate_msd
-       | yupi.analyzing.plot_msd
-       | yupi.analyzing.estimate_kurtosis
-       | yupi.analyzing.plot_kurtosis
-       | yupi.analyzing.estimate_vacf
-       | yupi.analyzing.plot_vacf
-     - | A simulation of the statistical properties
-       | for the motion of a lysozyme molecule in
-       | water. Several molecule trajectories are
-       | generated and later analyzed.
-
-
+   * -
+     - Related API functions
+   * - | :doc:`Example 1<example1>`
+       |
+       | A simulation of the statistical properties for the motion
+       | of a lysozyme molecule in water. Several molecule 
+       | trajectories are generated and later analyzed.
+     - * Generation:
+          * :py:class:`~generators.LangevinGenerator`
+       * Statistics:
+          * :py:func:`~statistics.estimate_velocity_samples`
+          * :py:func:`~statistics.estimate_turning_angles`
+          * :py:func:`~statistics.estimate_msd`
+          * :py:func:`~statistics.estimate_kurtosis`
+          * :py:func:`~statistics.estimate_vacf`
+       * Visualization:
+          * :py:func:`~visualization.plot_trajectories`
+          * :py:func:`~visualization.plot_velocity_hist`
+          * :py:func:`~visualization.plot_angle_distribution`
+          * :py:func:`~visualization.plot_msd`
+          * :py:func:`~visualization.plot_kurtosis`
+          * :py:func:`~visualization.plot_vacf`
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   :hidden:
    
+   example1 
