@@ -131,224 +131,6 @@ class Trajectory():
 
             x, y, z, t, theta = sp
             yield TrajectoryPoint(x, y, z, t, theta)
-
-    @staticmethod
-    def save_trajectories(trajectories: list, folder_path: str = '.',
-                          file_type: str = 'json', overwrite: bool = True):
-        """
-        Saves a list of trajectories to disk. Each Trajectory object will be saved
-        in a separate file inside the given folder.
-
-        Parameters
-        ----------
-        trajectories : list[Trajectory]
-            List of Trajectory objects that will be saved.
-        folder_path : str
-            Path where to save all the trajectory. (Default is ``'.'``).
-        file_type : str
-            Type of the file. (Default is ``json``).
-
-            The only types avaliable are: ``json`` and ``csv``.
-        overwrite : bool
-            Wheter or not to overwrite the file if it already exists. (Default
-            is True).
-
-        Examples
-        --------
-        >>> trajectories = [
-            Trajectory(x=[0.37, 1.24, 1.5]), 
-            Trajectory(x=[1, 2], y=[3, 4])] 
-        >>> Trajectory.save_trajectories(trajectories)
-        """
-
-        for i, traj in enumerate(trajectories):
-            path = str(Path(folder_path))
-            name = str(Path(f'trajectory_{i}'))
-            traj.save(name, path, file_type, overwrite)
-
-    def save(self, file_name: str, path: str = '.', file_type: str = 'json',
-               overwrite: bool = True):
-        """
-        Saves the trajectory to disk.
-
-        Parameters
-        ----------
-        file_name : str
-            Name of the file.
-        path : str
-            Path where to save the trajectory. (Default is ``'.'``).
-        file_time : str
-            Type of the file. (Default is ``json``).
-
-            The only types avaliable are: ``json`` and ``csv``.
-        overwrite : bool
-            Wheter or not to overwrite the file if it already exists. (Default
-            is True).
-
-        Examples
-        --------
-        >>> t = Trajectory(x=[0.37, 1.24, 1.5]) 
-        >>> t.save('my_track')
-
-        Raises
-        ------        
-        ValueError
-            If ``override`` parameter is ``False`` and the file already exists.
-        ValueError
-            If ``file_type`` is not ``json`` or ``csv``.
-        """
-
-        # Contruct full path
-        full_path = Path(path) / Path(f'{file_name}.{file_type}')
-
-        # Check file existance
-        if not overwrite and full_path.exists():
-            raise ValueError(f"File '{str(full_path)}' already exist")
-
-        def convert_to_list(array_data):
-            if array_data is None:
-                return array_data
-            if array_data is not list:
-                array_data = list(array_data)
-            return array_data
-
-        if file_type == 'json':
-            json_dict = {
-                'dt' : self.dt,
-                'id' : self.id,
-                'x' : convert_to_list(self.x),
-                'y' : convert_to_list(self.y),
-                'z' : convert_to_list(self.z),
-                't' : convert_to_list(self.t),
-                'theta' : convert_to_list(self.theta)
-            }
-            with open(str(full_path), 'w') as f:
-                json.dump(json_dict, f)
-
-        elif file_type == 'csv':
-            with open(str(full_path), 'w', newline='') as f:
-                writer = csv.writer(f, delimiter=',')
-                writer.writerow([self.id, self.dt])
-                for tp in self:
-                    writer.writerow([tp.x, tp.y, tp.z, tp.t, tp.theta])
-        else:
-            raise ValueError(f"Invalid export file type '{file_type}'")
-
-    @staticmethod
-    def load_folder(folder_path='.'):
-        """
-        Loads all the trajectories from a folder.
-
-        Parameters
-        ----------
-        folder_path : str
-            Path of the trajectories folder.
-
-        Returns
-        -------
-        List[Trajectory]
-            List of the loaded trajectories.
-        """
-        
-        trajectories = []
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                path = str(Path(root) / Path(file))
-                try:
-                    trajectories.append(Trajectory.load(path))
-                except:  # TODO: add errors
-                    pass
-        return trajectories
-    
-    @staticmethod
-    def load(file_path: str):
-        """
-        Loads a trajectory
-
-        Parameters
-        ----------
-        file_path : str
-            Path of the trajectory file
-        
-        Returns
-        -------
-            Loaded Trajectory object.
-
-        Raises
-        ------
-        ValueError
-            If ``file_path`` is a non existing path.
-        ValueError
-            If ``file_path`` is a not a file.
-        ValueError
-            If ``file_path`` extension is not ``json`` or ```csv``.        
-        """
-
-        path = Path(file_path)
-
-        # Check valid path
-        if not path.exists():
-            raise ValueError('Path does not exist.')
-        if not path.is_file():
-            raise ValueError("Path must be a file.")
-    
-        # Check valid file type
-        file_type = path.suffix
-        if not path.suffix in ['.json', '.csv']:
-            raise ValueError("Invalid file type.")
-
-        with open(file_path, 'r') as f:
-            # TODO: Consider Split each file saver into a private function
-            if file_type == '.json':
-
-                data = json.load(f)
-                dt = data['dt']
-                traj_id = data['id']
-                x = data['x']
-                y = data['y']
-                z = data['z']
-                t = data['t']
-                theta = data['theta']
-                return Trajectory(x=x, y=y, z=z,
-                                  t=t, theta=theta, dt=dt,
-                                  id=traj_id)
-
-            elif file_type == '.csv':
-
-                def check_empty_val(val):
-                    return None if val == '' else val               
-
-                x, y, z = [], [], []
-                t, theta = [], []
-                traj_id, dt = None, None
-
-                def add_val(arr, val):
-                    if arr is not None:
-                        arr.append(val)
-                    
-                for i, row in enumerate(csv.reader(f)):
-                    if i == 0:
-                        traj_id = check_empty_val(row[0])
-                        dt = check_empty_val(row[1])
-                        if dt is not None:
-                            dt = float(dt)
-                        continue
-
-                    add_val(x, check_empty_val(row[0]))
-                    add_val(y, check_empty_val(row[1]))
-                    add_val(z, check_empty_val(row[2]))
-                    add_val(t, check_empty_val(row[3]))
-                    add_val(theta, check_empty_val(row[4]))
-                
-                x = None if not x else x
-                y = None if not y else y
-                z = None if not z else z
-                t = None if not t else t
-                theta = None if not theta else theta
-
-                return Trajectory(x=x, y=y, z=z,
-                                  t=t, theta=theta, dt=dt,
-                                  id=traj_id)
                                   
     def t_diff(self):
         """
@@ -506,6 +288,225 @@ class Trajectory():
             Array containing the velocity of the Trajectory.
         """
         return self.diff() / self.dt
+
+    def save(self, file_name: str, path: str = '.', file_type: str = 'json',
+               overwrite: bool = True):
+        """
+        Saves the trajectory to disk.
+
+        Parameters
+        ----------
+        file_name : str
+            Name of the file.
+        path : str
+            Path where to save the trajectory. (Default is ``'.'``).
+        file_time : str
+            Type of the file. (Default is ``json``).
+
+            The only types avaliable are: ``json`` and ``csv``.
+        overwrite : bool
+            Wheter or not to overwrite the file if it already exists. (Default
+            is True).
+
+        Examples
+        --------
+        >>> t = Trajectory(x=[0.37, 1.24, 1.5]) 
+        >>> t.save('my_track')
+
+        Raises
+        ------        
+        ValueError
+            If ``override`` parameter is ``False`` and the file already exists.
+        ValueError
+            If ``file_type`` is not ``json`` or ``csv``.
+        """
+
+        # Contruct full path
+        full_path = Path(path) / Path(f'{file_name}.{file_type}')
+
+        # Check file existance
+        if not overwrite and full_path.exists():
+            raise ValueError(f"File '{str(full_path)}' already exist")
+
+        def convert_to_list(array_data):
+            if array_data is None:
+                return array_data
+            if array_data is not list:
+                array_data = list(array_data)
+            return array_data
+
+        if file_type == 'json':
+            json_dict = {
+                'dt' : self.dt,
+                'id' : self.id,
+                'x' : convert_to_list(self.x),
+                'y' : convert_to_list(self.y),
+                'z' : convert_to_list(self.z),
+                't' : convert_to_list(self.t),
+                'theta' : convert_to_list(self.theta)
+            }
+            with open(str(full_path), 'w') as f:
+                json.dump(json_dict, f)
+
+        elif file_type == 'csv':
+            with open(str(full_path), 'w', newline='') as f:
+                writer = csv.writer(f, delimiter=',')
+                writer.writerow([self.id, self.dt])
+                for tp in self:
+                    writer.writerow([tp.x, tp.y, tp.z, tp.t, tp.theta])
+        else:
+            raise ValueError(f"Invalid export file type '{file_type}'")
+
+
+    @staticmethod
+    def save_trajectories(trajectories: list, folder_path: str = '.',
+                          file_type: str = 'json', overwrite: bool = True):
+        """
+        Saves a list of trajectories to disk. Each Trajectory object will be saved
+        in a separate file inside the given folder.
+
+        Parameters
+        ----------
+        trajectories : list[Trajectory]
+            List of Trajectory objects that will be saved.
+        folder_path : str
+            Path where to save all the trajectory. (Default is ``'.'``).
+        file_type : str
+            Type of the file. (Default is ``json``).
+
+            The only types avaliable are: ``json`` and ``csv``.
+        overwrite : bool
+            Wheter or not to overwrite the file if it already exists. (Default
+            is True).
+
+        Examples
+        --------
+        >>> trajectories = [
+            Trajectory(x=[0.37, 1.24, 1.5]), 
+            Trajectory(x=[1, 2], y=[3, 4])] 
+        >>> Trajectory.save_trajectories(trajectories)
+        """
+
+        for i, traj in enumerate(trajectories):
+            path = str(Path(folder_path))
+            name = str(Path(f'trajectory_{i}'))
+            traj.save(name, path, file_type, overwrite)
+
+    @staticmethod
+    def load_folder(folder_path='.'):
+        """
+        Loads all the trajectories from a folder.
+
+        Parameters
+        ----------
+        folder_path : str
+            Path of the trajectories folder.
+
+        Returns
+        -------
+        List[Trajectory]
+            List of the loaded trajectories.
+        """
+        
+        trajectories = []
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                path = str(Path(root) / Path(file))
+                try:
+                    trajectories.append(Trajectory.load(path))
+                except:  # TODO: add errors
+                    pass
+        return trajectories
+    
+    @staticmethod
+    def load(file_path: str):
+        """
+        Loads a trajectory
+
+        Parameters
+        ----------
+        file_path : str
+            Path of the trajectory file
+        
+        Returns
+        -------
+            Loaded Trajectory object.
+
+        Raises
+        ------
+        ValueError
+            If ``file_path`` is a non existing path.
+        ValueError
+            If ``file_path`` is a not a file.
+        ValueError
+            If ``file_path`` extension is not ``json`` or ```csv``.        
+        """
+
+        path = Path(file_path)
+
+        # Check valid path
+        if not path.exists():
+            raise ValueError('Path does not exist.')
+        if not path.is_file():
+            raise ValueError("Path must be a file.")
+    
+        # Check valid file type
+        file_type = path.suffix
+        if not path.suffix in ['.json', '.csv']:
+            raise ValueError("Invalid file type.")
+
+        with open(file_path, 'r') as f:
+            # TODO: Consider Split each file saver into a private function
+            if file_type == '.json':
+
+                data = json.load(f)
+                dt = data['dt']
+                traj_id = data['id']
+                x = data['x']
+                y = data['y']
+                z = data['z']
+                t = data['t']
+                theta = data['theta']
+                return Trajectory(x=x, y=y, z=z,
+                                  t=t, theta=theta, dt=dt,
+                                  id=traj_id)
+
+            elif file_type == '.csv':
+
+                def check_empty_val(val):
+                    return None if val == '' else val               
+
+                x, y, z = [], [], []
+                t, theta = [], []
+                traj_id, dt = None, None
+
+                def add_val(arr, val):
+                    if arr is not None:
+                        arr.append(val)
+                    
+                for i, row in enumerate(csv.reader(f)):
+                    if i == 0:
+                        traj_id = check_empty_val(row[0])
+                        dt = check_empty_val(row[1])
+                        if dt is not None:
+                            dt = float(dt)
+                        continue
+
+                    add_val(x, check_empty_val(row[0]))
+                    add_val(y, check_empty_val(row[1]))
+                    add_val(z, check_empty_val(row[2]))
+                    add_val(t, check_empty_val(row[3]))
+                    add_val(theta, check_empty_val(row[4]))
+                
+                x = None if not x else x
+                y = None if not y else y
+                z = None if not z else z
+                t = None if not t else t
+                theta = None if not theta else theta
+
+                return Trajectory(x=x, y=y, z=z,
+                                  t=t, theta=theta, dt=dt,
+                                  id=traj_id)
 
 if __name__ == '__main__':
 
