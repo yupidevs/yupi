@@ -3,14 +3,24 @@ from yupi import Trajectory
 from yupi.affine_estimator import affine_matrix
 
 def add_dynamic_reference(traj, reference, start_in_origin=True):
-    """ 
+    """
     This functions fuse the information of a trajectory with an 
     external reference of the motion of the System of Reference
     (SoR).
 
     It allows to remap the information gathered in local SoRs
     to a more general SoR.
+
+    Parameters
+    ----------
+    traj : [type]
+        [description]
+    reference : [type]
+        [description]
+    start_in_origin : bool, optional
+        [description], by default True
     """
+
     def affine2camera(theta, tx, ty):
         x_cl, y_cl, theta_cl = np.zeros((3, theta.size + 1))
         theta_cl[1:] = np.cumsum(theta)
@@ -53,6 +63,23 @@ def add_dynamic_reference(traj, reference, start_in_origin=True):
 
 
 def subsample_trajectory(traj, step=1, step_in_seconds=False):
+    """[summary]
+
+    Parameters
+    ----------
+    traj : [type]
+        [description]
+    step : int, optional
+        [description], by default 1
+    step_in_seconds : bool, optional
+        [description], by default False
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     if step_in_seconds:
         step = int(step / traj.dt)
     x = traj.x[::step]
@@ -65,6 +92,23 @@ def subsample_trajectory(traj, step=1, step_in_seconds=False):
 
 # wrap angles in the interval [0,2pi] or [-pi,pi]
 def wrap_theta(theta, degrees=False, centered=False):
+    """[summary]
+
+    Parameters
+    ----------
+    theta : [type]
+        [description]
+    degrees : bool, optional
+        [description], by default False
+    centered : bool, optional
+        [description], by default False
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+    
     discont = 360 if degrees else 2 * np.pi
     if not centered:
         return theta % discont
