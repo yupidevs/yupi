@@ -25,21 +25,21 @@ def plot_trajectories(trajectories, max_trajectories=None, title="", legend=True
                  label=f'{t.id} final position', color=color)
 
         if legend:
-            plt.legend(fontsize=12)
+            plt.legend()
 
         plt.title(title)
-        plt.tick_params(direction='in', labelsize=12)
+        plt.tick_params(direction='in')
         plt.axis('equal')
         plt.grid(True)
-        plt.xlabel('x [m]', fontsize=12)
-        plt.ylabel('y [m]', fontsize=12)
+        plt.xlabel('x [m]')
+        plt.ylabel('y [m]')
         
     if plot:
         plt.show()
 
 
 def plot_velocity_hist(v, bins=20, plot=True):
-    plt.hist(v, bins, density=True, ec='k', color='#00cc55')
+    plt.hist(v, bins, density=True, ec='k', color='#fdd693')
     plt.xlabel('speed [m/s]')
     plt.ylabel('pdf')
     if plot:

@@ -3,12 +3,11 @@ import json
 import numpy as np
 import logging
 from typing import Callable
-from yupi.tracking.algorithms import Algorithm, resize_frame
+from yupi.tracking.algorithms import TrackingAlgorithm, resize_frame
 from yupi.affine_estimator import get_affine
 from yupi.trajectory import Trajectory
 from yupi.analyzing.transformations import add_dynamic_reference
 from yupi.tracking.undistorters import Undistorter
-
 
 class ROI():
     """
@@ -337,13 +336,13 @@ class ROI():
 
 class ObjectTracker():
     """
-    Tracks an object inside a ROI according to an algorithm.
+    Tracks an object inside a ROI according to a tracking algorithm.
 
     Parameters
     ----------
     name : str
         Name of the tracked object.
-    algorithm : Algorithm
+    algorithm : TrackingAlgorithm
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
@@ -355,7 +354,7 @@ class ObjectTracker():
     ----------
     name : str
         Name of the tracked object.
-    algorithm : Algorithm
+    algorithm : TrackingAlgorithm
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
@@ -366,7 +365,7 @@ class ObjectTracker():
         algorithm
     """
 
-    def __init__(self, name: str, algorithm: Algorithm, roi: ROI,
+    def __init__(self, name: str, algorithm: TrackingAlgorithm, roi: ROI,
                  preprocessing: Callable[[np.ndarray], np.ndarray] = None):
         self.name = name
         self.roi = roi
@@ -646,9 +645,6 @@ class TrackingScenario():
         k = cv2.waitKey(wait_key) & 0xff
         if k == ord('m'):
             self.auto_mode = not self.auto_mode
-
-        if k == ord('s'):
-            self.__export_data__()
 
         elif k == ord('q'):
             self._enabled = False
