@@ -289,6 +289,49 @@ class Trajectory():
         """
         return self.diff() / self.dt
 
+    def position_vectors(self):
+        """
+        Fetch the spacial components across all axis.
+
+        Returns
+        ----------
+        r : np.ndarray
+            Array containing all the position arrays of the Trajectory.
+        """
+        # get the components of the position
+        r = self.data[:self.dim]
+
+        # transpose to have time/dimension as first/second axis
+        r = np.transpose(r)
+        return r
+
+    def velocity_vectors(self):
+        """
+        Returns the velocity components across all axis.
+
+        Returns
+        ----------
+        v : np.ndarray
+            Array containing all the velocity arrays of the Trajectory.
+        """
+        v = []
+        
+        # append velocity x-component
+        v.append(self.x_velocity())
+
+        # append velocity y-component
+        if self.dim >= 2:
+            v.append(self.y_velocity())
+
+        # append velocity z-component
+        if self.dim == 3:
+            v.append(self.z_velocity())
+
+        # transpose to have time/dimension as first/second axis
+        v = np.transpose(v)
+        return v
+
+
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
         """

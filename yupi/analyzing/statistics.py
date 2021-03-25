@@ -16,46 +16,12 @@ def estimate_velocity_samples(trajs, step):
     trajs_ = [subsample_trajectory(traj, step) for traj in trajs]
     return np.concatenate([traj.velocity() for traj in trajs_])
 
-
-# get position vectors by components
-def get_position_vectors(traj):
-    # get the components of the position
-    r = traj.data[:traj.dim]
-
-    # transpose to have time/dimension as first/second axis
-    r = np.transpose(r)
-    return r
-
-
-# get velocity vectors by components
-def get_velocity_vectors(traj):
-    v = []
-    
-    # append velocity x-component
-    vx = traj.x_velocity()
-    v.append(vx)
-
-    # append velocity y-component
-    if traj.dim >= 2:
-        vy = traj.y_velocity()
-        v.append(vy)
-
-    # append velocity z-component
-    if traj.dim == 3:
-        vz = traj.z_velocity()
-        v.append(vz)
-
-    # transpose to have time/dimension as first/second axis
-    v = np.transpose(v)
-    return v
-
-
 # mean square displacement (ensemble average)
 def estimate_msd_ensemble(trajs):
     msd = []
     for traj in trajs:
         # position vectors
-        r = get_position_vectors(traj)
+        r = traj.position_vectors()
 
         # square displacements
         r_2 = (r - r[0])**2            # square coordinates
@@ -72,7 +38,7 @@ def estimate_msd_time(trajs, lag):
     msd = []
     for traj in trajs:
         # position vectors
-        r = get_position_vectors(traj)
+        r = traj.position_vectors()
 
         # compute msd for a single trajectory
         msd_ = np.empty(lag)
@@ -106,7 +72,7 @@ def estimate_vacf_ensemble(trajs):
     vacf = []
     for traj in trajs:
         # cartesian velocity components
-        v = get_velocity_vectors(traj)
+        v = traj.velocity_vectors()
 
         # pair-wise dot product between velocities at t0 and t
         v0_dot_v = np.sum(v[0] * v, axis=1)
@@ -124,7 +90,7 @@ def estimate_vacf_time(trajs, lag):
     vacf = []
     for traj in trajs:
         # cartesian velocity components
-        v = get_velocity_vectors(traj)
+        v = traj.velocity_vectors()
 
         # compute vacf for a single trajectory
         vacf_ = np.empty(lag)
