@@ -23,8 +23,7 @@ from yupi.tracking.algorithms import (
 from yupi.tracking.undistorters import (
     Undistorter,
     ClassicUndistorter,
-    RemapUndistorter,
-    NoUndistorter
+    RemapUndistorter
 )
 
 __all__ = [
