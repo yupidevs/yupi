@@ -17,7 +17,6 @@ from yupi.analyzing.transformations import (
     wrap_theta
 )
 
-
 from yupi.analyzing.statistics import (
     estimate_turning_angles,
     estimate_velocity_samples,
@@ -31,6 +30,7 @@ from yupi.analyzing.statistics import (
     estimate_kurtosis_time,
     estimate_kurtosis
 )
+
 from yupi.analyzing.visualization import (
     plot_trajectories, 
     plot_velocity_hist,
@@ -41,9 +41,11 @@ from yupi.analyzing.visualization import (
 )
 
 __all__ = [
+    'turning_angles',
     'add_dynamic_reference',
     'plot_trajectories',
     'plot_velocity_hist',
+    'plot_angle_distribution',
     'plot_kurtosis',
     'plot_msd',
     'plot_vacf',
