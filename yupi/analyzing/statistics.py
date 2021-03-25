@@ -153,29 +153,37 @@ def estimate_vacf(trajs, time_avg=True, lag=None):
     return vacf_mean, vacf_std
 
 
-# get displacements for ensemble average and
-# kurtosis for time average
+# kurtosis (ensemble average)
 # TODO: Fix this implementation for dim != 2 Traj
-def estimate_kurtosis(trajs, time_avg=True, lag=None):
+def estimate_kurtosis_ensemble(trajs):
     kurtosis = []
     for traj in trajs:
-        if not time_avg:
-            dx = traj.x - traj.x[0]
-            dy = traj.y - traj.y[0]
-            kurt = np.sqrt(dx**2 + dy**2)
-
-        # time average
-        else:
-            kurt = np.empty(lag)
-            for lag_ in range(1, lag + 1):
-                dx = traj.x[lag_:] - traj.x[:-lag_]
-                dy = traj.y[lag_:] - traj.y[:-lag_]
-                dr = np.sqrt(dx**2 + dy**2)
-                kurt[lag_ - 1] = scipy.stats.kurtosis(dr, fisher=False)
-
+        dx = traj.x - traj.x[0]
+        dy = traj.y - traj.y[0]
+        kurt = np.sqrt(dx**2 + dy**2)
         kurtosis.append(kurt)
+    return scipy.stats.kurtosis(kurtosis, axis=0, fisher=False)
 
+
+# kurtosis (time average)
+# TODO: Fix this implementation for dim != 2 Traj
+def estimate_kurtosis_time(trajs, lag):
+    kurtosis = []
+    for traj in trajs:
+        kurt = np.empty(lag)
+        for lag_ in range(1, lag + 1):
+            dx = traj.x[lag_:] - traj.x[:-lag_]
+            dy = traj.y[lag_:] - traj.y[:-lag_]
+            dr = np.sqrt(dx**2 + dy**2)
+            kurt[lag_ - 1] = scipy.stats.kurtosis(dr, fisher=False)
+        kurtosis.append(kurt)
+    return np.mean(kurtosis, axis=0)
+
+
+# get displacements for ensemble average and
+# kurtosis for time average
+def estimate_kurtosis(trajs, time_avg=True, lag=None):
     if not time_avg:
-        return scipy.stats.kurtosis(kurtosis, axis=0, fisher=False)
+        return estimate_kurtosis_ensemble(trajs)
     else:
-        return np.mean(kurtosis, axis=0)
+        return estimate_kurtosis_time(trajs, lag)
