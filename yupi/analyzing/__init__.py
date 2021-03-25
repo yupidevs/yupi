@@ -16,12 +16,19 @@ from yupi.analyzing.transformations import (
     wrap_theta
 )
 
+
 from yupi.analyzing.statistics import (
     estimate_turning_angles,
+    estimate_velocity_samples,
+    estimate_msd_ensemble,
+    estimate_msd_time,
     estimate_msd,
-    estimate_kurtosis,
+    estimate_vacf_ensemble,
+    estimate_vacf_time,
     estimate_vacf,
-    estimate_velocity_samples
+    estimate_kurtosis_ensemble,
+    estimate_kurtosis_time,
+    estimate_kurtosis
 )
 from yupi.analyzing.visualization import (
     plot_trajectories, 
@@ -42,7 +49,14 @@ __all__ = [
     'subsample_trajectory',
     'wrap_theta',
     'estimate_turning_angles',
+    'estimate_velocity_samples',
+    'estimate_msd_ensemble',
+    'estimate_msd_time',
     'estimate_msd',
-    'estimate_kurtosis',
-    'estimate_vacf'
+    'estimate_vacf_ensemble',
+    'estimate_vacf_time',
+    'estimate_vacf',
+    'estimate_kurtosis_ensemble',
+    'estimate_kurtosis_time',
+    'estimate_kurtosis'
 ]
