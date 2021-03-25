@@ -27,16 +27,16 @@ class Trajectory():
     theta : np.ndarray
         Array containing angle data. (Default is None).
     dt : float
-        If no time data (``t``) is given this represents the time
-        between each position data value.
+        If no time data is given this represents the time between each
+        position data value.
     id : str
         Id of the trajectory.
 
     Attributes
     ----------
     dt : float
-        If no time data (``t``) is given this represents the time
-        between each position data value.
+        If no time data is given this represents the time between each
+        position data value.
     id : str
         Id of the trajectory.
 
@@ -139,7 +139,7 @@ class Trajectory():
 
         Returns
         ----------
-        t_diff : np.ndarray
+        np.ndarray
             Array containing the time difference between consecutive samples.
         """
 
@@ -153,7 +153,7 @@ class Trajectory():
 
         Returns
         ----------
-        x_diff : np.ndarray
+        np.ndarray
             Array containing the x-axis difference between consecutive samples.
         """
 
@@ -166,9 +166,9 @@ class Trajectory():
 
         Returns
         ----------
-        y_diff : np.ndarray
+        np.ndarray
             Array containing the y-axis difference between consecutive samples.
-        None:
+        None
             If Trajectory dim is less than 2
         """
 
@@ -182,9 +182,9 @@ class Trajectory():
 
         Returns
         ----------
-        z_diff : np.ndarray
+        np.ndarray
             Array containing the z-axis difference between consecutive samples.
-        None:
+        None
             If Trajectory dim is less than 3
         """
 
@@ -198,9 +198,9 @@ class Trajectory():
 
         Returns
         ----------
-        theta_diff : np.ndarray
+        np.ndarray
             Array containing the theta array difference between consecutive samples.
-        None:
+        None
             If Trajectory doesn't have theta informantion
         """
 
@@ -215,7 +215,7 @@ class Trajectory():
 
         Returns
         ----------
-        diff : np.ndarray
+        np.ndarray
             Array containing the difference between consecutive samples.
         """
         dx = self.x_diff()
@@ -235,7 +235,7 @@ class Trajectory():
 
         Returns
         ----------
-        x_vel : np.ndarray
+        np.ndarray
             Array containing the x-axis velocity of the Trajectory.
         """
 
@@ -247,9 +247,9 @@ class Trajectory():
 
         Returns
         ----------
-        y_vel : np.ndarray
+        np.ndarray
             Array containing the y-axis velocity of the Trajectory.
-        None:
+        None
             If Trajectory dim is less than 2
         """
 
@@ -262,9 +262,9 @@ class Trajectory():
 
         Returns
         ----------
-        z_vel : np.ndarray
+        np.ndarray
             Array containing the z-axis velocity of the Trajectory.
-        None:
+        None
             If Trajectory dim is less than 3
         """
 
@@ -277,9 +277,9 @@ class Trajectory():
 
         Returns
         ----------
-        omega : np.ndarray
+        np.ndarray
             Array containing the angular velocity of the Trajectory.
-        None:
+        None
             If Trajectory doesn't have theta informantion
         """
 
@@ -293,7 +293,7 @@ class Trajectory():
 
         Returns
         ----------
-        v : np.ndarray
+        np.ndarray
             Array containing the velocity of the Trajectory.
         """
 
@@ -305,7 +305,7 @@ class Trajectory():
 
         Returns
         ----------
-        r : np.ndarray
+        np.ndarray
             Array containing all the position arrays of the Trajectory.
         """
 
@@ -322,7 +322,7 @@ class Trajectory():
 
         Returns
         ----------
-        v : np.ndarray
+        np.ndarray
             Array containing all the velocity arrays of the Trajectory.
         """
 
@@ -389,17 +389,17 @@ class Trajectory():
             Wheter or not to overwrite the file if it already exists. (Default
             is True).
 
-        Examples
-        --------
-        >>> t = Trajectory(x=[0.37, 1.24, 1.5]) 
-        >>> t.save('my_track')
-
         Raises
         ------        
         ValueError
             If ``override`` parameter is ``False`` and the file already exists.
         ValueError
             If ``file_type`` is not ``json`` or ``csv``.
+
+        Examples
+        --------
+        >>> t = Trajectory(x=[0.37, 1.24, 1.5]) 
+        >>> t.save('my_track')
         """
 
         # Contruct full path
@@ -440,10 +440,9 @@ class Trajectory():
 
         Examples
         --------
-        >>> trajectories = [
-            Trajectory(x=[0.37, 1.24, 1.5]), 
-            Trajectory(x=[1, 2], y=[3, 4])] 
-        >>> Trajectory.save_trajectories(trajectories)
+        >>> t1 = Trajectory(x=[0.37, 1.24, 1.5])
+        >>> t2 = Trajectory(x=[1, 2], y=[3, 4])
+        >>> Trajectory.save_trajectories([t1, t2])
         """
 
         for i, traj in enumerate(trajectories):
@@ -502,6 +501,7 @@ class Trajectory():
         
         Returns
         -------
+        Trajectory
             Loaded Trajectory object.
 
         Raises
