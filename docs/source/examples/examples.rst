@@ -16,7 +16,7 @@ Description of current examples
 
 In this table you can easily find the examples that better suits you.
 
-.. list-table:: Title
+.. list-table::
    :header-rows: 1
    
    * - 
@@ -40,10 +40,9 @@ In this table you can easily find the examples that better suits you.
        | water. Several molecule trajectories are
        | generated and later analyzed.
 
-
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   :hidden:
    
+   example1 

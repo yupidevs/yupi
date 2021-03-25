@@ -4,7 +4,26 @@ from yupi.analyzing import turning_angles, subsample_trajectory
 
 # relative and cumulative turning angles
 def estimate_turning_angles(trajs, accumulate=False, 
-                    degrees=False, centered=False):
+                    degrees=False, centered=False):    
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+    accumulate : bool, optional
+        [description], by default False
+    degrees : bool, optional
+        [description], by default False
+    centered : bool, optional
+        [description], by default False
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     theta = [turning_angles(traj) for traj in trajs]
     return np.concatenate(theta)
 
@@ -12,12 +31,40 @@ def estimate_turning_angles(trajs, accumulate=False,
 # Returns measured velocity samples on all the trajectories
 # subsampling them at a given stem
 def estimate_velocity_samples(trajs, step):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+    step : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     step = 1
     trajs_ = [subsample_trajectory(traj, step) for traj in trajs]
     return np.concatenate([traj.velocity() for traj in trajs_])
 
 # mean square displacement (ensemble average)
 def estimate_msd_ensemble(trajs):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     msd = []
     for traj in trajs:
         # position vectors
@@ -35,6 +82,21 @@ def estimate_msd_ensemble(trajs):
 
 # mean square displacement (time average)
 def estimate_msd_time(trajs, lag):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+    lag : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     msd = []
     for traj in trajs:
         # position vectors
@@ -57,6 +119,23 @@ def estimate_msd_time(trajs, lag):
 
 # mean square displacement
 def estimate_msd(trajs, time_avg=True, lag=None):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+    time_avg : bool, optional
+        [description], by default True
+    lag : [type], optional
+        [description], by default None
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     if not time_avg:
         msd = estimate_msd_ensemble(trajs)   # ensemble average
     else:
@@ -69,6 +148,19 @@ def estimate_msd(trajs, time_avg=True, lag=None):
 
 # velocity autocorrelation function (ensemble average)
 def estimate_vacf_ensemble(trajs):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     vacf = []
     for traj in trajs:
         # cartesian velocity components
@@ -87,6 +179,21 @@ def estimate_vacf_ensemble(trajs):
 
 # velocity autocorrelation function (time average)
 def estimate_vacf_time(trajs, lag):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+    lag : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     vacf = []
     for traj in trajs:
         # cartesian velocity components
@@ -109,6 +216,23 @@ def estimate_vacf_time(trajs, lag):
 
 # velocity autocorrelation function
 def estimate_vacf(trajs, time_avg=True, lag=None):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+    time_avg : bool, optional
+        [description], by default True
+    lag : [type], optional
+        [description], by default None
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     if not time_avg:
         vacf = estimate_vacf_ensemble(trajs)   # ensemble average
     else:
@@ -122,6 +246,19 @@ def estimate_vacf(trajs, time_avg=True, lag=None):
 # kurtosis (ensemble average)
 # TODO: Fix this implementation for dim != 2 Traj
 def estimate_kurtosis_ensemble(trajs):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     kurtosis = []
     for traj in trajs:
         dx = traj.x - traj.x[0]
@@ -134,6 +271,21 @@ def estimate_kurtosis_ensemble(trajs):
 # kurtosis (time average)
 # TODO: Fix this implementation for dim != 2 Traj
 def estimate_kurtosis_time(trajs, lag):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+    lag : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     kurtosis = []
     for traj in trajs:
         kurt = np.empty(lag)
@@ -149,6 +301,23 @@ def estimate_kurtosis_time(trajs, lag):
 # get displacements for ensemble average and
 # kurtosis for time average
 def estimate_kurtosis(trajs, time_avg=True, lag=None):
+    """[summary]
+
+    Parameters
+    ----------
+    trajs : [type]
+        [description]
+    time_avg : bool, optional
+        [description], by default True
+    lag : [type], optional
+        [description], by default None
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
     if not time_avg:
         return estimate_kurtosis_ensemble(trajs)
     else:
