@@ -57,17 +57,23 @@ def estimate_velocity_samples(trajs, step):
 
 # mean square displacement (ensemble average)
 def estimate_msd_ensemble(trajs):
-    """[summary]
+    """
+    Compute the square displacements for every Trajectory object stored 
+    in a list as the square of the current position vector that has been 
+    subtracted the initial position.
+    
+    Trajectories should have the same length.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of square displacements with shape ``(n, N)``, where ``n`` 
+        is the total number of time steps and ``N`` the number of trajectories.
     """
 
     msd = []
