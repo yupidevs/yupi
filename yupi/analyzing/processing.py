@@ -2,7 +2,7 @@ import numpy as np
 from yupi.analyzing.transformations import wrap_theta
 
 def turning_angles(traj, accumulate=False, degrees=False, centered=False):
-    """Return the sequence of turning angles that form the trajectory.
+    """Return the sequence of turning angles that forms the trajectory.
 
     Parameters
     ----------
