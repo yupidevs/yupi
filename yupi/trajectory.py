@@ -19,13 +19,13 @@ class Trajectory():
     x : np.ndarray
         Array containing position data of X axis.
     y : np.ndarray
-        Array containing position data of Y axis. (Default is None).
+        Array containing position data of Y axis, by default None.
     z : np.ndarray
-        Array containing position data of X axis. (Default is None).
+        Array containing position data of X axis, by default None.
     t : np.ndarray
-        Array containing time data. (Default is None).
+        Array containing time data, by default None.
     theta : np.ndarray
-        Array containing angle data. (Default is None).
+        Array containing angle data, by default None.
     dt : float
         If no time data is given this represents the time between each
         position data value.
@@ -64,7 +64,6 @@ class Trajectory():
                  id: str = None):
 
         self.data = [x, y, z, t, theta]        
-
 
         for i, item in enumerate(self.data):
             if item is not None:
@@ -380,14 +379,14 @@ class Trajectory():
         file_name : str
             Name of the file.
         path : str
-            Path where to save the trajectory. (Default is ``'.'``).
+            Path where to save the trajectory, by default ``'.'``.
         file_time : str
-            Type of the file. (Default is ``json``).
+            Type of the file, by default ``json``.
 
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
-            Wheter or not to overwrite the file if it already exists. (Default
-            is True).
+            Wheter or not to overwrite the file if it already exists, by default
+            True.
 
         Raises
         ------        
@@ -429,14 +428,14 @@ class Trajectory():
         trajectories : list[Trajectory]
             List of Trajectory objects that will be saved.
         folder_path : str
-            Path where to save all the trajectory. (Default is ``'.'``).
+            Path where to save all the trajectory, by default ``'.'``.
         file_type : str
-            Type of the file. (Default is ``json``).
+            Type of the file, by default ``json``.
 
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
-            Wheter or not to overwrite the file if it already exists. (Default
-            is True).
+            Wheter or not to overwrite the file if it already exists, by default
+            True.
 
         Examples
         --------
@@ -556,30 +555,3 @@ class Trajectory():
                 except:  # TODO: add errors
                     pass
         return trajectories
-
-if __name__ == '__main__':
-
-    traj_1 = Trajectory(
-        x=[1.0, 2.0],
-        y=[2.0, 3.0]
-    )
-
-    traj_2 = Trajectory(
-        x=[10.0, 20.0],
-        y=[20.0, 30.0]
-    )
-
-    tps = [(tp.x, tp.y) for tp in traj_1]
-    assert tps == [(1,2),(2,3)]
-
-    Trajectory.save_trajectories([traj_1, traj_2], file_type='csv')
-
-    trajs = Trajectory.load_folder()
-    
-    t1 = trajs[0]
-
-    assert t1.x[0] == 1.0
-    assert t1.x[1] == 2.0
-
-
-    

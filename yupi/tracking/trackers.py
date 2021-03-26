@@ -25,7 +25,7 @@ class ROI():
         taken as pixels. Otherwise, if both values are less than 1, the
         size is taken relative to the video frame size.
     init_mode : str, optional
-        ROI's initialization mode. (Default is 'manual').
+        ROI's initialization mode, by default 'manual'.
 
         Defines the way ROI initial position is setted.
 
@@ -33,7 +33,7 @@ class ROI():
         stored in ``ROI.MANUAL_INIT_MODE`` and ``ROI.CENTER_INIT_MODE``.
     scale : float, optional
         Scale of the sample frame to set ROI initial position if
-        ``init_method`` is set to ``'manual'``. (Default is 1).
+        ``init_method`` is set to ``'manual'``, by default 1.
 
     Attributes
     ----------
@@ -484,14 +484,14 @@ class TrackingScenario():
     object_trackers : list
         Trackers of all the objects.
     camera_tracker : CameraTracker
-        Tracker used to detect camera movements. (Default is None).
+        Tracker used to detect camera movements, by default None.
     undistorter : Undistorter
-        Undistorted used to correct each video frame. (Default is None).
+        Undistorted used to correct each video frame, by default None.
     preview_scale : float
-        Scale of the video preview. (Default is 1.0).
+        Scale of the video preview, by default 1.0.
     auto_mode : bool
         If True the video is processed auomtically otherwise it's processed
-        manually. (Default is True).
+        manually, by default True.
 
         If the video is processed manually, pressing ``ENTER`` key is
         necessary in every frame to continue.
@@ -511,7 +511,7 @@ class TrackingScenario():
         Scale of the video preview.
     auto_mode : bool
         If True the video is processed auomtically otherwise it's processed
-        manually. (Default is True).
+        manually, by default True.
 
         If the video is processed manually, pressing ``Enter`` key is
         necessary in every frame to continue.
@@ -742,9 +742,9 @@ class TrackingScenario():
         video_path : str
             Path of the video used to track the objects.
         start_in_frame : int, optional
-            Initial frame in which starts the processing. (Default is 0)
+            Initial frame in which starts the processing, by default 0.
         pix_per_m : int, optional
-            Pixel per meters. (Default is 1)
+            Pixel per meters, by default 1.
 
             This value is used to readjuts the trajectories points to a real
             scale.
