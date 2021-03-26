@@ -137,21 +137,32 @@ def estimate_msd_time(trajs, lag):
 
 # mean square displacement
 def estimate_msd(trajs, time_avg=True, lag=None):
-    """[summary]
+    """
+    Estimate the mean square displacement of a list of Trajectory 
+    objects providing the options of averaging over the ensemble 
+    of realizations or over time.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
     time_avg : bool, optional
-        [description], by default True
-    lag : [type], optional
-        [description], by default None
+        If True, mean square displacement is estimated averaging over 
+        time. Otherwise, an ensemble average will be performed and all 
+        Trajectory objects will have to have the same length. By default 
+        True.
+    lag : None, optional
+        If None, ``time_avg`` should be set to ``False`` indicating 
+        ensemble average. Otherwise ``lag`` is taken as the number 
+        of steps that multiplied by ``dt`` is to be taken as a 
+        lag time.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of mean square displacements.
+    np.ndarray
+        Array of standard deviations.
     """
 
     if not time_avg:
