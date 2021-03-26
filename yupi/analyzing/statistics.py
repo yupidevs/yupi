@@ -93,19 +93,26 @@ def estimate_msd_ensemble(trajs):
 
 # mean square displacement (time average)
 def estimate_msd_time(trajs, lag):
-    """[summary]
+    """
+    Estimate the mean square displacement for every Trajectory object stored 
+    in a list as the average of the square of dispacement vectors that depends 
+    on certain lag time.
+
+    This is a convenience estimator specially when trajectories do not have 
+    equal lengths.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
-    lag : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
+    lag : int
+        Number of steps that multiplied by ``dt`` is to be taken as a lag time.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of mean square displacements with shape ``(lag, N)``, where ``N`` 
+        the number of trajectories.
     """
 
     msd = []
