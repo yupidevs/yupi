@@ -5,23 +5,28 @@ from yupi.analyzing import turning_angles, subsample_trajectory
 # relative and cumulative turning angles
 def estimate_turning_angles(trajs, accumulate=False, 
                     degrees=False, centered=False):    
-    """[summary]
+    """Return a concatenation of all the turning angles that forms a set of trajectories.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
     accumulate : bool, optional
-        [description], by default False
+        If True, turning angles are measured with respect to an axis define by the \\
+        initial velocity (i.e., angles between initial and current velocity). \\
+        Otherwise, relative turning angles are computed (i.e., angles between \\
+        succesive velocity vectors). By default False.
     degrees : bool, optional
-        [description], by default False
+        If True, angles are given in degrees. Otherwise, the units are radians. \\
+        By default False.
     centered : bool, optional
-        [description], by default False
+        If True, angles are wrapped on the interval ``[-pi, pi]``. Otherwise, \\
+        the interval ``[0, 2*pi]`` is chosen. By default False.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Concatenated array of turning angles for a list of Trajectory objects.
     """
 
     theta = [turning_angles(traj) for traj in trajs]
