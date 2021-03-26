@@ -21,6 +21,7 @@ PyQt5 = "^5.15.3"
 scipy = "1.4.1"
 
 [tool.poetry.dev-dependencies]
+pytest = "^6.2.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
