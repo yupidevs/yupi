@@ -19,13 +19,13 @@ class Trajectory():
     x : np.ndarray
         Array containing position data of X axis.
     y : np.ndarray
-        Array containing position data of Y axis. (Default is None).
+        Array containing position data of Y axis, by default None.
     z : np.ndarray
-        Array containing position data of X axis. (Default is None).
+        Array containing position data of X axis, by default None.
     t : np.ndarray
-        Array containing time data. (Default is None).
+        Array containing time data, by default None.
     theta : np.ndarray
-        Array containing angle data. (Default is None).
+        Array containing angle data, by default None.
     dt : float
         If no time data is given this represents the time between each
         position data value.
@@ -380,14 +380,14 @@ class Trajectory():
         file_name : str
             Name of the file.
         path : str
-            Path where to save the trajectory. (Default is ``'.'``).
+            Path where to save the trajectory, by default ``'.'``.
         file_time : str
-            Type of the file. (Default is ``json``).
+            Type of the file, by default ``json``.
 
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
-            Wheter or not to overwrite the file if it already exists. (Default
-            is True).
+            Wheter or not to overwrite the file if it already exists, by default
+            True.
 
         Raises
         ------        
@@ -429,14 +429,14 @@ class Trajectory():
         trajectories : list[Trajectory]
             List of Trajectory objects that will be saved.
         folder_path : str
-            Path where to save all the trajectory. (Default is ``'.'``).
+            Path where to save all the trajectory, by default ``'.'``.
         file_type : str
-            Type of the file. (Default is ``json``).
+            Type of the file, by default ``json``.
 
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
-            Wheter or not to overwrite the file if it already exists. (Default
-            is True).
+            Wheter or not to overwrite the file if it already exists, by default
+            True.
 
         Examples
         --------
