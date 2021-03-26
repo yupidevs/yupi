@@ -65,7 +65,6 @@ class Trajectory():
 
         self.data = [x, y, z, t, theta]        
 
-
         for i, item in enumerate(self.data):
             if item is not None:
                 self.data[i] = np.array(item)
@@ -556,30 +555,3 @@ class Trajectory():
                 except:  # TODO: add errors
                     pass
         return trajectories
-
-if __name__ == '__main__':
-
-    traj_1 = Trajectory(
-        x=[1.0, 2.0],
-        y=[2.0, 3.0]
-    )
-
-    traj_2 = Trajectory(
-        x=[10.0, 20.0],
-        y=[20.0, 30.0]
-    )
-
-    tps = [(tp.x, tp.y) for tp in traj_1]
-    assert tps == [(1,2),(2,3)]
-
-    Trajectory.save_trajectories([traj_1, traj_2], file_type='csv')
-
-    trajs = Trajectory.load_folder()
-    
-    t1 = trajs[0]
-
-    assert t1.x[0] == 1.0
-    assert t1.x[1] == 2.0
-
-
-    
