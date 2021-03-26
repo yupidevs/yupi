@@ -177,17 +177,22 @@ def estimate_msd(trajs, time_avg=True, lag=None):
 
 # velocity autocorrelation function (ensemble average)
 def estimate_vacf_ensemble(trajs):
-    """[summary]
+    """
+    Compute the pair-wise dot product between initial and current 
+    velocity vectors for every trajectory of a list of Trajectory 
+    object.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of velocity dot products with shape ``(n, N)``, where 
+        ``n`` is the total number of time steps and ``N`` the number 
+        of trajectories.
     """
 
     vacf = []
@@ -208,19 +213,26 @@ def estimate_vacf_ensemble(trajs):
 
 # velocity autocorrelation function (time average)
 def estimate_vacf_time(trajs, lag):
-    """[summary]
+"""
+    Estimate the velocity autocorrelation function for every Trajectory 
+    object stored in a list as the average of the dot product between 
+    velocity vectors that are distant a certain lag time.
+
+    This is a convenience estimator specially when trajectories do not have 
+    equal lengths.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
-    lag : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
+    lag : int
+        Number of steps that multiplied by ``dt`` is to be taken as a lag time.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of velocity autocorrelation function with shape ``(lag, N)``, 
+        where ``N`` is the number of trajectories.
     """
 
     vacf = []
