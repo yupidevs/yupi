@@ -9,7 +9,8 @@ results shown in this section.
 
 Examples are designed to illustrate a complex integration of yupi tools in 
 order to reproduce the results of an existing (or yet to come) scientific paper. 
-Before start with the examples make sure you have already read our Getting Started section.
+Before start with the examples make sure you have already read our :doc:`Getting 
+Started<../getting_started/getting_started>` section.
 
 Description of current examples
 -------------------------------

@@ -33,7 +33,7 @@ Yupi stores the data using an efficient internal representation based on Numpy a
 Generating artificial Trajectory objects
 ++++++++++++++++++++++++++++++++++++++++
 
-If you want to generate :py:class:`~yupi.Trajectory` objects based on some statistical constrains, you can use a Generator to construct a list of :py:class:`~yupi.Trajectory` objects:
+If you want to generate :py:class:`~yupi.Trajectory` objects based on some statistical constrains, you can use a :py:class:`~generating.Generator` to construct a list of :py:class:`~yupi.Trajectory` objects:
 
 .. code-block:: python
 
