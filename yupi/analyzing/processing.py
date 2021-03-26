@@ -9,21 +9,21 @@ def turning_angles(traj, accumulate=False, degrees=False, centered=False):
     traj : Trajectory
         Trajectory object.
     accumulate : bool, optional
-        If True, turning angles are measured with respect to an axis define by the \\
-        initial velocity (i.e., angles between initial and current velocity). \\
-        Otherwise, relative turning angles are computed (i.e., angles between \\
+        If True, turning angles are measured with respect to an axis define by the 
+        initial velocity (i.e., angles between initial and current velocity). 
+        Otherwise, relative turning angles are computed (i.e., angles between 
         succesive velocity vectors). By default False.
     degrees : bool, optional
-        If True, angles are given in degrees. Otherwise, the units are radians. \\
+        If True, angles are given in degrees. Otherwise, the units are radians. 
         By default False.
     centered : bool, optional
-        If True, angles are wrapped on the interval ``[-pi, pi]``. Otherwise, \\
+        If True, angles are wrapped on the interval ``[-pi, pi]``. Otherwise, 
         the interval ``[0, 2*pi]`` is chosen. By default False.
 
     Returns
     -------
     np.ndarray
-        Turning angles where each position in the array correspond to a given \\
+        Turning angles where each position in the array correspond to a given 
         time instant.
     """
 
