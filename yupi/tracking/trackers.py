@@ -87,6 +87,9 @@ class ROI():
         if init_mode != ROI.CENTER_INIT_MODE and \
            init_mode != ROI.MANUAL_INIT_MODE:
             raise ValueError(f"ROI '{init_mode}' initialization mode unknown")
+
+        if scale < 0:
+            raise ValueError('ROI scale must be non negative')
         
         self.width, self.height = size
         self.init_mode = init_mode
