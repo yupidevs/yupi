@@ -5,23 +5,32 @@ from yupi.analyzing import turning_angles, subsample_trajectory
 # relative and cumulative turning angles
 def estimate_turning_angles(trajs, accumulate=False, 
                     degrees=False, centered=False):    
-    """[summary]
+    """Return a concatenation of all the turning angles that forms
+    a set of trajectories.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
     accumulate : bool, optional
-        [description], by default False
+        If True, turning angles are measured with respect to an axis 
+        define by the initial velocity (i.e., angles between initial
+        and current velocity). Otherwise, relative turning angles
+        are computed (i.e., angles between succesive velocity vectors).
+        By default False.
     degrees : bool, optional
-        [description], by default False
+        If True, angles are given in degrees. Otherwise, the units
+        are radians. By default False.
     centered : bool, optional
-        [description], by default False
+        If True, angles are wrapped on the interval ``[-pi, pi]``.
+        Otherwise, the interval ``[0, 2*pi]`` is chosen. By default
+        False.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Concatenated array of turning angles for a list of Trajectory
+        objects.
     """
 
     theta = [turning_angles(traj) for traj in trajs]
@@ -52,17 +61,24 @@ def estimate_velocity_samples(trajs, step):
 
 # mean square displacement (ensemble average)
 def estimate_msd_ensemble(trajs):
-    """[summary]
+    """
+    Compute the square displacements for every Trajectory object
+    stored in a list as the square of the current position vector
+    that has been subtracted the initial position.
+    
+    Trajectories should have the same length.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of square displacements with shape ``(n, N)``, where
+        ``n`` is the total number of time steps and ``N`` the number
+        of trajectories.
     """
 
     msd = []
@@ -82,19 +98,27 @@ def estimate_msd_ensemble(trajs):
 
 # mean square displacement (time average)
 def estimate_msd_time(trajs, lag):
-    """[summary]
+    """
+    Estimate the mean square displacement for every Trajectory
+    object stored in a list as the average of the square of
+    dispacement vectors that depends on certain lag time.
+
+    This is a convenience estimator specially when trajectories
+    do not have equal lengths.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
-    lag : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
+    lag : int
+        Number of steps that multiplied by ``dt`` is to be taken as
+        a lag time.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of mean square displacements with shape ``(lag, N)``,
+        where ``N`` the number of trajectories.
     """
 
     msd = []
@@ -119,21 +143,32 @@ def estimate_msd_time(trajs, lag):
 
 # mean square displacement
 def estimate_msd(trajs, time_avg=True, lag=None):
-    """[summary]
+    """
+    Estimate the mean square displacement of a list of Trajectory 
+    objects providing the options of averaging over the ensemble 
+    of realizations or over time.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
     time_avg : bool, optional
-        [description], by default True
-    lag : [type], optional
-        [description], by default None
+        If True, mean square displacement is estimated averaging over 
+        time. Otherwise, an ensemble average will be performed and all 
+        Trajectory objects will have to have the same length. By default 
+        True.
+    lag : None, optional
+        If None, ``time_avg`` should be set to ``False`` indicating 
+        ensemble average. Otherwise ``lag`` is taken as the number 
+        of steps that multiplied by ``dt`` is to be taken as a 
+        lag time. By default None.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of mean square displacements.
+    np.ndarray
+        Array of standard deviations.
     """
 
     if not time_avg:
@@ -148,17 +183,22 @@ def estimate_msd(trajs, time_avg=True, lag=None):
 
 # velocity autocorrelation function (ensemble average)
 def estimate_vacf_ensemble(trajs):
-    """[summary]
+    """
+    Compute the pair-wise dot product between initial and current 
+    velocity vectors for every trajectory of a list of Trajectory 
+    objects.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of velocity dot products with shape ``(n, N)``, where 
+        ``n`` is the total number of time steps and ``N`` the number 
+        of trajectories.
     """
 
     vacf = []
@@ -179,19 +219,28 @@ def estimate_vacf_ensemble(trajs):
 
 # velocity autocorrelation function (time average)
 def estimate_vacf_time(trajs, lag):
-    """[summary]
+    """
+    Estimate the velocity autocorrelation function for every
+    Trajectory  object stored in a list as the average of the dot
+    product between velocity vectors that are distant a certain
+    lag time.
+
+    This is a convenience estimator specially when trajectories do
+    not have equal lengths.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
-    lag : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
+    lag : int
+        Number of steps that multiplied by ``dt`` is to be taken as
+        a lag time.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of velocity autocorrelation function with shape
+        ``(lag, N)``, where ``N`` is the number of trajectories.
     """
 
     vacf = []
@@ -216,21 +265,32 @@ def estimate_vacf_time(trajs, lag):
 
 # velocity autocorrelation function
 def estimate_vacf(trajs, time_avg=True, lag=None):
-    """[summary]
+    """
+    Estimate the velocity autocorrelation function of a list of 
+    Trajectory objects providing the options of averaging over the 
+    ensemble of realizations or over time.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
+    trajs : list
+        List of Trajectory objects.
     time_avg : bool, optional
-        [description], by default True
-    lag : [type], optional
-        [description], by default None
+        If True, velocity autocorrelation function is estimated
+        averaging over time. Otherwise, an ensemble average will be
+        performed and all Trajectory objects will have to have the
+        same length. By default True.
+    lag : None, optional
+        If None, ``time_avg`` should be set to ``False`` indicating 
+        ensemble average. Otherwise, ``lag`` is taken as the number 
+        of steps that multiplied by ``dt`` will give the lag time.
+        By default None.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        Array of velocity autocorrelation function.
+    np.ndarray
+        Array of standard deviations.
     """
 
     if not time_avg:
