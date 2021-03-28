@@ -11,7 +11,7 @@ def turning_angles(traj, accumulate=False, degrees=False, centered=False):
         Trajectory object.
     accumulate : bool, optional
         If True, turning angles are measured with respect to an axis
-        define by the initial velocity (i.e., angles between initial
+        defined by the initial velocity (i.e., angles between initial
         and current velocity). Otherwise, relative turning angles
         are computed (i.e., angles between succesive velocity
         vectors). By default False.

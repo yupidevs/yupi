@@ -63,7 +63,7 @@ def estimate_velocity_samples(trajs, step):
 def estimate_msd_ensemble(trajs):
     """
     Compute the square displacements for every Trajectory object
-    stored in a list as the square of the current position vector
+    stored in ``trajs`` as the square of the current position vector
     that has been subtracted the initial position.
     
     Trajectories should have the same length.
@@ -100,8 +100,8 @@ def estimate_msd_ensemble(trajs):
 def estimate_msd_time(trajs, lag):
     """
     Estimate the mean square displacement for every Trajectory
-    object stored in a list as the average of the square of
-    dispacement vectors that depends on certain lag time.
+    object stored in ``trajs`` as the average of the square of
+    dispacement vectors as a function of the lag time.
 
     This is a convenience estimator specially when trajectories
     do not have equal lengths.
@@ -111,8 +111,8 @@ def estimate_msd_time(trajs, lag):
     trajs : list
         List of Trajectory objects.
     lag : int
-        Number of steps that multiplied by ``dt`` is to be taken as
-        a lag time.
+        Number of steps that multiplied by ``dt`` defines the lag 
+        time.
 
     Returns
     -------
@@ -144,8 +144,8 @@ def estimate_msd_time(trajs, lag):
 # mean square displacement
 def estimate_msd(trajs, time_avg=True, lag=None):
     """
-    Estimate the mean square displacement of a list of Trajectory 
-    objects providing the options of averaging over the ensemble 
+    Estimate the mean square displacement of the list of Trajectory 
+    objects, ``trajs``, providing the options of averaging over the ensemble 
     of realizations or over time.
 
     Parameters
@@ -159,9 +159,9 @@ def estimate_msd(trajs, time_avg=True, lag=None):
         True.
     lag : None, optional
         If None, ``time_avg`` should be set to ``False`` indicating 
-        ensemble average. Otherwise ``lag`` is taken as the number 
-        of steps that multiplied by ``dt`` is to be taken as a 
-        lag time. By default None.
+        ensemble average. Otherwise, ``lag`` is taken as the number 
+        of steps that multiplied by ``dt`` defines the lag time. By 
+        default None.
 
     Returns
     -------
@@ -185,8 +185,7 @@ def estimate_msd(trajs, time_avg=True, lag=None):
 def estimate_vacf_ensemble(trajs):
     """
     Compute the pair-wise dot product between initial and current 
-    velocity vectors for every trajectory of a list of Trajectory 
-    objects.
+    velocity vectors for every Trajectory object stored in ``trajs``.
 
     Parameters
     ----------
@@ -220,9 +219,9 @@ def estimate_vacf_ensemble(trajs):
 # velocity autocorrelation function (time average)
 def estimate_vacf_time(trajs, lag):
     """
-    Estimate the velocity autocorrelation function for every
-    Trajectory  object stored in a list as the average of the dot
-    product between velocity vectors that are distant a certain
+    Estimate the velocity autocorrelation function for every 
+    Trajectory object stored in ``trajs`` as the average of the 
+    dot product between velocity vectors that are distant a certain
     lag time.
 
     This is a convenience estimator specially when trajectories do
@@ -233,8 +232,8 @@ def estimate_vacf_time(trajs, lag):
     trajs : list
         List of Trajectory objects.
     lag : int
-        Number of steps that multiplied by ``dt`` is to be taken as
-        a lag time.
+        Number of steps that multiplied by ``dt`` defines the lag 
+        time.
 
     Returns
     -------
@@ -266,9 +265,9 @@ def estimate_vacf_time(trajs, lag):
 # velocity autocorrelation function
 def estimate_vacf(trajs, time_avg=True, lag=None):
     """
-    Estimate the velocity autocorrelation function of a list of 
-    Trajectory objects providing the options of averaging over the 
-    ensemble of realizations or over time.
+    Estimate the velocity autocorrelation function of the list of 
+    Trajectory objects, ``trajs``, providing the options of averaging 
+    over the ensemble of realizations or over time.
 
     Parameters
     ----------
@@ -282,7 +281,7 @@ def estimate_vacf(trajs, time_avg=True, lag=None):
     lag : None, optional
         If None, ``time_avg`` should be set to ``False`` indicating 
         ensemble average. Otherwise, ``lag`` is taken as the number 
-        of steps that multiplied by ``dt`` will give the lag time.
+        of steps that multiplied by ``dt`` defines the lag time.
         By default None.
 
     Returns
