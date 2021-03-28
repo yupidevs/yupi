@@ -92,21 +92,26 @@ def subsample_trajectory(traj, step=1, step_in_seconds=False):
 
 # wrap angles in the interval [0,2pi] or [-pi,pi]
 def wrap_theta(theta, degrees=False, centered=False):
-    """[summary]
+    """
+    Wrap angles by removing more than one lap to the 
+    trigonometic circle.
 
     Parameters
     ----------
-    theta : [type]
-        [description]
+    theta : np.ndarray
+        Array of angles.
     degrees : bool, optional
-        [description], by default False
+        If True, angles are given in degrees. Otherwise, the units
+        are radians. By default False.
     centered : bool, optional
-        [description], by default False
+        If True, angles are wrapped on the interval ``[-pi, pi]``.
+        Otherwise, the interval ``[0, 2*pi]`` is chosen. By default
+        False.
 
     Returns
     -------
-    [type]
-        [description]
+    np.ndarray
+        A wrapped copy of ``theta``.
     """
     
     discont = 360 if degrees else 2 * np.pi
