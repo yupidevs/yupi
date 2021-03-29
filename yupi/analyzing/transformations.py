@@ -63,21 +63,26 @@ def add_dynamic_reference(traj, reference, start_in_origin=True):
 
 
 def subsample_trajectory(traj, step=1, step_in_seconds=False):
-    """[summary]
+    """
+    Sample the trajectory ``traj`` by removing evenly spaced 
+    points according to ``step``.
 
     Parameters
     ----------
-    traj : [type]
-        [description]
+    traj : Trajectory
+        Input trajectory.
     step : int, optional
-        [description], by default 1
+        Number of sample points or period, depending on the value 
+        of ``step_in_seconds``. By default 1.
     step_in_seconds : bool, optional
-        [description], by default False
+        If True, ``step`` is considered as the number of sample 
+        points. Otherwise, ``step`` is interpreted as the sample 
+        period, in seconds. By default False.
 
     Returns
     -------
-    [type]
-        [description]
+    Trajectory
+        Output trajectory.
     """
 
     if step_in_seconds:
