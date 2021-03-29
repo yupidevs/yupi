@@ -11,7 +11,7 @@ def estimate_turning_angles(trajs, accumulate=False,
     Parameters
     ----------
     trajs : list
-        List of Trajectory objects.
+        Input list of trajectories.
     accumulate : bool, optional
         If True, turning angles are measured with respect to an axis 
         define by the initial velocity (i.e., angles between initial
@@ -71,7 +71,7 @@ def estimate_msd_ensemble(trajs):
     Parameters
     ----------
     trajs : list
-        List of Trajectory objects.
+        Input list of trajectories.
 
     Returns
     -------
@@ -109,7 +109,7 @@ def estimate_msd_time(trajs, lag):
     Parameters
     ----------
     trajs : list
-        List of Trajectory objects.
+        Input list of trajectories.
     lag : int
         Number of steps that multiplied by ``dt`` defines the lag 
         time.
@@ -151,7 +151,7 @@ def estimate_msd(trajs, time_avg=True, lag=None):
     Parameters
     ----------
     trajs : list
-        List of Trajectory objects.
+        Input list of trajectories.
     time_avg : bool, optional
         If True, mean square displacement is estimated averaging over 
         time. Otherwise, an ensemble average will be performed and all 
@@ -190,7 +190,7 @@ def estimate_vacf_ensemble(trajs):
     Parameters
     ----------
     trajs : list
-        List of Trajectory objects.
+        Input list of trajectories.
 
     Returns
     -------
@@ -230,7 +230,7 @@ def estimate_vacf_time(trajs, lag):
     Parameters
     ----------
     trajs : list
-        List of Trajectory objects.
+        Input list of trajectories.
     lag : int
         Number of steps that multiplied by ``dt`` defines the lag 
         time.
@@ -272,7 +272,7 @@ def estimate_vacf(trajs, time_avg=True, lag=None):
     Parameters
     ----------
     trajs : list
-        List of Trajectory objects.
+        Input list of trajectories.
     time_avg : bool, optional
         If True, velocity autocorrelation function is estimated
         averaging over time. Otherwise, an ensemble average will be

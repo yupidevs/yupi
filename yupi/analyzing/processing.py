@@ -8,7 +8,7 @@ def turning_angles(traj, accumulate=False, degrees=False, centered=False):
     Parameters
     ----------
     traj : Trajectory
-        Trajectory object.
+        Input trajectory.
     accumulate : bool, optional
         If True, turning angles are measured with respect to an axis
         defined by the initial velocity (i.e., angles between initial

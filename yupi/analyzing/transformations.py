@@ -104,7 +104,7 @@ def wrap_theta(theta, degrees=False, centered=False):
     Parameters
     ----------
     theta : np.ndarray
-        Array of angles.
+        Input array of angles.
     degrees : bool, optional
         If True, angles are given in degrees. Otherwise, the units
         are radians. By default False.
