@@ -3,12 +3,11 @@ import json
 import numpy as np
 import logging
 from typing import Callable
-from yupi.tracking.algorithms import Algorithm, resize_frame
+from yupi.tracking.algorithms import TrackingAlgorithm, resize_frame
 from yupi.affine_estimator import get_affine
 from yupi.trajectory import Trajectory
 from yupi.analyzing.transformations import add_dynamic_reference
 from yupi.tracking.undistorters import Undistorter
-
 
 class ROI():
     """
@@ -26,7 +25,7 @@ class ROI():
         taken as pixels. Otherwise, if both values are less than 1, the
         size is taken relative to the video frame size.
     init_mode : str, optional
-        ROI's initialization mode. (Default is 'manual').
+        ROI's initialization mode, by default 'manual'.
 
         Defines the way ROI initial position is setted.
 
@@ -34,7 +33,7 @@ class ROI():
         stored in ``ROI.MANUAL_INIT_MODE`` and ``ROI.CENTER_INIT_MODE``.
     scale : float, optional
         Scale of the sample frame to set ROI initial position if
-        ``init_method`` is set to ``'manual'``. (Default is 1).
+        ``init_method`` is set to ``'manual'``, by default 1.
 
     Attributes
     ----------
@@ -88,6 +87,9 @@ class ROI():
         if init_mode != ROI.CENTER_INIT_MODE and \
            init_mode != ROI.MANUAL_INIT_MODE:
             raise ValueError(f"ROI '{init_mode}' initialization mode unknown")
+
+        if scale < 0:
+            raise ValueError('ROI scale must be non negative')
         
         self.width, self.height = size
         self.init_mode = init_mode
@@ -337,13 +339,13 @@ class ROI():
 
 class ObjectTracker():
     """
-    Tracks an object inside a ROI according to an algorithm.
+    Tracks an object inside a ROI according to a tracking algorithm.
 
     Parameters
     ----------
     name : str
         Name of the tracked object.
-    algorithm : Algorithm
+    algorithm : TrackingAlgorithm
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
@@ -355,7 +357,7 @@ class ObjectTracker():
     ----------
     name : str
         Name of the tracked object.
-    algorithm : Algorithm
+    algorithm : TrackingAlgorithm
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
@@ -366,7 +368,7 @@ class ObjectTracker():
         algorithm
     """
 
-    def __init__(self, name: str, algorithm: Algorithm, roi: ROI,
+    def __init__(self, name: str, algorithm: TrackingAlgorithm, roi: ROI,
                  preprocessing: Callable[[np.ndarray], np.ndarray] = None):
         self.name = name
         self.roi = roi
@@ -485,14 +487,14 @@ class TrackingScenario():
     object_trackers : list
         Trackers of all the objects.
     camera_tracker : CameraTracker
-        Tracker used to detect camera movements. (Default is None).
+        Tracker used to detect camera movements, by default None.
     undistorter : Undistorter
-        Undistorted used to correct each video frame. (Default is None).
+        Undistorted used to correct each video frame, by default None.
     preview_scale : float
-        Scale of the video preview. (Default is 1.0).
+        Scale of the video preview, by default 1.0.
     auto_mode : bool
         If True the video is processed auomtically otherwise it's processed
-        manually. (Default is True).
+        manually, by default True.
 
         If the video is processed manually, pressing ``ENTER`` key is
         necessary in every frame to continue.
@@ -512,7 +514,7 @@ class TrackingScenario():
         Scale of the video preview.
     auto_mode : bool
         If True the video is processed auomtically otherwise it's processed
-        manually. (Default is True).
+        manually, by default True.
 
         If the video is processed manually, pressing ``Enter`` key is
         necessary in every frame to continue.
@@ -647,9 +649,6 @@ class TrackingScenario():
         if k == ord('m'):
             self.auto_mode = not self.auto_mode
 
-        if k == ord('s'):
-            self.__export_data__()
-
         elif k == ord('q'):
             self._enabled = False
 
@@ -746,9 +745,9 @@ class TrackingScenario():
         video_path : str
             Path of the video used to track the objects.
         start_in_frame : int, optional
-            Initial frame in which starts the processing. (Default is 0)
+            Initial frame in which starts the processing, by default 0.
         pix_per_m : int, optional
-            Pixel per meters. (Default is 1)
+            Pixel per meters, by default 1.
 
             This value is used to readjuts the trajectories points to a real
             scale.

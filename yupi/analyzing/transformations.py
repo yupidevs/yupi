@@ -2,15 +2,32 @@ import numpy as np
 from yupi import Trajectory
 from yupi.affine_estimator import affine_matrix
 
-def add_dynamic_reference(trajectory, reference, start_in_origin=True):
-    """ 
-    This functions fuse the information of a trajectory with an 
-    external reference of the motion of the System of Reference
-    (SoR).
+def add_dynamic_reference(traj, reference, start_at_origin=True):
+    """
+    This function fuses the information of a trajectory with an 
+    external reference of the motion of the Frame of Reference
+    (FoR).
 
     It allows to remap the information gathered in local SoRs
-    to a more general SoR.
+    to a more general FoR.
+
+    Parameters
+    ----------
+    traj : Trajectory
+        Input trajectory.
+    reference : tuple
+        Angular and translational parameters of the form 
+        ``(theta:np.ndarray, tx:np.ndarray, ty:np.ndarray)`` that 
+        accounts for the orientation and displacement of the reference.
+    start_at_origin : bool, optional
+        If True, set initial position at the origin. By default True.
+
+    Returns
+    -------
+    Trajectory
+        Output trajectory in the lab frame of reference.
     """
+
     def affine2camera(theta, tx, ty):
         x_cl, y_cl, theta_cl = np.zeros((3, theta.size + 1))
         theta_cl[1:] = np.cumsum(theta)
@@ -40,31 +57,75 @@ def add_dynamic_reference(trajectory, reference, start_in_origin=True):
 
     theta, tx, ty = reference
 
-    x_al, y_al = affine2obj(theta, tx, ty, trajectory.x, trajectory.y)
+    x_al, y_al = affine2obj(theta, tx, ty, traj.x, traj.y)
     
-    if start_in_origin:
+    if start_at_origin:
         x_al = x_al - x_al[0]
         y_al = y_al - y_al[0]
 
-    trajectory.x = x_al
-    trajectory.y = y_al
+    traj.x = x_al
+    traj.y = y_al
 
-    return trajectory
+    return traj
 
 
-def subsample_trajectory(trajectory, step=1, step_in_seconds=False):
+def subsample_trajectory(traj, step=1, step_in_seconds=False):
+    """
+    Sample the trajectory ``traj`` by removing evenly spaced 
+    points according to ``step``.
+
+    Parameters
+    ----------
+    traj : Trajectory
+        Input trajectory.
+    step : int, optional
+        Number of sample points or period, depending on the value 
+        of ``step_in_seconds``. By default 1.
+    step_in_seconds : bool, optional
+        If True, ``step`` is considered as the number of sample 
+        points. Otherwise, ``step`` is interpreted as the sample 
+        period, in seconds. By default False.
+
+    Returns
+    -------
+    Trajectory
+        Output trajectory.
+    """
+
     if step_in_seconds:
-        step = int(step / trajectory.dt)
-    x = trajectory.x[::step]
-    y = trajectory.y[::step] if trajectory.y is not None else None
-    z = trajectory.z[::step] if trajectory.z is not None else None
-    theta = trajectory.theta[::step] if trajectory.theta is not None else None
-    t = trajectory.t[::step] if trajectory.t is not None else None
-    return Trajectory(x, y, z, t, theta, dt=step*trajectory.dt)
+        step = int(step / traj.dt)
+    x = traj.x[::step]
+    y = traj.y[::step] if traj.y is not None else None
+    z = traj.z[::step] if traj.z is not None else None
+    theta = traj.theta[::step] if traj.theta is not None else None
+    t = traj.t[::step] if traj.t is not None else None
+    return Trajectory(x, y, z, t, theta, dt=step*traj.dt)
 
 
 # wrap angles in the interval [0,2pi] or [-pi,pi]
 def wrap_theta(theta, degrees=False, centered=False):
+    """
+    Wrap angles by removing more than one lap to the 
+    trigonometic circle.
+
+    Parameters
+    ----------
+    theta : np.ndarray
+        Input array of angles.
+    degrees : bool, optional
+        If True, angles are given in degrees. Otherwise, the units
+        are radians. By default False.
+    centered : bool, optional
+        If True, angles are wrapped on the interval ``[-pi, pi]``.
+        Otherwise, the interval ``[0, 2*pi]`` is chosen. By default
+        False.
+
+    Returns
+    -------
+    np.ndarray
+        A wrapped copy of ``theta``.
+    """
+    
     discont = 360 if degrees else 2 * np.pi
     if not centered:
         return theta % discont

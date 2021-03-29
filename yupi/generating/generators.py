@@ -2,33 +2,86 @@ import numpy as np
 import abc
 from yupi import Trajectory
 
-class Generator():
+class Generator(metaclass=abc.ABCMeta):
+    """
+    Abstract class to model a Trajectory Generator. Classes inheriting 
+    from this class should implement ``generate`` method.
 
-    """docstring for Generator"""
+    Parameters
+    ----------
+    T : float
+        Total duration of each Trajectory.
+    dim : int, optional
+        Dimension of each Trajectory, by default 1.
+    N : int, optional
+        Number of trajectories, by default 1.
+    dt : float, optional
+        Time step of the Trajectory, by default 1.0.
 
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1):
+    Attributes
+    ----------
+    T : float
+        Total duration of each Trajectory.
+    dim : int, optional
+        Dimension of each Trajectory, by default 1.
+    N : int, optional
+        Number of trajectories, by default 1.
+    dt : float, optional
+        Time step of the Trajectory, by default 1.0.
+    n  : int
+        Number of samples on each Trajectory.
+    """  
+
+
+    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1.0):
+             
         # siulation parameters
         self.T = T            # total time
-        self.dim = dim        # trajectory dimensions
+        self.dim = dim        # trajectory dimension
         self.N = N            # number of trajectories
         self.dt = dt          # time step of the simulation
         self.n = int(T / dt)  # number of time steps
 
     @abc.abstractmethod
     def generate(self):
+        """
+        Abstract method that is implemented on inheriting classes. It should compute
+        a list of ``N`` Trajectory objects with the given parameters using a method 
+        specific to the inheriting class.
+        """
         pass
 
 
 
 class LatticeRandomWalkGenerator(Generator):
     """
-    Multidimensional Random Walk class.
-    """
+    Multidimensional Lattice Random Walk Generator.
+
+
+    Parameters
+    ----------
+    T : float
+        Total duration of each Trajectory.
+    dim : int, optional
+        Dimension of each Trajectory, by default 1.
+    N : int, optional
+        Number of trajectories, by default 1.
+    dt : float, optional
+        Time step of the Trajectory, by default 1.0.
+    actions : np.ndarray, optional
+        Vector of actions the walker can take, by default None.
+    actions_prob : np.ndarray, optional
+        Probability of every action to be taken according to 
+        every axis, by default None.
+    jump_len : np.ndarray, optional
+        Length of every single jump of the walker, by default None.
+    """   
     
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1,
+    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1,
             actions:np.ndarray=None, 
             actions_prob:np.ndarray=None, 
             jump_len:np.ndarray=None):
+     
 
         super().__init__(T, dim, N, dt) 
 
@@ -64,10 +117,12 @@ class LatticeRandomWalkGenerator(Generator):
         return self.r
 
 
+    # get position vectors and generate RandomWalk object
     def generate(self):
-        # get RandomWalk object and get position vectors
+        # get position vectors
         r = self.get_r()
 
+        # generate RandomWalk object
         trajs  = []
         for i in range(self.N):
             x = r[:,0,i]
@@ -77,24 +132,48 @@ class LatticeRandomWalkGenerator(Generator):
                                   id="Random Walker {}".format(i+1)))
         return trajs
 
+
+
 class LangevinGenerator(Generator):
     """
     Random Walk class from a multidimensional Langevin Equation.
-    """
 
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:int=1,
+    Parameters
+    ----------
+    T : float
+        Total duration of each Trajectory.
+    dim : int, optional
+        Dimension of each Trajectory, by default 1.
+    N : int, optional
+        Number of trajectories, by default 1.
+    dt : float, optional
+        Time step of the Trajectory, by default 1.0.
+    tau : float, optional
+        Relaxation characteristic time, by default 1.
+    noise_pdf : str, optional
+        Statistical model for the noise. ``noise_pdf`` should be a 
+        distribution from ``np.random``. By default 'normal'.
+    noise_scale : float, optional
+        Scale parameter of the noise, by default 1.
+    v0 : np.ndarray, optional
+        Initial velocities, by default None.
+    r0 : np.ndarray, optional
+        Initial positions, by default None.
+    """   
+
+    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1,
         tau:float=1.,
         noise_pdf:str='normal',
         noise_scale:float=1,
         v0:np.ndarray=None, r0:np.ndarray=None):
-        
+     
         super().__init__(T, dim, N, dt) 
 
         # model parameters
-        self.tau = tau                  # relaxation characteristic time
+        self.tau = tau                  # relaxation time
         self.noise_pdf = noise_pdf      # noise PDF
-        self.noise_scale = noise_scale  # scale parameter (not stan. dev.)
-        self.noise = np.ndarray         # noise array that will be fill in get_noise method
+        self.noise_scale = noise_scale  # scale parameter
+        self.noise = np.ndarray         # noise array that will be filled in get_noise method
 
         # dynamic variables
         self.shape = (self.n, dim, N)           # shape of the dynamic variables
@@ -112,6 +191,9 @@ class LangevinGenerator(Generator):
         self.r_scale = 1
         self.t_scale = 1
 
+
+    # set intrinsic reference parameters
+    # TODO: Check if scales are compatibles
     def set_scale(self, v_scale=None, r_scale=None, t_scale=None):
         if v_scale:
             self.v_scale = v_scale
@@ -119,6 +201,7 @@ class LangevinGenerator(Generator):
             self.r_scale = r_scale
         if t_scale:
             self.t_scale = t_scale
+
 
     # fill noise array with custom noise properties
     def get_noise(self):
@@ -138,12 +221,14 @@ class LangevinGenerator(Generator):
                             -np.dot(1 / self.tau, self.v[i]) * self.dt + \
                             self.noise[i] * np.sqrt(self.dt)
 
+
     # simulate the process
     def simulate(self):
-        self.get_noise()  # create the attribute self.noise
+        self.get_noise()  # set the attribute self.noise
         self.solve_rv()   # solve the Langevin equation
 
-    # Generate yupi Trajectory objects
+
+    # generate yupi Trajectory objects
     def generate(self):
         self.simulate()
 
@@ -183,4 +268,4 @@ if __name__ == '__main__':
     # get RandomWalk object and get position vectors
     rw = LatticeRandomWalkGenerator(T, dim, N, dt, actions, prob)
     tr = rw.generate()
-    plot_trajectories(tr)
+    plot_trajectories(tr, max_trajectories=3, legend=False)

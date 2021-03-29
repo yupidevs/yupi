@@ -16,15 +16,14 @@ from yupi.tracking.trackers import (
     TrackingScenario
 )
 from yupi.tracking.algorithms import (
-    Algorithm,
+    TrackingAlgorithm,
     IntensityMatching,
     ColorMatching
 )
 from yupi.tracking.undistorters import (
     Undistorter,
     ClassicUndistorter,
-    RemapUndistorter,
-    NoUndistorter
+    RemapUndistorter
 )
 
 __all__ = [
@@ -32,7 +31,7 @@ __all__ = [
     'ObjectTracker',
     'CameraTracker',
     'TrackingScenario',
-    'Algorithm',
+    'TrackingAlgorithm',
     'IntensityMatching',
     'ColorMatching',
     'Undistorter',
