@@ -2,22 +2,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-def plot_trajectories(trajectories, max_trajectories=None, title="",
-                      legend=True, plot=True):
-    """[summary]
+# TODO: Fix this implementation for dim != 2
+def plot_trajectories(trajs, max_trajectories=None, title=None,
+                      legend=True, show=True):
+    """
+    Plot all or ``max_trajectories`` trajectories from ```trajs``.
 
     Parameters
     ----------
-    trajectories : [type]
-        [description]
-    max_trajectories : [type], optional
-        [description], by default None
+    trajs : list
+        Input trajectories.
+    max_trajectories : int, optional
+        Number of trajectories to plot, by default None.
     title : str, optional
-        [description], by default ""
+        Title of the plot, by default None.
     legend : bool, optional
-        [description], by default True
-    plot : bool, optional
-        [description], by default True
+        If True, legend is shown. By default True.
+    show : bool, optional
+        If Tue, the plot is shown. By default True.
     """
 
     # TODO: Check if trajectories is list of Trajectory
@@ -25,10 +27,10 @@ def plot_trajectories(trajectories, max_trajectories=None, title="",
     # If none of both case raise exception
 
     if max_trajectories is None:
-        max_trajectories = len(trajectories)
+        max_trajectories = len(trajs)
 
 
-    for i, t in enumerate(trajectories):
+    for i, t in enumerate(trajs):
         if i == max_trajectories:
             break
         # plotting
@@ -51,7 +53,7 @@ def plot_trajectories(trajectories, max_trajectories=None, title="",
         plt.xlabel('x [m]')
         plt.ylabel('y [m]')
         
-    if plot:
+    if show:
         plt.show()
 
 
