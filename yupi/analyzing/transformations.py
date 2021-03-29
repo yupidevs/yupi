@@ -2,23 +2,30 @@ import numpy as np
 from yupi import Trajectory
 from yupi.affine_estimator import affine_matrix
 
-def add_dynamic_reference(traj, reference, start_in_origin=True):
+def add_dynamic_reference(traj, reference, start_at_origin=True):
     """
-    This functions fuse the information of a trajectory with an 
-    external reference of the motion of the System of Reference
-    (SoR).
+    This function fuses the information of a trajectory with an 
+    external reference of the motion of the Frame of Reference
+    (FoR).
 
     It allows to remap the information gathered in local SoRs
-    to a more general SoR.
+    to a more general FoR.
 
     Parameters
     ----------
-    traj : [type]
-        [description]
-    reference : [type]
-        [description]
-    start_in_origin : bool, optional
-        [description], by default True
+    traj : Trajectory
+        Input trajectory.
+    reference : tuple
+        Angular and translational parameters of the form 
+        ``(theta:np.ndarray, tx:np.ndarray, ty:np.ndarray)`` that 
+        accounts for the orientation and displacement of the reference.
+    start_at_origin : bool, optional
+        If True, set initial position at the origin. By default True.
+
+    Returns
+    -------
+    Trajectory
+        Output trajectory in the lab frame of reference.
     """
 
     def affine2camera(theta, tx, ty):
@@ -52,7 +59,7 @@ def add_dynamic_reference(traj, reference, start_in_origin=True):
 
     x_al, y_al = affine2obj(theta, tx, ty, traj.x, traj.y)
     
-    if start_in_origin:
+    if start_at_origin:
         x_al = x_al - x_al[0]
         y_al = y_al - y_al[0]
 
