@@ -40,19 +40,22 @@ def estimate_turning_angles(trajs, accumulate=False,
 # Returns measured velocity samples on all the trajectories
 # subsampling them at a given stem
 def estimate_velocity_samples(trajs, step):
-    """[summary]
+    """
+    Estimate speeds of the list of trajectories, ``trajs``, 
+    by computing displacements according to a certain sample 
+    frequency given by ``step``.
 
     Parameters
     ----------
-    trajs : [type]
-        [description]
-    step : [type]
-        [description]
+    trajs : list
+        Input list of trajectories.
+    step : int
+        Numer of sample points.
 
     Returns
     -------
-    [type]
-        [description]
+    np.array
+        Concatenated array of speeds.
     """
 
     step = 1
