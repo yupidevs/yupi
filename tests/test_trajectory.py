@@ -14,7 +14,7 @@ def test_creation():
             y=[2.0, 3.0],
             z=[1.0, 3.0],
             t=[0.0, 1.0],
-            theta=[0.0,0.0],
+            ang=[0.0,0.0],
             id='test'
         )
     except Exception as e:
@@ -23,10 +23,10 @@ def test_creation():
 
 def test_iteration():
     t1 = yupi.Trajectory(x=[1.0, 2.0], y=[2.0, 3.0])
-    tps = [(tp.x, tp.y) for tp in t1]
+    tps = [tp[:2] for tp in t1]
 
     assert len(tps) > 0
-    assert tps == [(1,2),(2,3)]
+    assert tps == [[1,2],[2,3]]
 
 def test_save():
     t1 = yupi.Trajectory(x=[1.0,2.0,3.0])
