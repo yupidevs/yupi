@@ -6,8 +6,6 @@ from typing import NamedTuple
 from pathlib import Path
 from numpy.linalg.linalg import norm as nrm
 
-TrajectoryPoint = NamedTuple('TrajectoryPoint', x=float, y=float, z=float,
-                             t=float, theta=float)
 
 class Vector(np.ndarray):
 
@@ -24,7 +22,6 @@ class Vector(np.ndarray):
             return Vector.create(new_vec).T
         else:
             return np.ediff1d(self)
-            
 
     @property
     def x(self):
@@ -101,83 +98,100 @@ class Trajectory():
         does not have the same shape.
     """
 
-    def __init__(self, x: np.ndarray, y: np.ndarray = None,
-                 z: np.ndarray = None, t: np.ndarray = None,
-                 theta: np.ndarray = None, dt: float = 1.0, 
+    def __init__(self, x: np.ndarray = None, y: np.ndarray = None,
+                 z: np.ndarray = None, points: np.ndarray = None,
+                 dimensions: np.ndarray = None, t: np.ndarray = None,
+                 ang: np.ndarray = None, dt: float = 1.0,
                  id: str = None):
 
-        self.data = [x, y, z, t, theta]        
+        from_xyz = x is not None
+        from_points = points is not None
+        from_dimensions = dimensions is not None
 
-        for i, item in enumerate(self.data):
+        if from_xyz + from_points + from_dimensions > 1:
+            raise ValueError("Positional data must come only from one way: " \
+                             "'xyz' data, 'points' data or 'dimensions' data.")
+
+        self.r = None
+        data = [t, ang]
+        lengths = [len(item) for item in data if item is not None]
+
+        for i, item in enumerate(data):
             if item is not None:
-                self.data[i] = Vector.create(item)
+                data[i] = Vector.create(item)
 
-        lengths = [len(item) for item in self.data if item is not None]
-        
-        if x is None:
-            raise ValueError('Trajectory requires at least one dimension')
-        elif lengths.count(lengths[0]) != len(lengths):
-            raise ValueError('All input arrays must have the same shape')
+        if from_xyz:
+            dimensions = [d for d in [x,y,z] if d is not None]
+            from_dimensions = True
+
+        if from_dimensions:
+            if len(dimensions) == 0:
+                raise ValueError('Trajectory requires at least one dimension.')
+            lengths.extend([len(d) for d in dimensions])
+            self.r = Vector.create(dimensions).T
+
+        if from_points:
+            lengths.append(len(points))
+            self.r = Vector.create(points)
+
+        if lengths.count(lengths[0]) != len(lengths):
+            raise ValueError('All input arrays must have the same shape.')
+
+        if self.r is None:
+            raise ValueError('No position data were given.')
 
         self.dt = dt
         self.id = id
-    
+        self.t = None if data[0] is None else Vector.create(data[0])
+        self.ang = None if data[1] is None else Vector.create(data[1])
+        self.v: Vector = self.r.delta / self.dt
+
     @property
     def x(self) -> np.ndarray:
         """np.ndarray : Array containing position data of X axis."""
-        return self.data[0]
+        return self.r.x
 
     @property
     def y(self) -> np.ndarray:
         """np.ndarray : Array containing position data of Y axis."""
-        return self.data[1]
+        return self.r.y
 
     @property
     def z(self) -> np.ndarray:
         """np.ndarray : Array containing position data of Z axis."""
-        return self.data[2]
+        return self.r.z
 
-    @property
-    def t(self) -> np.ndarray:
-        """np.ndarray : Array containing time data."""
-        return self.data[3]
-
-    @property
-    def theta(self) -> np.ndarray:
-        """np.ndarray : Array containing angle data."""
-        return self.data[4]
-    
     @property
     def dim(self) -> int:
-        """int : Trajectory spacial dimensions (can be 1, 2 or 3)."""
-        for i, d in enumerate(self.data[:3]):
-            if d is None:
-                return i
-        return 3
-        
+        """int : Trajectory spacial dimensions."""
+        return self.r.shape[1]
+
     def __len__(self):
-        return len(self.x)
+        return self.r.shape[0]
 
     def __iter__(self):
         current_time = 0
         for i in range(len(self)):
-            # x, y, z, t, theta
-            sp = [None]*5
+            # *dim, t, theta
+            data = list(self.r[i])
+            data.extend([None,None])
 
-            for j, d in enumerate(self.data):
-                sp[j] = d[i] if d is not None else None
-
-            if sp[3] is None and self.dt is not None: 
-                sp[3] = current_time
+            if self.t is not None:
+                data[-2] = self.t[i]
+            else:
+                data[-2] = current_time
                 current_time += self.dt
 
-            x, y, z, t, theta = sp
-            yield TrajectoryPoint(x, y, z, t, theta)
-                                  
-    def t_diff(self):
+            if self.ang is not None:
+                data[-1] = self.ang[i]
+
+            yield data
+
+    @property
+    def delta_t(self):
         """
-        Estimates the time difference between each couple 
-        of consecutive samples in the Trajectory.
+        Difference between each couple of consecutive samples in the
+        Trajectory.
 
         Returns
         ----------
@@ -186,204 +200,56 @@ class Trajectory():
         """
 
         if self.t is not None:
-            return np.ediff1d(self.t)
+            return self.t.delta
 
-    def x_diff(self):
+    @property
+    def delta_r(self) -> Vector:
         """
-        Estimates the spacial difference between each couple 
-        of consecutive samples in the x-axis of the Trajectory.
+        Difference between each couple of consecutive points in the
+        Trajectory.
 
         Returns
         ----------
         np.ndarray
-            Array containing the x-axis difference between consecutive samples.
+            Array containing the position difference between consecutive
+            points.
         """
 
-        return np.ediff1d(self.x)
+        return self.r.delta
 
-    def y_diff(self):
+    @property
+    def delta_ang(self):
         """
-        Estimates the spacial difference between each couple 
-        of consecutive samples in the y-axis of the Trajectory.
+        Difference between each couple of consecutive samples in the
+        ``ang`` array of the Trajectory.
 
         Returns
         ----------
         np.ndarray
-            Array containing the y-axis difference between consecutive samples.
+            Array containing the ``ang`` array difference between consecutive
+            samples.
         None
-            If Trajectory dim is less than 2
+            If Trajectory doesn't have ``ang`` informantion
         """
 
-        if self.y is not None:
-            return np.ediff1d(self.y)
+        if self.ang is not None:
+            return self.ang.delta
 
-    def z_diff(self):
+    @property
+    def ang_velocity(self):
         """
-        Estimates the spacial difference between each couple 
-        of consecutive samples in the z-axis of the Trajectory.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the z-axis difference between consecutive samples.
-        None
-            If Trajectory dim is less than 3
-        """
-
-        if self.z is not None:
-            return np.ediff1d(self.z)
-
-    def theta_diff(self):
-        """
-        Estimates the spacial difference between each couple 
-        of consecutive samples in the theta array of the Trajectory.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the theta array difference between consecutive samples.
-        None
-            If Trajectory doesn't have theta informantion
-        """
-
-        if self.theta is not None:
-            return np.ediff1d(self.theta)
-
-    def diff(self):
-        """
-        Estimates the spacial difference between each couple 
-        of consecutive samples across all the spacial dimensions 
-        of the Trajectory object.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the difference between consecutive samples.
-        """
-        dx = self.x_diff()
-        if self.dim == 1:
-            return dx
-        dy = self.y_diff()
-        if self.dim == 2:
-            return np.sqrt(dx**2 + dy**2)
-        else:
-            dz = self.y_diff()
-            return np.sqrt(dx**2 + dy**2 + dz**2)
-            
-
-    def x_velocity(self):
-        """
-        Computes the velocity in the x-axis of the Trajectory.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the x-axis velocity of the Trajectory.
-        """
-
-        return self.x_diff() / self.dt
-
-    def y_velocity(self):
-        """
-        Computes the velocity in the y-axis of the Trajectory.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the y-axis velocity of the Trajectory.
-        None
-            If Trajectory dim is less than 2
-        """
-
-        if self.y is not None:
-            return self.y_diff() / self.dt
-
-    def z_velocity(self):
-        """
-        Computes the velocity in the z-axis of the Trajectory.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the z-axis velocity of the Trajectory.
-        None
-            If Trajectory dim is less than 3
-        """
-
-        if self.z is not None:
-            return self.z_diff() / self.dt
-
-    def theta_velocity(self):
-        """
-        Computes the angular velocity from the theta array of the Trajectory.
+        Computes the angular velocity from the ang array of the Trajectory.
 
         Returns
         ----------
         np.ndarray
             Array containing the angular velocity of the Trajectory.
         None
-            If Trajectory doesn't have theta informantion
+            If Trajectory doesn't have ang informantion
         """
 
-        if self.theta is not None:
-            return self.theta_diff() / self.dt
-
-    def velocity(self):
-        """
-        Estimates the velocity across all the spacial dimensions 
-        of the Trajectory object.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the velocity of the Trajectory.
-        """
-
-        return self.diff() / self.dt
-
-    def position_vectors(self):
-        """
-        Fetch the spacial components across all axis.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing all the position arrays of the Trajectory.
-        """
-
-        # get the components of the position
-        r = self.data[:self.dim]
-
-        # transpose to have time/dimension as first/second axis
-        r = np.transpose(r)
-        return r
-
-    def velocity_vectors(self):
-        """
-        Returns the velocity components across all axis.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing all the velocity arrays of the Trajectory.
-        """
-
-        v = []
-        
-        # append velocity x-component
-        v.append(self.x_velocity())
-
-        # append velocity y-component
-        if self.dim >= 2:
-            v.append(self.y_velocity())
-
-        # append velocity z-component
-        if self.dim == 3:
-            v.append(self.z_velocity())
-
-        # transpose to have time/dimension as first/second axis
-        v = np.transpose(v)
-        return v
+        if self.ang is not None:
+            return self.ang.delta / self.dt
 
     def _save_json(self, path: str):
         def convert_to_list(array_data):
@@ -396,11 +262,10 @@ class Trajectory():
         json_dict = {
             'dt' : self.dt,
             'id' : self.id,
-            'x' : convert_to_list(self.x),
-            'y' : convert_to_list(self.y),
-            'z' : convert_to_list(self.z),
+            'dimensions' : { k:convert_to_list(v) 
+                             for k,v in enumerate(self.r.T)},
             't' : convert_to_list(self.t),
-            'theta' : convert_to_list(self.theta)
+            'theta' : convert_to_list(self.ang)
         }
         with open(str(path), 'w') as f:
             json.dump(json_dict, f)
@@ -408,9 +273,9 @@ class Trajectory():
     def _save_csv(self, path):
         with open(str(path), 'w', newline='') as f:
             writer = csv.writer(f, delimiter=',')
-            writer.writerow([self.id, self.dt])
+            writer.writerow([self.id, self.dt, self.dim])
             for tp in self:
-                writer.writerow([tp.x, tp.y, tp.z, tp.t, tp.theta])
+                writer.writerow(tp)
 
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
@@ -497,38 +362,48 @@ class Trajectory():
         with open(path, 'r') as f:
             data = json.load(f)
             traj_id, dt = data['id'], data['dt']
-            x, y, z, t = data['x'], data['y'], data['z'], data['t']
+            t = data['t']
             theta = data['theta']
-            return Trajectory(x=x, y=y, z=z, t=t, theta=theta, dt=dt, 
+            dims = [d for d in data['dimensions'].values()]
+
+            return Trajectory(dimensions=dims, t=t, ang=theta, dt=dt, 
                               id=traj_id)
 
+    @staticmethod
     def _load_csv(path: str):
         with open(path, 'r') as f:
 
             def check_empty_val(val, cast=True):
                 if val == '':
                     return None
-                return float(val) if cast else val     
+                return float(val) if cast else val
 
-            # x, y, z, t, theta
-            dat = [[], [], [], [], []]
-            traj_id, dt = None, None
-                
+            # *dim, t, theta
+            dat, t, ang = None, [], []
+            traj_id, dt, dim = None, None, None
+
             for i, row in enumerate(csv.reader(f)):
                 if i == 0:
                     traj_id = check_empty_val(row[0], cast=False)
                     dt = check_empty_val(row[1])
+                    dim = int(row[2])
+                    dat = [[] for _ in range(dim)]
                     continue
 
-                for j in range(len(dat)):
+                for j in range(dim):
                     dat[j].append(check_empty_val(row[j]))
-            
+
+                t.append(check_empty_val(row[-2]))
+                ang.append(check_empty_val(row[-1]))
+
+            dat.extend([t, ang])
+
             for i, d in enumerate(dat):
                 if any([item is None for item in d]):
                     dat[i] = None
 
-            x, y, z, t, theta = dat
-            return Trajectory(x=x, y=y, z=z, t=t, theta=theta, dt=dt,
+            *dims, t, ang = dat
+            return Trajectory(dimensions=dims, t=t, ang=ang, dt=dt,
                               id=traj_id)
 
     @staticmethod
