@@ -1,14 +1,18 @@
 import json
 import csv
 import os
+from typing import List, NamedTuple
 from yupi.vector import Vector
 import numpy as np
 from pathlib import Path
 
+TrajectoryPoint = NamedTuple('TrajectoryPoint', r=Vector, ang=Vector, v=Vector,
+                             t=float)
+
 
 class Trajectory():
     """
-    A Trajectory object represents a multidimensional trajectory. 
+    A Trajectory object represents a multidimensional trajectory.
     It can be iterated to obtain the corresponding point for each timestep.
 
     Parameters
@@ -21,7 +25,7 @@ class Trajectory():
         Array containing position data of X axis, by default None.
     t : np.ndarray
         Array containing time data, by default None.
-    theta : np.ndarray
+    ang : np.ndarray
         Array containing angle data, by default None.
     dt : float
         If no time data is given this represents the time between each
@@ -51,7 +55,7 @@ class Trajectory():
     ValueError
         If ``x`` is not given.
     ValueError
-        If all the given input data (``x``, ``y``, ``z``, ``t``, ``theta``)
+        If all the given input data (``x``, ``y``, ``z``, ``t``, ``ang``)
         does not have the same shape.
     """
 
@@ -59,7 +63,7 @@ class Trajectory():
                  z: np.ndarray = None, points: np.ndarray = None,
                  dimensions: np.ndarray = None, t: np.ndarray = None,
                  ang: np.ndarray = None, dt: float = 1.0,
-                 id: str = None):
+                 traj_id: str = None):
 
         from_xyz = x is not None
         from_points = points is not None
@@ -70,12 +74,12 @@ class Trajectory():
                              "'xyz' data, 'points' data or 'dimensions' data.")
 
         self.r = None
-        data = [t, ang]
+        data: List[Vector] = [t, ang]
         lengths = [len(item) for item in data if item is not None]
 
         for i, item in enumerate(data):
             if item is not None:
-                data[i] = Vector.create(item)
+                data[i] = Vector.create(item, dtype=float)
 
         if from_xyz:
             dimensions = [d for d in [x,y,z] if d is not None]
@@ -85,11 +89,11 @@ class Trajectory():
             if len(dimensions) == 0:
                 raise ValueError('Trajectory requires at least one dimension.')
             lengths.extend([len(d) for d in dimensions])
-            self.r = Vector.create(dimensions).T
+            self.r = Vector.create(dimensions, dtype=float).T
 
         if from_points:
             lengths.append(len(points))
-            self.r = Vector.create(points)
+            self.r = Vector.create(points, dtype=float)
 
         if lengths.count(lengths[0]) != len(lengths):
             raise ValueError('All input arrays must have the same shape.')
@@ -98,25 +102,10 @@ class Trajectory():
             raise ValueError('No position data were given.')
 
         self.dt = dt
-        self.id = id
-        self.t = None if data[0] is None else Vector.create(data[0])
-        self.ang = None if data[1] is None else Vector.create(data[1])
+        self.id = traj_id
+        self.t = data[0]
+        self.ang = data[1]
         self.v: Vector = self.r.delta / self.dt
-
-    @property
-    def x(self) -> np.ndarray:
-        """np.ndarray : Array containing position data of X axis."""
-        return self.r.x
-
-    @property
-    def y(self) -> np.ndarray:
-        """np.ndarray : Array containing position data of Y axis."""
-        return self.r.y
-
-    @property
-    def z(self) -> np.ndarray:
-        """np.ndarray : Array containing position data of Z axis."""
-        return self.r.z
 
     @property
     def dim(self) -> int:
@@ -129,20 +118,25 @@ class Trajectory():
     def __iter__(self):
         current_time = 0
         for i in range(len(self)):
-            # *dim, t, theta
-            data = list(self.r[i])
-            data.extend([None,None])
+            # *dim, *ang, v, t
+            data = [self.r[i], [], None, None]
 
+            # Angle
+            if self.ang is not None:
+                data[1] = self.ang[i]
+
+            # Velocity
+            data[2] = self.v[i - 1] if i > 0 else Vector.create([0]*self.dim)
+
+            # Time
             if self.t is not None:
-                data[-2] = self.t[i]
+                data[3] = self.t[i]
             else:
-                data[-2] = current_time
+                data[3] = current_time
                 current_time += self.dt
 
-            if self.ang is not None:
-                data[-1] = self.ang[i]
-
-            yield data
+            r, ang, v, t = data
+            yield TrajectoryPoint(r=r, ang=ang, v=v, t=t)
 
     @property
     def delta_t(self):
@@ -209,30 +203,33 @@ class Trajectory():
             return self.ang.delta / self.dt
 
     def _save_json(self, path: str):
-        def convert_to_list(array_data):
-            if array_data is None:
-                return array_data
-            if array_data is not list:
-                array_data = list(array_data)
-            return array_data
+        def convert_to_list(vec: Vector):
+            if vec is None:
+                return vec
+                
+            if len(vec.shape) == 1:
+                return list(vec)
+            return {d:list(v) for d,v in enumerate(vec)}
 
+        ang = None if self.ang is None else self.ang.T
         json_dict = {
-            'dt' : self.dt,
             'id' : self.id,
-            'dimensions' : { k:convert_to_list(v) 
-                             for k,v in enumerate(self.r.T)},
-            't' : convert_to_list(self.t),
-            'theta' : convert_to_list(self.ang)
+            'dt' : self.dt,
+            'r' : convert_to_list(self.r.T),
+            'ang' : convert_to_list(ang),
+            't' : convert_to_list(self.t)
         }
-        with open(str(path), 'w') as f:
-            json.dump(json_dict, f)
+        with open(str(path), 'w') as traj_file:
+            json.dump(json_dict, traj_file)
 
     def _save_csv(self, path):
-        with open(str(path), 'w', newline='') as f:
-            writer = csv.writer(f, delimiter=',')
-            writer.writerow([self.id, self.dt, self.dim])
+        with open(str(path), 'w', newline='') as traj_file:
+            writer = csv.writer(traj_file, delimiter=',')
+            ang_shape = 0 if self.ang is None else self.ang.shape[1]
+            writer.writerow([self.id, self.dt, self.dim, ang_shape])
             for tp in self:
-                writer.writerow(tp)
+                row = np.hstack(np.array([tp.r,tp.ang,tp.t]))
+                writer.writerow(row)
 
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
                overwrite: bool = True):
@@ -250,19 +247,20 @@ class Trajectory():
 
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
-            Wheter or not to overwrite the file if it already exists, by default
-            True.
+            Wheter or not to overwrite the file if it already exists,
+            by default True.
 
         Raises
-        ------        
+        ------
         ValueError
-            If ``override`` parameter is ``False`` and the file already exists.
+            If ``override`` parameter is ``False`` and the file already
+            exists.
         ValueError
             If ``file_type`` is not ``json`` or ``csv``.
 
         Examples
         --------
-        >>> t = Trajectory(x=[0.37, 1.24, 1.5]) 
+        >>> t = Trajectory(x=[0.37, 1.24, 1.5])
         >>> t.save('my_track')
         """
 
@@ -285,8 +283,8 @@ class Trajectory():
     def save_trajectories(trajectories: list, folder_path: str = '.',
                           file_type: str = 'json', overwrite: bool = True):
         """
-        Saves a list of trajectories to disk. Each Trajectory object will be saved
-        in a separate file inside the given folder.
+        Saves a list of trajectories to disk. Each Trajectory object
+        will be saved in a separate file inside the given folder.
 
         Parameters
         ----------
@@ -299,8 +297,8 @@ class Trajectory():
 
             The only types avaliable are: ``json`` and ``csv``.
         overwrite : bool
-            Wheter or not to overwrite the file if it already exists, by default
-            True.
+            Wheter or not to overwrite the file if it already exists,
+            by default True.
 
         Examples
         --------
@@ -316,52 +314,56 @@ class Trajectory():
 
     @staticmethod
     def _load_json(path: str):
-        with open(path, 'r') as f:
-            data = json.load(f)
+        with open(path, 'r') as traj_file:
+            data = json.load(traj_file)
             traj_id, dt = data['id'], data['dt']
             t = data['t']
-            theta = data['theta']
-            dims = [d for d in data['dimensions'].values()]
+            ang = None
+            if data['ang'] is not None:
+                ang = Vector.create(
+                    [ad for ad in data['ang'].values()]
+                ).T
+            dims = [rd for rd in data['r'].values()]
 
-            return Trajectory(dimensions=dims, t=t, ang=theta, dt=dt, 
-                              id=traj_id)
+            return Trajectory(dimensions=dims, t=t, ang=ang, dt=dt,
+                              traj_id=traj_id)
 
     @staticmethod
     def _load_csv(path: str):
-        with open(path, 'r') as f:
+        with open(path, 'r') as traj_file:
 
             def check_empty_val(val, cast=True):
                 if val == '':
                     return None
                 return float(val) if cast else val
 
-            # *dim, t, theta
-            dat, t, ang = None, [], []
+            # r, ang, t
+            r, ang, t = [], [], []
             traj_id, dt, dim = None, None, None
 
-            for i, row in enumerate(csv.reader(f)):
+            for i, row in enumerate(csv.reader(traj_file)):
                 if i == 0:
                     traj_id = check_empty_val(row[0], cast=False)
                     dt = check_empty_val(row[1])
                     dim = int(row[2])
-                    dat = [[] for _ in range(dim)]
+                    ang_dim = int(row[3])
+                    r = [[] for _ in range(dim)]
+                    ang = [[] for _ in range(ang_dim)]
                     continue
 
                 for j in range(dim):
-                    dat[j].append(check_empty_val(row[j]))
+                    r[j].append(float(row[j]))
 
-                t.append(check_empty_val(row[-2]))
-                ang.append(check_empty_val(row[-1]))
+                for j, k in enumerate(range(dim, dim + ang_dim)):
+                    ang[j] = row[k]
 
-            dat.extend([t, ang])
+                t.append(float(row[-1]))
 
-            for i, d in enumerate(dat):
-                if any([item is None for item in d]):
-                    dat[i] = None
+            if not ang:
+                ang = None
 
-            *dims, t, ang = dat
-            return Trajectory(dimensions=dims, t=t, ang=ang, dt=dt,
-                              id=traj_id)
+            return Trajectory(dimensions=r, t=t, ang=ang, dt=dt,
+                              traj_id=traj_id)
 
     @staticmethod
     def load(file_path: str):
@@ -372,7 +374,7 @@ class Trajectory():
         ----------
         file_path : str
             Path of the trajectory file
-        
+
         Returns
         -------
         Trajectory
@@ -385,7 +387,7 @@ class Trajectory():
         ValueError
             If ``file_path`` is a not a file.
         ValueError
-            If ``file_path`` extension is not ``json`` or ```csv``.        
+            If ``file_path`` extension is not ``json`` or ```csv``.
         """
 
         path = Path(file_path)
@@ -420,7 +422,7 @@ class Trajectory():
         List[Trajectory]
             List of the loaded trajectories.
         """
-        
+
         trajectories = []
         for root, _, files in os.walk(folder_path):
             for file in files:
