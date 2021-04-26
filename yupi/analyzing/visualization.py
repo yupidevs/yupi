@@ -1,16 +1,19 @@
+from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from yupi.trajectory import Trajectory
+
 
 # TODO: Fix this implementation for dim != 2
-def plot_trajectories(trajs, max_trajectories=None, title=None,
-                      legend=True, show=True):
+def plot_trajectories(trajs: List[Trajectory], max_trajectories=None,
+                      title=None, legend=True, show=True):
     """
     Plot all or ``max_trajectories`` trajectories from ```trajs``.
 
     Parameters
     ----------
-    trajs : list
+    trajs : List[Trajectory]
         Input trajectories.
     max_trajectories : int, optional
         Number of trajectories to plot, by default None.
@@ -22,25 +25,21 @@ def plot_trajectories(trajs, max_trajectories=None, title=None,
         If Tue, the plot is shown. By default True.
     """
 
-    # TODO: Check if trajectories is list of Trajectory
-    # or Trajectory, if the second case traj = [traj]
-    # If none of both case raise exception
-
     if max_trajectories is None:
         max_trajectories = len(trajs)
-
 
     for i, t in enumerate(trajs):
         if i == max_trajectories:
             break
-        # plotting
-        traj_plot = plt.plot(t.x, t.y, '-')
+
+        # Plotting
+        x, y = t.r.x, t.r.y
+        traj_plot = plt.plot(x, y, '-')
         color = traj_plot[-1].get_color()
-        plt.plot(t.x[0], t.y[0], 'o', mfc='white', zorder=2,
+        plt.plot(x[0], y[0], 'o', mfc='white', zorder=2,
                  label=f'{t.id} initial position', color=color)
-        plt.plot(t.x[-1], t.y[-1], 'o', mfc='white', zorder=2,
-                 color=color)
-        plt.plot(t.x[-1], t.y[-1], 'o', alpha=.5,
+        plt.plot(x[-1], y[-1], 'o', mfc='white', zorder=2, color=color)
+        plt.plot(x[-1], y[-1], 'o', alpha=.5,
                  label=f'{t.id} final position', color=color)
 
         if legend:
@@ -52,9 +51,28 @@ def plot_trajectories(trajs, max_trajectories=None, title=None,
         plt.grid(True)
         plt.xlabel('x [m]')
         plt.ylabel('y [m]')
-        
+
     if show:
         plt.show()
+
+
+def plot_trajectory(traj: Trajectory, title=None, legend=True, show=True):
+    """
+    Plot a single trajectory.
+
+    Parameters
+    ----------
+    traj : Trajectory
+        Input trajectory.
+    title : str, optional
+        Title of the plot, by default None.
+    legend : bool, optional
+        If True, legend is shown. By default True.
+    show : bool, optional
+        If Tue, the plot is shown. By default True.
+    """
+
+    plot_trajectories([traj], title=title, legend=legend, show=show)
 
 
 def plot_velocity_hist(v, bins=20, plot=True):
@@ -77,12 +95,12 @@ def plot_velocity_hist(v, bins=20, plot=True):
         plt.show()
 
 
-def plot_angle_distribution(theta, bins=50, ax=None, plot=True):
+def plot_angle_distribution(ang, bins=50, ax=None, plot=True):
     """[summary]
 
     Parameters
     ----------
-    theta : [type]
+    ang : [type]
         [description]
     bins : int, optional
         [description], by default 50
@@ -92,11 +110,10 @@ def plot_angle_distribution(theta, bins=50, ax=None, plot=True):
         [description], by default True
     """
 
-    if ax is None:        
-        # fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    if ax is None:
         ax = plt.gca(projection='polar')
-    plt.hist(theta, bins, density=True, ec='k', color='.85')
-    ax.set_theta_zero_location('N')
+    plt.hist(ang, bins, density=True, ec='k', color='.85')
+    ax.set_ang_zero_location('N')
     ax.set_rlabel_position(135)
     ax.set_axisbelow(True)
     plt.xlabel('turning angles pdf')
@@ -123,10 +140,9 @@ def plot_msd(msd, msd_std, dt, lag=30, plot=True):
 
     lag_t_msd = dt * np.arange(lag)
     plt.plot(lag_t_msd, msd, color='.2')
-    plt.fill_between(lag_t_msd, msd + msd_std, 
-            msd - msd_std, color='#afc0da')
+    plt.fill_between(lag_t_msd, msd + msd_std, msd - msd_std, color='#afc0da')
     plt.xlabel('lag time [s]')
-    plt.ylabel('$\mathrm{msd \; [m^2/s]}$')
+    plt.ylabel(r'$\mathrm{msd \; [m^2/s]}$')
     if plot:
         plt.show()
 
@@ -178,12 +194,12 @@ def plot_vacf(vacf, dt, lag=50, plot=True):
 
     plt.plot(lag_t_vacf, vacf, '.', color='#870e11', mfc='w')
     plt.xlabel('lag time [s]')
-    plt.ylabel('$\mathrm{vacf \; [(m/s)^2]}$')
+    plt.ylabel(r'$\mathrm{vacf \; [(m/s)^2]}$')
 
     ax = plt.gca()
 
-    inset_axes(ax, width='60%', height='60%', bbox_to_anchor=(0,0,1,1),
-    bbox_transform=ax.transAxes, loc='upper right')
+    inset_axes(ax, width='60%', height='60%', bbox_to_anchor=(0, 0, 1, 1),
+               bbox_transform=ax.transAxes, loc='upper right')
 
     plt.plot(lag_t_vacf, vacf, '.', color='#870e11', mfc='w')
     plt.yscale('log')

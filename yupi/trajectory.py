@@ -70,7 +70,7 @@ class Trajectory():
         from_dimensions = dimensions is not None
 
         if from_xyz + from_points + from_dimensions > 1:
-            raise ValueError("Positional data must come only from one way: " \
+            raise ValueError("Positional data must come only from one way: "
                              "'xyz' data, 'points' data or 'dimensions' data.")
 
         self.r = None
@@ -82,7 +82,7 @@ class Trajectory():
                 data[i] = Vector.create(item, dtype=float)
 
         if from_xyz:
-            dimensions = [d for d in [x,y,z] if d is not None]
+            dimensions = [d for d in [x, y, z] if d is not None]
             from_dimensions = True
 
         if from_dimensions:
@@ -207,18 +207,18 @@ class Trajectory():
         def convert_to_list(vec: Vector):
             if vec is None:
                 return vec
-                
+
             if len(vec.shape) == 1:
                 return list(vec)
-            return {d:list(v) for d,v in enumerate(vec)}
+            return {d: list(v) for d, v in enumerate(vec)}
 
         ang = None if self.ang is None else self.ang.T
         json_dict = {
-            'id' : self.id,
-            'dt' : self.dt,
-            'r' : convert_to_list(self.r.T),
-            'ang' : convert_to_list(ang),
-            't' : convert_to_list(self.t)
+            'id': self.id,
+            'dt': self.dt,
+            'r': convert_to_list(self.r.T),
+            'ang': convert_to_list(ang),
+            't': convert_to_list(self.t)
         }
         with open(str(path), 'w') as traj_file:
             json.dump(json_dict, traj_file)
@@ -229,11 +229,11 @@ class Trajectory():
             ang_shape = 0 if self.ang is None else self.ang.shape[1]
             writer.writerow([self.id, self.dt, self.dim, ang_shape])
             for tp in self:
-                row = np.hstack(np.array([tp.r,tp.ang,tp.t]))
+                row = np.hstack(np.array([tp.r, tp.ang, tp.t]))
                 writer.writerow(row)
 
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
-               overwrite: bool = True):
+             overwrite: bool = True):
         """
         Saves the trajectory to disk.
 
@@ -278,7 +278,6 @@ class Trajectory():
             self._save_csv(full_path)
         else:
             raise ValueError(f"Invalid export file type '{file_type}'")
-
 
     @staticmethod
     def save_trajectories(trajectories: list, folder_path: str = '.',
@@ -338,7 +337,6 @@ class Trajectory():
                     return None
                 return float(val) if cast else val
 
-            # r, ang, t
             r, ang, t = [], [], []
             traj_id, dt, dim = None, None, None
 

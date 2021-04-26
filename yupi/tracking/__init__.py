@@ -1,5 +1,5 @@
 """
-This submodule is designed to capture Trajectory objects from 
+This submodule is designed to capture Trajectory objects from
 a sequence of images. It contains different tools to extract
 the trajectories based on the color or the motion of the object
 being tracked.

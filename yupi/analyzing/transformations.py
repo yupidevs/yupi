@@ -1,10 +1,14 @@
+from typing import Tuple
 import numpy as np
 from yupi import Trajectory
 from yupi.affine_estimator import affine_matrix
 
-def add_dynamic_reference(traj, reference, start_at_origin=True):
+
+def add_dynamic_reference(traj: Trajectory,
+                          reference: Tuple[np.ndarray, np.ndarray, np.ndarray],
+                          start_at_origin=True):
     """
-    This function fuses the information of a trajectory with an 
+    This function fuses the information of a trajectory with an
     external reference of the motion of the Frame of Reference
     (FoR).
 
@@ -15,9 +19,9 @@ def add_dynamic_reference(traj, reference, start_at_origin=True):
     ----------
     traj : Trajectory
         Input trajectory.
-    reference : tuple
-        Angular and translational parameters of the form 
-        ``(theta:np.ndarray, tx:np.ndarray, ty:np.ndarray)`` that 
+    reference : Tuple[np.ndarray,np.ndarray,np.ndarray]
+        Angular and translational parameters of the form
+        ``(ang:np.ndarray, tx:np.ndarray, ty:np.ndarray)`` that
         accounts for the orientation and displacement of the reference.
     start_at_origin : bool, optional
         If True, set initial position at the origin. By default True.
@@ -39,7 +43,6 @@ def add_dynamic_reference(traj, reference, start_at_origin=True):
         x_cl, y_cl, theta_cl = x_cl[1:], y_cl[1:], theta_cl[1:]
         return x_cl, y_cl, theta_cl
 
-
     def camera2obj(x_ac, y_ac, x_cl, y_cl, theta_cl):
         x_al, y_al = np.empty((2, x_ac.size))
 
@@ -49,7 +52,6 @@ def add_dynamic_reference(traj, reference, start_at_origin=True):
 
         return x_al, y_al
 
-
     def affine2obj(theta, tx, ty, x_ac, y_ac):
         x_cl, y_cl, theta_cl = affine2camera(theta, tx, ty)
         x_al, y_al = camera2obj(x_ac, y_ac, x_cl, y_cl, theta_cl)
@@ -57,8 +59,8 @@ def add_dynamic_reference(traj, reference, start_at_origin=True):
 
     theta, tx, ty = reference
 
-    x_al, y_al = affine2obj(theta, tx, ty, traj.x, traj.y)
-    
+    x_al, y_al = affine2obj(theta, tx, ty, traj.r.x, traj.r.y)
+
     if start_at_origin:
         x_al = x_al - x_al[0]
         y_al = y_al - y_al[0]
@@ -66,12 +68,13 @@ def add_dynamic_reference(traj, reference, start_at_origin=True):
     traj.x = x_al
     traj.y = y_al
 
-    return traj
+    return Trajectory(x=x_al, y=y_al, ang=traj.ang, t=traj.t, dt=traj.dt,
+                      traj_id=traj.id)
 
 
-def subsample_trajectory(traj, step=1, step_in_seconds=False):
+def subsample_trajectory(traj: Trajectory, step=1, step_in_seconds=False):
     """
-    Sample the trajectory ``traj`` by removing evenly spaced 
+    Sample the trajectory ``traj`` by removing evenly spaced
     points according to ``step``.
 
     Parameters
@@ -79,11 +82,11 @@ def subsample_trajectory(traj, step=1, step_in_seconds=False):
     traj : Trajectory
         Input trajectory.
     step : int, optional
-        Number of sample points or period, depending on the value 
+        Number of sample points or period, depending on the value
         of ``step_in_seconds``. By default 1.
     step_in_seconds : bool, optional
-        If True, ``step`` is considered as the number of sample 
-        points. Otherwise, ``step`` is interpreted as the sample 
+        If True, ``step`` is considered as the number of sample
+        points. Otherwise, ``step`` is interpreted as the sample
         period, in seconds. By default False.
 
     Returns
@@ -94,23 +97,21 @@ def subsample_trajectory(traj, step=1, step_in_seconds=False):
 
     if step_in_seconds:
         step = int(step / traj.dt)
-    x = traj.x[::step]
-    y = traj.y[::step] if traj.y is not None else None
-    z = traj.z[::step] if traj.z is not None else None
-    theta = traj.theta[::step] if traj.theta is not None else None
+
+    points = traj.r[::step]
+    ang = traj.ang[::step] if traj.ang is not None else None
     t = traj.t[::step] if traj.t is not None else None
-    return Trajectory(x, y, z, t, theta, dt=step*traj.dt)
+    return Trajectory(points=points, t=t, ang=ang, dt=step*traj.dt)
 
 
-# wrap angles in the interval [0,2pi] or [-pi,pi]
-def wrap_theta(theta, degrees=False, centered=False):
+def wrap_theta(ang: np.ndarray, degrees=False, centered=False):
     """
-    Wrap angles by removing more than one lap to the 
+    Wrap angles by removing more than one lap to the
     trigonometic circle.
 
     Parameters
     ----------
-    theta : np.ndarray
+    ang : np.ndarray
         Input array of angles.
     degrees : bool, optional
         If True, angles are given in degrees. Otherwise, the units
@@ -123,12 +124,12 @@ def wrap_theta(theta, degrees=False, centered=False):
     Returns
     -------
     np.ndarray
-        A wrapped copy of ``theta``.
+        A wrapped copy of ``ang``.
     """
-    
+
     discont = 360 if degrees else 2 * np.pi
     if not centered:
-        return theta % discont
+        return ang % discont
     else:
         discont_half = discont / 2
-        return -((discont_half - theta) % discont - discont_half)
+        return -((discont_half - ang) % discont - discont_half)

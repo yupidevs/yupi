@@ -2,9 +2,10 @@ import numpy as np
 import abc
 from yupi import Trajectory
 
+
 class Generator(metaclass=abc.ABCMeta):
     """
-    Abstract class to model a Trajectory Generator. Classes inheriting 
+    Abstract class to model a Trajectory Generator. Classes inheriting
     from this class should implement ``generate`` method.
 
     Parameters
@@ -30,27 +31,23 @@ class Generator(metaclass=abc.ABCMeta):
         Time step of the Trajectory, by default 1.0.
     n  : int
         Number of samples on each Trajectory.
-    """  
+    """
 
-
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1.0):
-             
-        # siulation parameters
-        self.T = T            # total time
-        self.dim = dim        # trajectory dimension
-        self.N = N            # number of trajectories
-        self.dt = dt          # time step of the simulation
-        self.n = int(T / dt)  # number of time steps
+    def __init__(self, T: float, dim: int = 1, N: int = 1, dt: float = 1.0):
+        # Siulation parameters
+        self.T = T            # Total time
+        self.dim = dim        # Trajectory dimension
+        self.N = N            # Number of trajectories
+        self.dt = dt          # Time step of the simulation
+        self.n = int(T / dt)  # Number of time steps
 
     @abc.abstractmethod
     def generate(self):
         """
-        Abstract method that is implemented on inheriting classes. It should compute
-        a list of ``N`` Trajectory objects with the given parameters using a method 
-        specific to the inheriting class.
+        Abstract method that is implemented on inheriting classes.
+        It should compute a list of ``N`` Trajectory objects with the
+        given parameters using a method specific to the inheriting class.
         """
-        pass
-
 
 
 class LatticeRandomWalkGenerator(Generator):
@@ -71,67 +68,71 @@ class LatticeRandomWalkGenerator(Generator):
     actions : np.ndarray, optional
         Vector of actions the walker can take, by default None.
     actions_prob : np.ndarray, optional
-        Probability of every action to be taken according to 
+        Probability of every action to be taken according to
         every axis, by default None.
     jump_len : np.ndarray, optional
         Length of every single jump of the walker, by default None.
-    """   
-    
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1,
-            actions:np.ndarray=None, 
-            actions_prob:np.ndarray=None, 
-            jump_len:np.ndarray=None):
-     
+    """
 
-        super().__init__(T, dim, N, dt) 
+    def __init__(self, T: float, dim: int = 1, N: int = 1, dt: float = 1,
+                 actions: np.ndarray = None,
+                 actions_prob: np.ndarray = None,
+                 jump_len: np.ndarray = None):
 
-        # dynamic variables
-        self.t = np.arange(self.n) * dt      # time array
-        self.r = np.zeros((self.n, dim, N))  # position array
+        super().__init__(T, dim, N, dt)
 
-        # model parameters
-        # only right/left jumps, uniform probabilities for it
-        # and equal length for all jumps are set as default
-        # TODO: Check that the model parameters received have the expected shape
-        self.actions = np.array([1, -1]) if actions is None else actions
-        self.actions_prob = np.tile([.5, .5], (dim, 1)) if actions_prob is None else actions_prob
-        self.jump_len = np.ones((dim, N)) if jump_len is None else jump_len
+        # Dynamic variables
+        self.t = np.arange(self.n) * dt      # Time array
+        self.r = np.zeros((self.n, dim, N))  # Position array
 
+        # Model parameters
+        # Only right/left jumps, uniform probabilities for it
+        # And equal length for all jumps are set as default
+        # TODO: Check that the model parameters received have the
+        #Eexpected shape
+        if actions is None:
+            actions = np.array([1, -1])
+        if actions_prob is None:
+            actions_prob = np.tile([.5, .5], (dim, 1))
+        if jump_len is None:
+            jump_len = np.ones((dim, N))
 
+        self.actions = actions
+        self.actions_prob = actions_prob
+        self.jump_len = jump_len
 
-    # compute vector position as a function of time for
-    # all the walkers of the ensemble
+    # Compute vector position as a function of time for
+    # All the walkers of the ensemble
     def get_r(self):
-        # get movements for every space coordinates according 
-        # to the sample space of probabilities in self.actions_prob
-        dr = [np.random.choice(self.actions, p=p, size=(self.n - 1, self.N)) for p in self.actions_prob]
-        
-        # set time/coordinates as the first/second axis
+        # Get movements for every space coordinates according
+        # To the sample space of probabilities in self.actions_prob
+        dr = [np.random.choice(self.actions, p=p, size=(self.n - 1, self.N))
+              for p in self.actions_prob]
+
+        # Set time/coordinates as the first/second axis
         dr = np.swapaxes(dr, 0, 1)
-        
-        # scale displacements according to the jump length statistics
+
+        # Scale displacements according to the jump length statistics
         dr = dr * self.jump_len
 
-        # integrate displacements to get position vectors
+        # Integrate displacements to get position vectors
         self.r[1:] = np.cumsum(dr, axis=0)
         return self.r
 
-
-    # get position vectors and generate RandomWalk object
+    # Get position vectors and generate RandomWalk object
     def generate(self):
-        # get position vectors
+        # Get position vectors
         r = self.get_r()
 
-        # generate RandomWalk object
-        trajs  = []
+        # Generate RandomWalk object
+        trajs = []
         for i in range(self.N):
-            x = r[:,0,i]
-            y = r[:,1,i] if self.dim > 1 else None
-            z = r[:,2,i] if self.dim > 2 else None
+            x = r[:, 0, i]
+            y = r[:, 1, i] if self.dim > 1 else None
+            z = r[:, 2, i] if self.dim > 2 else None
             trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt, t=self.t,
-                                  id="Random Walker {}".format(i+1)))
+                                    traj_id="Random Walker {}".format(i+1)))
         return trajs
-
 
 
 class LangevinGenerator(Generator):
@@ -151,7 +152,7 @@ class LangevinGenerator(Generator):
     tau : float, optional
         Relaxation characteristic time, by default 1.
     noise_pdf : str, optional
-        Statistical model for the noise. ``noise_pdf`` should be a 
+        Statistical model for the noise. ``noise_pdf`` should be a
         distribution from ``np.random``. By default 'normal'.
     noise_scale : float, optional
         Scale parameter of the noise, by default 1.
@@ -159,29 +160,39 @@ class LangevinGenerator(Generator):
         Initial velocities, by default None.
     r0 : np.ndarray, optional
         Initial positions, by default None.
-    """   
+    """
 
-    def __init__(self, T:float, dim:int=1, N:int=1, dt:float=1,
-        tau:float=1.,
-        noise_pdf:str='normal',
-        noise_scale:float=1,
-        v0:np.ndarray=None, r0:np.ndarray=None):
-     
-        super().__init__(T, dim, N, dt) 
+    def __init__(self, T: float, dim: int = 1, N: int = 1, dt: float = 1,
+                 tau: float = 1.,
+                 noise_pdf: str = 'normal',
+                 noise_scale: float = 1,
+                 v0: np.ndarray = None, r0: np.ndarray = None):
 
-        # model parameters
-        self.tau = tau                  # relaxation time
-        self.noise_pdf = noise_pdf      # noise PDF
-        self.noise_scale = noise_scale  # scale parameter
-        self.noise = np.ndarray         # noise array that will be filled in get_noise method
+        super().__init__(T, dim, N, dt)
 
-        # dynamic variables
-        self.shape = (self.n, dim, N)           # shape of the dynamic variables
-        self.t = np.linspace(0, T, num=self.n)  # time array
-        self.r = np.empty(self.shape)           # position array
-        self.v = np.empty(self.shape)           # velocity array
+        # Model parameters
 
-        # initial conditions
+        # Relaxation time
+        self.tau = tau
+        # Noise PDF
+        self.noise_pdf = noise_pdf
+        # Scale parameter
+        self.noise_scale = noise_scale
+        # Noise array that will be filled in get_noise method
+        self.noise = np.ndarray
+
+        # Dynamic variables
+
+        # Shape of the dynamic variables
+        self.shape = (self.n, dim, N)
+        # Time array
+        self.t = np.linspace(0, T, num=self.n)
+        # Position array
+        self.r = np.empty(self.shape)
+        # Velocity array
+        self.v = np.empty(self.shape)
+
+        # Initial conditions
         # TODO: Check that r0 have the rigth shape
         self.r[0] = np.zeros((dim, N)) if r0 is None else r0
         # TODO: Check that v0 have the rigth shape
@@ -191,8 +202,7 @@ class LangevinGenerator(Generator):
         self.r_scale = 1
         self.t_scale = 1
 
-
-    # set intrinsic reference parameters
+    # Set intrinsic reference parameters
     # TODO: Check if scales are compatibles
     def set_scale(self, v_scale=None, r_scale=None, t_scale=None):
         if v_scale:
@@ -202,61 +212,56 @@ class LangevinGenerator(Generator):
         if t_scale:
             self.t_scale = t_scale
 
-
-    # fill noise array with custom noise properties
+    # Fill noise array with custom noise properties
     def get_noise(self):
         dist = getattr(np.random, self.noise_pdf)
         self.noise = dist(scale=self.noise_scale, size=self.shape)
 
-
-    # solve Langevin Equation using the numerical method of Euler-Maruyama
+    # Solve Langevin Equation using the numerical method of Euler-Maruyama
     def solve_rv(self):
         for i in range(self.n - 1):
-            # solving for position
+            # Solving for position
             self.r[i + 1] = self.r[i] + \
                             self.v[i] * self.dt
 
-            # solving for velocity
+            # Solving for velocity
             self.v[i + 1] = self.v[i] + \
                             -np.dot(1 / self.tau, self.v[i]) * self.dt + \
                             self.noise[i] * np.sqrt(self.dt)
 
-
-    # simulate the process
+    # Simulate the process
     def simulate(self):
-        self.get_noise()  # set the attribute self.noise
-        self.solve_rv()   # solve the Langevin equation
+        self.get_noise()  # Set the attribute self.noise
+        self.solve_rv()   # Solve the Langevin equation
 
-
-    # generate yupi Trajectory objects
+    # Generate yupi Trajectory objects
     def generate(self):
         self.simulate()
 
-        self.r *= self.r_scale 
-        self.v *= self.v_scale 
-        self.t *= self.t_scale 
-        self.dt *= self.t_scale 
+        self.r *= self.r_scale
+        self.v *= self.v_scale
+        self.t *= self.t_scale
+        self.dt *= self.t_scale
 
-        trajs  = []
+        trajs = []
         for i in range(self.N):
-            x = self.r[:,0,i]
-            y = self.r[:,1,i] if self.dim > 1 else None
-            z = self.r[:,2,i] if self.dim > 2 else None
+            x = self.r[:, 0, i]
+            y = self.r[:, 1, i] if self.dim > 1 else None
+            z = self.r[:, 2, i] if self.dim > 2 else None
             trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt, t=self.t,
-                                  id="LangevinSolution {}".format(i+1)))
+                                    traj_id="LangevinSolution {}".format(i+1)))
         return trajs
 
 
-
-# testing
+# Testing
 if __name__ == '__main__':
     from yupi.analyzing.visualization import plot_trajectories
-    
+
     np.random.seed(0)
 
     print("Testing RandomWalker")
-    
-    # set parameter values
+
+    # Set parameter values
     T = 500
     dim = 2
     N = 5
@@ -265,7 +270,7 @@ if __name__ == '__main__':
     prob = [[.5, .1, .4],
             [.5, 0, .5]]
 
-    # get RandomWalk object and get position vectors
+    # Get RandomWalk object and get position vectors
     rw = LatticeRandomWalkGenerator(T, dim, N, dt, actions, prob)
     tr = rw.generate()
     plot_trajectories(tr, max_trajectories=3, legend=False)
