@@ -101,7 +101,8 @@ class Trajectory():
         if self.r is None:
             raise ValueError('No position data were given.')
 
-        self.dt = dt
+        self.dt = dt if t is None else np.mean(t)
+        self.dt_std = 0 if t is None else np.std(t)
         self.id = traj_id
         self.t = data[0]
         self.ang = data[1]
