@@ -179,7 +179,7 @@ class LangevinGenerator(Generator):
         # Scale parameter
         self.noise_scale = noise_scale
         # Noise array that will be filled in get_noise method
-        self.noise = np.ndarray
+        self.noise = None
 
         # Dynamic variables
 
