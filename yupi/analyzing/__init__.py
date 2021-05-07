@@ -1,5 +1,5 @@
 """
-This submodule contains different tools to compute statistical 
+This submodule contains different tools to compute statistical
 funtions for trajectory analysis and visualize the results.
 
 All the resources of this module should be imported directly
@@ -32,7 +32,7 @@ from yupi.analyzing.statistics import (
 )
 
 from yupi.analyzing.visualization import (
-    plot_trajectories, 
+    plot_trajectories,
     plot_velocity_hist,
     plot_angle_distribution,
     plot_kurtosis,
