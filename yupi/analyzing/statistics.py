@@ -39,7 +39,7 @@ def estimate_turning_angles(trajs: List[Trajectory], accumulate=False,
     return np.concatenate(theta)
 
 
-def estimate_velocity_samples(trajs: List[Trajectory], step: int):
+def estimate_velocity_samples(trajs: List[Trajectory], step: int = 1):
     """
     Estimate speeds of the list of trajectories, ``trajs``,
     by computing displacements according to a certain sample
@@ -58,9 +58,8 @@ def estimate_velocity_samples(trajs: List[Trajectory], step: int):
         Concatenated array of speeds.
     """
 
-    step = 1
     trajs_ = [subsample_trajectory(traj, step) for traj in trajs]
-    return np.concatenate([traj.velocity() for traj in trajs_])
+    return np.concatenate([traj.v.norm for traj in trajs_])
 
 
 def estimate_msd_ensemble(trajs: List[Trajectory]):
@@ -247,7 +246,7 @@ def estimate_vacf_time(trajs: List[Trajectory], lag: int):
     vacf = []
     for traj in trajs:
         # Cartesian velocity components
-        v = traj.velocity_vectors()
+        v = traj.v
 
         # Compute vacf for a single trajectory
         vacf_ = np.empty(lag)
