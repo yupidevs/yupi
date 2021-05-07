@@ -127,10 +127,8 @@ class LatticeRandomWalkGenerator(Generator):
         # Generate RandomWalk object
         trajs = []
         for i in range(self.N):
-            x = r[:, 0, i]
-            y = r[:, 1, i] if self.dim > 1 else None
-            z = r[:, 2, i] if self.dim > 2 else None
-            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt, t=self.t,
+            points = r[:, :, i]
+            trajs.append(Trajectory(points=points, dt=self.dt, t=self.t,
                                     traj_id="Random Walker {}".format(i+1)))
         return trajs
 
@@ -245,10 +243,8 @@ class LangevinGenerator(Generator):
 
         trajs = []
         for i in range(self.N):
-            x = self.r[:, 0, i]
-            y = self.r[:, 1, i] if self.dim > 1 else None
-            z = self.r[:, 2, i] if self.dim > 2 else None
-            trajs.append(Trajectory(x=x, y=y, z=z, dt=self.dt, t=self.t,
+            points = self.r[:, :, i]
+            trajs.append(Trajectory(points=points, dt=self.dt, t=self.t,
                                     traj_id="LangevinSolution {}".format(i+1)))
         return trajs
 
