@@ -1,7 +1,10 @@
+from yupi.trajectory import Trajectory
 import numpy as np
 from yupi.analyzing.transformations import wrap_theta
 
-def turning_angles(traj, accumulate=False, degrees=False, centered=False):
+
+def turning_angles(traj: Trajectory, accumulate=False, degrees=False,
+                   centered=False):
     """
     Return the sequence of turning angles that forms the trajectory.
 
@@ -26,17 +29,17 @@ def turning_angles(traj, accumulate=False, degrees=False, centered=False):
     Returns
     -------
     np.ndarray
-        Turning angles where each position in the array correspond 
+        Turning angles where each position in the array correspond
         to a given time instant.
     """
 
-    dx = traj.x_diff()
-    dy = traj.y_diff()
+    dx = traj.delta_r.x
+    dy = traj.delta_r.y
     theta = np.arctan2(dy, dx)
 
     if not accumulate:
-        theta = np.ediff1d(theta)  # relative turning angles
+        theta = np.ediff1d(theta)  # Relative turning angles
     else:
-        theta -= theta[0]          # cumulative turning angles
+        theta -= theta[0]          # Rumulative turning angles
 
     return wrap_theta(theta, degrees, centered)
