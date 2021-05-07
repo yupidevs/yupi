@@ -106,7 +106,7 @@ Plot spacial trajectories
 .. code-block:: python
 
    ax1 = plt.subplot(231)
-   ypa.plot_trajectories(trajs, max_trajectories=5, legend=False, plot=False)
+   ypa.plot_trajectories(trajs, max_trajectories=5, legend=False, show=False)
 
 Plot velocity histogram 
 
@@ -114,7 +114,7 @@ Plot velocity histogram
 
    v = ypa.estimate_velocity_samples(trajs, step=1)
    ax2 = plt.subplot(232)
-   ypa.plot_velocity_hist(v, bins=20, plot=False)
+   ypa.plot_velocity_hist(v, bins=20, show=False)
 
 Plot turning angles 
 
@@ -122,7 +122,7 @@ Plot turning angles
 
    theta = ypa.estimate_turning_angles(trajs)
    ax3 = plt.subplot(233, projection='polar')
-   ypa.plot_angle_distribution(theta, plot=False)
+   ypa.plot_angle_distribution(theta, show=False)
 
 Plot Mean Square Displacement 
 
@@ -131,7 +131,7 @@ Plot Mean Square Displacement
    lag_msd = 30
    msd, msd_std = ypa.estimate_msd(trajs, time_avg=True, lag=lag_msd)
    ax4 = plt.subplot(234)
-   ypa.plot_msd(msd, msd_std, dt, lag=lag_msd, plot=False)
+   ypa.plot_msd(msd, msd_std, dt, lag=lag_msd, show=False)
 
 Plot Kurtosis
 
@@ -139,7 +139,7 @@ Plot Kurtosis
 
    kurtosis = ypa.estimate_kurtosis(trajs, time_avg=False, lag=30)
    ax5 = plt.subplot(235)
-   ypa.plot_kurtosis(kurtosis, dt=dt, plot=False)
+   ypa.plot_kurtosis(kurtosis, dt=dt, show=False)
 
 Plot Velocity autocorrelation function 
 
@@ -148,7 +148,7 @@ Plot Velocity autocorrelation function
    lag_vacf = 50
    vacf, _ = ypa.estimate_vacf(trajs, time_avg=True, lag=lag_vacf)
    ax6 = plt.subplot(236)
-   ypa.plot_vacf(vacf, dt, lag_vacf, plot=False)
+   ypa.plot_vacf(vacf, dt, lag_vacf, show=False)
 
 Generate plot
 
