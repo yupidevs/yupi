@@ -47,7 +47,7 @@ class Trajectory():
 
     >>> x = [0, 1.0, 0.63, -0.37, -1.24, -1.5, -1.08, -0.19, 0.82, 1.63, 1.99, 1.85]
     >>> y = [0, 0, 0.98, 1.24, 0.69, -0.3, -1.23, -1.72, -1.63, -1.01, -0.06, 0.94]
-    >>> Trajectory(x=x, y=y, id="Spiral")
+    >>> Trajectory(x=x, y=y, traj_id="Spiral")
 
 
     Raises
@@ -101,11 +101,11 @@ class Trajectory():
         if self.r is None:
             raise ValueError('No position data were given.')
 
-        self.dt = dt if t is None else np.mean(t)
-        self.dt_std = 0 if t is None else np.std(t)
-        self.id = traj_id
         self.t = data[0]
         self.ang = data[1]
+        self.dt = dt if t is None else np.mean(self.t.delta)
+        self.dt_std = 0 if t is None else np.std(self.t.delta)
+        self.id = traj_id
         self.v: Vector = self.r.delta / self.dt
 
     @property
