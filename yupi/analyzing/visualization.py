@@ -75,7 +75,7 @@ def plot_trajectory(traj: Trajectory, title=None, legend=True, show=True):
     plot_trajectories([traj], title=title, legend=legend, show=show)
 
 
-def plot_velocity_hist(v, bins=20, plot=True):
+def plot_velocity_hist(v, bins=20, show=True):
     """[summary]
 
     Parameters
@@ -84,18 +84,18 @@ def plot_velocity_hist(v, bins=20, plot=True):
         [description]
     bins : int, optional
         [description], by default 20
-    plot : bool, optional
+    show : bool, optional
         [description], by default True
     """
 
     plt.hist(v, bins, density=True, ec='k', color='#fdd693')
     plt.xlabel('speed [m/s]')
     plt.ylabel('pdf')
-    if plot:
+    if show:
         plt.show()
 
 
-def plot_angle_distribution(ang, bins=50, ax=None, plot=True):
+def plot_angle_distribution(ang, bins=50, ax=None, show=True):
     """[summary]
 
     Parameters
@@ -113,15 +113,15 @@ def plot_angle_distribution(ang, bins=50, ax=None, plot=True):
     if ax is None:
         ax = plt.gca(projection='polar')
     plt.hist(ang, bins, density=True, ec='k', color='.85')
-    ax.set_ang_zero_location('N')
+    ax.set_theta_zero_location('N')
     ax.set_rlabel_position(135)
     ax.set_axisbelow(True)
     plt.xlabel('turning angles pdf')
-    if plot:
+    if show:
         plt.show()
 
 
-def plot_msd(msd, msd_std, dt, lag=30, plot=True):
+def plot_msd(msd, msd_std, dt, lag=30, show=True):
     """[summary]
 
     Parameters
@@ -134,7 +134,7 @@ def plot_msd(msd, msd_std, dt, lag=30, plot=True):
         [description]
     lag : int, optional
         [description], by default 30
-    plot : bool, optional
+    show : bool, optional
         [description], by default True
     """
 
@@ -143,11 +143,11 @@ def plot_msd(msd, msd_std, dt, lag=30, plot=True):
     plt.fill_between(lag_t_msd, msd + msd_std, msd - msd_std, color='#afc0da')
     plt.xlabel('lag time [s]')
     plt.ylabel(r'$\mathrm{msd \; [m^2/s]}$')
-    if plot:
+    if show:
         plt.show()
 
 
-def plot_kurtosis(kurtosis, dt=None, t_array=None, plot=True):
+def plot_kurtosis(kurtosis, dt=None, t_array=None, show=True):
     """[summary]
 
     Parameters
@@ -171,11 +171,11 @@ def plot_kurtosis(kurtosis, dt=None, t_array=None, plot=True):
         plt.plot(kurtosis)
 
     plt.ylabel('kurtosis')
-    if plot:
+    if show:
         plt.show()
 
 
-def plot_vacf(vacf, dt, lag=50, plot=True):
+def plot_vacf(vacf, dt, lag=50, show=True):
     """[summary]
 
     Parameters
@@ -186,7 +186,7 @@ def plot_vacf(vacf, dt, lag=50, plot=True):
         [description]
     lag : int, optional
         [description], by default 50
-    plot : bool, optional
+    show : bool, optional
         [description], by default True
     """
 
@@ -204,5 +204,5 @@ def plot_vacf(vacf, dt, lag=50, plot=True):
     plt.plot(lag_t_vacf, vacf, '.', color='#870e11', mfc='w')
     plt.yscale('log')
 
-    if plot:
+    if show:
         plt.show()
