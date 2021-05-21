@@ -1,14 +1,14 @@
 import json
 import csv
 import os
-from typing import List, NamedTuple
-from yupi.vector import Vector
 import numpy as np
 from pathlib import Path
+from typing import List, NamedTuple
+from yupi.vector import Vector
+from yupi.exceptions import LoadTrajectoryError
 
 TrajectoryPoint = NamedTuple('TrajectoryPoint', r=Vector, ang=Vector, v=Vector,
                              t=float)
-
 
 class Trajectory():
     """
@@ -316,6 +316,7 @@ class Trajectory():
     def _load_json(path: str):
         with open(path, 'r') as traj_file:
             data = json.load(traj_file)
+            
             traj_id, dt = data['id'], data['dt']
             t = data['t']
             ang = None
@@ -336,6 +337,7 @@ class Trajectory():
                 if val == '':
                     return None
                 return float(val) if cast else val
+
 
             r, ang, t = [], [], []
             traj_id, dt, dim = None, None, None
@@ -399,12 +401,18 @@ class Trajectory():
 
         file_type = path.suffix
 
-        if file_type == '.json':
-            return Trajectory._load_json(file_path)
-        elif file_type == '.csv':
-            return Trajectory._load_csv(file_path)
-        else:
-            raise ValueError("Invalid file type.")
+        try:
+            if file_type == '.json':
+                return Trajectory._load_json(file_path)
+            elif file_type == '.csv':
+                return Trajectory._load_csv(file_path)
+            else:
+                raise ValueError("Invalid file type.")
+        except (json.JSONDecodeError,
+                KeyError,
+                ValueError,
+                IndexError) as exc:
+            raise LoadTrajectoryError(path) from exc
 
     @staticmethod
     def load_folder(folder_path='.'):
@@ -428,6 +436,6 @@ class Trajectory():
                 path = str(Path(root) / Path(file))
                 try:
                     trajectories.append(Trajectory.load(path))
-                except:  # TODO: add errors
-                    pass
+                except LoadTrajectoryError as load_exception:
+                    print(f'Ignoring: {load_exception.path}')
         return trajectories
