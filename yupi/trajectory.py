@@ -103,10 +103,16 @@ class Trajectory():
 
         self.t = data[0]
         self.ang = data[1]
-        self.dt = dt if t is None else np.mean(self.t.delta)
-        self.dt_std = 0 if t is None else np.std(self.t.delta)
         self.id = traj_id
-        self.v: Vector = self.r.delta / self.dt
+
+        if self.t is None:
+            self.dt = dt
+            self.dt_std = 0
+            self.v: Vector = self.r.delta / self.dt
+        else:
+            self.dt = np.mean(np.array(self.t.delta))
+            self.dt_std = np.std(np.array(self.t.delta))
+            self.v: Vector = (self.r.delta.T / self.t.delta).T
 
     @property
     def dim(self) -> int:
@@ -316,7 +322,7 @@ class Trajectory():
     def _load_json(path: str):
         with open(path, 'r') as traj_file:
             data = json.load(traj_file)
-            
+
             traj_id, dt = data['id'], data['dt']
             t = data['t']
             ang = None
