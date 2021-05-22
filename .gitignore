@@ -149,6 +149,7 @@ cameras
 
 # Code editor
 .vscode
+.pylintrc
 
 # Poetry
 poetry.lock

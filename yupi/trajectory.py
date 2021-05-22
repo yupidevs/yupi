@@ -1,14 +1,21 @@
 import json
 import csv
 import os
-import numpy as np
 from pathlib import Path
 from typing import List, NamedTuple
+import numpy as np
 from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 
-TrajectoryPoint = NamedTuple('TrajectoryPoint', r=Vector, ang=Vector, v=Vector,
-                             t=float)
+
+class TrajectoryPoint(NamedTuple):
+    """A point of a trajectory"""
+
+    r: Vector
+    ang: Vector
+    v: Vector
+    t: float
+
 
 class Trajectory():
     """
@@ -344,7 +351,6 @@ class Trajectory():
                     return None
                 return float(val) if cast else val
 
-
             r, ang, t = [], [], []
             traj_id, dt, dim = None, None, None
 
@@ -421,7 +427,7 @@ class Trajectory():
             raise LoadTrajectoryError(path) from exc
 
     @staticmethod
-    def load_folder(folder_path='.'):
+    def load_folder(folder_path='.', recursively: bool = False):
         """
         Loads all the trajectories from a folder.
 
@@ -429,6 +435,9 @@ class Trajectory():
         ----------
         folder_path : str
             Path of the trajectories folder.
+        recursively : bool
+            If True then subfolders are analized recursively, by
+            default False.
 
         Returns
         -------
@@ -444,4 +453,6 @@ class Trajectory():
                     trajectories.append(Trajectory.load(path))
                 except LoadTrajectoryError as load_exception:
                     print(f'Ignoring: {load_exception.path}')
+            if not recursively:
+                break
         return trajectories
