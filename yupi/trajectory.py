@@ -1,14 +1,21 @@
 import json
 import csv
 import os
-import numpy as np
 from pathlib import Path
 from typing import List, NamedTuple
+import numpy as np
 from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 
-TrajectoryPoint = NamedTuple('TrajectoryPoint', r=Vector, ang=Vector, v=Vector,
-                             t=float)
+
+class TrajectoryPoint(NamedTuple):
+    """A point of a trajectory"""
+
+    r: Vector
+    ang: Vector
+    v: Vector
+    t: float
+
 
 class Trajectory():
     """
@@ -343,7 +350,6 @@ class Trajectory():
                 if val == '':
                     return None
                 return float(val) if cast else val
-
 
             r, ang, t = [], [], []
             traj_id, dt, dim = None, None, None
