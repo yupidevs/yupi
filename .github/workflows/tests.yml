@@ -18,7 +18,10 @@ jobs:
     - name: Add Poetry to path
       run: echo "${HOME}/.poetry/bin" >> $GITHUB_PATH
     - name: Install yupi on venv
-      run: poetry install
+      run: |
+        poetry export -f requirements.txt > requirements.txt
+        python -m pip install -r requirements.txt
+        poetry install
     - name: Install Pytest
       run: |
         python -m pip install --upgrade pip
