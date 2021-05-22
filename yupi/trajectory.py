@@ -427,7 +427,7 @@ class Trajectory():
             raise LoadTrajectoryError(path) from exc
 
     @staticmethod
-    def load_folder(folder_path='.'):
+    def load_folder(folder_path='.', recursively: bool = False):
         """
         Loads all the trajectories from a folder.
 
@@ -435,6 +435,9 @@ class Trajectory():
         ----------
         folder_path : str
             Path of the trajectories folder.
+        recursively : bool
+            If True then subfolders are analized too recursively, by
+            default False.
 
         Returns
         -------
@@ -450,4 +453,6 @@ class Trajectory():
                     trajectories.append(Trajectory.load(path))
                 except LoadTrajectoryError as load_exception:
                     print(f'Ignoring: {load_exception.path}')
+            if not recursively:
+                break
         return trajectories
