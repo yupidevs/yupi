@@ -436,7 +436,7 @@ class Trajectory():
         folder_path : str
             Path of the trajectories folder.
         recursively : bool
-            If True then subfolders are analized too recursively, by
+            If True then subfolders are analized recursively, by
             default False.
 
         Returns
