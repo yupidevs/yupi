@@ -210,20 +210,59 @@ class ColorMatching(TrackingAlgorithm):
         return mask, centroid
 
 
-# TODO: Convert this to TrackingAlgorithm Class
+class FrameDifferencing(TrackingAlgorithm):
+    """
+    Identifies the position of an object by comparison between consecutive 
+    frames
 
-# def frame_diff_detector(frame1, frame2):
-#     # Obtain the frame difference
-#     diff = cv2.absdiff(frame1, frame2)
+    Parameters
+    ----------
+    frame_diff_threshold : int, optional
+        If this parameter is passed, the algoritm will stop searching for
+        candidate pixels after reaching a count equal to this value,
+        by default 1.
+    """
 
-#     # Convert image to grayscale image
-#     gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+    def __init__(self, frame_diff_threshold=1):
+        super(FrameDifferencing, self).__init__()
+        self.frame_diff_threshold = frame_diff_threshold
 
-#     # Convert the grayscale image to binary image
-#     ret, thresh = cv2.threshold(gray_image, sett.frame_diff_threshold, 255, cv2.THRESH_BINARY)
+    def detect(self, current_chunk, previous_chunk=None):
+        """
+        Identifies the tracked object in the image ``current_cunk``
+        by comparing the difference with previous chunk. All the pixels
+        differing by more than frame_diff_threshold will be considered
+        part of the moving object.
 
-#     # Give a hint message about what may go wrong
-#     hint = "Try decreasing the value of settings.frame_diff_threshold"
+        Parameters
+        ----------
+        current_chunk : np.ndarray
+            Image containing the object to be tracked
+        previous_chunk : np.ndarray
+            Image containing the same region of current_chunk in a previous time
+            
 
-#     # Return the centroid of the pixels over threshold
-#     return get_centroid(thresh, hint)
+        Returns
+        -------
+        tuple
+             * mask: np.ndarray (a binary version of ``current_chunk`` where
+               elements with value ``0`` indicate the absence of object and 
+               ``1`` the precense of the object.
+             * centroid: tuple (x, y coordinates of the centroid of the object
+               in the image)
+
+        """
+        print(current_chunk.shape, previous_chunk.shape)
+        diff = cv2.absdiff(current_chunk, previous_chunk)
+
+        # Convert image to grayscale image
+        gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+
+        # Convert the grayscale image to binary image
+        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)
+
+        # Compute the centroid of the pixels over threshold
+        centroid = self.get_centroid(mask)
+
+        # Convert the grayscale image to binary image
+        return mask, centroid
