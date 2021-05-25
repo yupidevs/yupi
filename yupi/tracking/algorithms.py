@@ -52,7 +52,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
             return cX, cY
         else:
             print('[ERROR] Nothing was over threshold')
-            return 0, 0
+            return None
 
     @abc.abstractmethod
     def detect(self, current_chunk, previous_chunk=None):

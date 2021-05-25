@@ -120,18 +120,22 @@ class ROI():
         """
 
         # Get the centroid refered to the roi
-        cX_roi, cY_roi = centroid
+        if centroid is not None:
+            cX_roi, cY_roi = centroid
 
-        # Get the centroid refered to the full image
-        cX = self.__prev_cXY[0] - int(self.width/2) + cX_roi
-        cY = self.__prev_cXY[1] - int(self.height/2) + cY_roi
+            # Get the centroid refered to the full image
+            cX = self.__prev_cXY[0] - int(self.width/2) + cX_roi
+            cY = self.__prev_cXY[1] - int(self.height/2) + cY_roi
 
-        cX = min(cX, self.__global_width)
-        cX = max(cX, 0)
-        cY = min(cY, self.__global_height)
-        cY = max(cY, 0)
+            cX = min(cX, self.__global_width)
+            cX = max(cX, 0)
+            cY = min(cY, self.__global_height)
+            cY = max(cY, 0)
 
-        self.__cXY = cX, cY
+            self.__cXY = cX, cY
+
+        else:
+            self.__cXY = self.__prev_cXY
 
     def _get_bounds(self, prev: bool = False) -> tuple:
         """
