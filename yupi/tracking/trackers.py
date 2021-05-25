@@ -615,7 +615,7 @@ class TrackingScenario():
         # Start processing frams at the given index
         if start_in_frame:
             self.first_frame = start_in_frame
-            self.cap.set(cv2.CAP_PROP_P_FRAMES, start_in_frame)
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, start_in_frame)
 
         # Capture the first frame to process
         ret, prev_frame = self.cap.read()
