@@ -332,7 +332,7 @@ class ROI():
         # Bounds of the roi
         xmin, xmax, ymin, ymax = self._get_bounds(prev)
         window = frame[ymin:ymax, xmin:xmax, :]
-        return window
+        return window.copy()
 
 
 class ObjectTracker():
@@ -377,7 +377,7 @@ class ObjectTracker():
     def _init_roi(self, frame: np.ndarray) -> bool:
         return self.roi._initialize(self.name, frame)
 
-    def _track(self, frame: np.ndarray) -> tuple:
+    def _track(self, frame: np.ndarray, prev_frame: np.ndarray = None) -> tuple:
         """
         Tracks the center of the object.
 
@@ -389,16 +389,26 @@ class ObjectTracker():
         frame : np.ndarray
             Frame used by the algorithm to detect the tracked object's new
             center.
+        prev_frame : np.ndarray, optional
+            Previous frame of the same scene used to some algorithms to detect
+            differences. Default is None.
         """
         # Get only the ROI from the current frame
         window = self.roi._crop(frame)
 
+        # Check if any prev_frame was passed
+        if prev_frame is not None:
+            prev_window = self.roi._crop(prev_frame)
+
         # Preprocess the image
         if self.preprocessing is not None:
             window = self.preprocessing(window)
+            
+            if prev_frame is not None:
+                prev_window = self.preprocessing(prev_window)
 
         # Detect the object using the tracking algorithm
-        self.mask, centroid = self.algorithm.detect(window)
+        self.mask, centroid = self.algorithm.detect(window, prev_window)
 
         # Update the roi center using current ant coordinates
         self.roi._recenter(centroid)
@@ -670,7 +680,7 @@ class TrackingScenario():
         # Track every object and save past and current ROIs
         for otrack in self.object_trackers:
             roi_array.append(otrack.roi._get_bounds())
-            otrack._track(frame)
+            otrack._track(frame, self.prev_frame)
             roi_array.append(otrack.roi._get_bounds())
 
         if self.camera_tracker:
