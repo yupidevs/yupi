@@ -110,7 +110,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
     def detect(self, frame, roi_bound=None, preprocessing=None):
         """
         Abstract method that is implemented on inheriting classes.
-        It should compute the location (in the image ``current_chunck``)
+        It should compute the location (in the image ``frame``)
         of the object being tracked.
 
 
@@ -161,7 +161,7 @@ class IntensityMatching(TrackingAlgorithm):
 
     def detect(self, frame, roi_bound=None, preprocessing=None):
         """
-        Identifies the tracked object in the image ``current_cunk``
+        Identifies the tracked object in the image ``frame``
         by thresholding its grayscale version using the parameters
         defined when the object was constructed.
 
@@ -254,7 +254,7 @@ class ColorMatching(TrackingAlgorithm):
 
     def detect(self, frame, roi_bound=None, preprocessing=None):
         """
-        Identifies the tracked object in the image ``current_cunk``
+        Identifies the tracked object in the image ``frame``
         by thresholding it using the bound parameters defined when
         the object was constructed.
 
@@ -314,8 +314,8 @@ class FrameDifferencing(TrackingAlgorithm):
 
     def detect(self, frame, roi_bound=None, preprocessing=None):
         """
-        Identifies the tracked object in the image ``current_cunk``
-        by comparing the difference with previous chunk. All the pixels
+        Identifies the tracked object in the image ``frame``
+        by comparing the difference with the previous frames. All the pixels
         differing by more than frame_diff_threshold will be considered
         part of the moving object.
 
