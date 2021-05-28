@@ -37,8 +37,10 @@ class Trajectory():
     dt : float
         If no time data is given this represents the time between each
         position data value.
-    id : str
+    traj_id : str
         Id of the trajectory.
+    lazy : bool
+        Defines if the velocity vector is not recalculated every time is asked.
 
     Attributes
     ----------
@@ -70,7 +72,7 @@ class Trajectory():
                  z: np.ndarray = None, points: np.ndarray = None,
                  dimensions: np.ndarray = None, t: np.ndarray = None,
                  ang: np.ndarray = None, dt: float = 1.0,
-                 traj_id: str = None):
+                 traj_id: str = None, lazy: bool = False):
 
         from_xyz = x is not None
         from_points = points is not None
@@ -111,15 +113,16 @@ class Trajectory():
         self.t = data[0]
         self.ang = data[1]
         self.id = traj_id
+        self.lazy = lazy
 
         if self.t is None:
             self.dt = dt
             self.dt_std = 0
-            self.v: Vector = self.r.delta / self.dt
+            self.__v: Vector = self.r.delta / self.dt
         else:
             self.dt = np.mean(np.array(self.t.delta))
             self.dt_std = np.std(np.array(self.t.delta))
-            self.v: Vector = (self.r.delta.T / self.t.delta).T
+            self.__v: Vector = (self.r.delta.T / self.t.delta).T
 
     @property
     def dim(self) -> int:
@@ -199,6 +202,30 @@ class Trajectory():
 
         if self.ang is not None:
             return self.ang.delta
+
+    def recalculate_velocity(self) -> Vector:
+        """
+        Recalculates the velocity according time data or `dt` if time data
+        is not available.
+
+        Returns
+        -------
+        Vector
+            Velocity vector.
+        """
+
+        if self.t is None:
+            self.__v: Vector = self.r.delta / self.dt
+        else:
+            self.__v: Vector = (self.r.delta.T / self.t.delta).T
+        return self.__v
+
+    @property
+    def v(self) -> Vector:
+        """Vector : Velocity vector"""
+        if self.lazy:
+            return self.__v
+        return self.recalculate_velocity()
 
     @property
     def ang_velocity(self):
