@@ -367,3 +367,76 @@ class FrameDifferencing(TrackingAlgorithm):
 
         # Convert the grayscale image to binary image
         return mask, centroid
+
+
+class BackgroundSubtraction(TrackingAlgorithm):
+    """
+    Identifies the position of an object by subtracting a known background.
+
+    Parameters
+    ----------
+    background : np.ndarray
+        Image containing the actual background of the scene where the images 
+        were taken. This algorithm will detect as an object of interest 
+        everything that differs from the background.
+    background_threshold : int, optional
+        Minimum difference (in terms of pixel intensity) among current image and
+        background to consider that pixel as part of a moving object, 
+        by default 1.
+    """
+
+    def __init__(self, background, background_threshold):
+        super(BackgroundSubtraction, self).__init__()
+        self.background_threshold = background_threshold
+        self.background = background
+
+    def detect(self, frame, roi_bound=None, preprocessing=None):
+        """
+        Identifies the tracked object in the image ``frame``
+        by comparing the difference with the background. All the pixels
+        differing by more than background_threshold will be considered
+        part of the moving object.
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Image containing the object to be tracked
+        roi_bound : tuple, optional
+            Coordinates of the region of interest of the frame. The expected
+            format if a tuple with the form (xmin, xmax, ymin, ymax). If passed
+            the algorithm will crop this region of the frame and will proceed
+            only in this region, providing the estimations in refered to this
+            region instead of the whole image, by default None.
+        preprocessing : func
+            A function to be applied to the frame (Or cropped version of it if
+            roi_bound is passed) before detecting the object on it, by default
+            None.
+
+        Returns
+        -------
+        tuple
+             * mask: np.ndarray (a binary version of ``current_chunk`` where
+               elements with value ``0`` indicate the absence of object and 
+               ``1`` the precense of the object.
+             * centroid: tuple (x, y coordinates of the centroid of the object
+               in the image)
+
+        """
+
+        # Make a preprocessed (and copied) version of the frame
+        cframe = self.preprocess(frame, roi_bound, preprocessing)
+        backgrn_roi = self.preprocess(self.background, roi_bound, preprocessing)
+
+        diff = cv2.absdiff(cframe, backgrn_roi)
+
+        # Convert image to grayscale image
+        gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+
+        # Convert the grayscale image to binary image
+        mask = cv2.inRange(gray_image, self.background_threshold, 255)
+
+        # Compute the centroid of the pixels over threshold
+        centroid = self.get_centroid(mask)
+
+        # Convert the grayscale image to binary image
+        return mask, centroid
