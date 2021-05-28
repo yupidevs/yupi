@@ -12,8 +12,9 @@ according the functionality into subcategories to simplify searching.
 
 """
 
-from yupi.trajectory import Trajectory
 import logging
+from yupi.trajectory import Trajectory
+from yupi.vector import Vector
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,7 +23,8 @@ logging.basicConfig(
 )
 
 __all__ = [
-    'Trajectory'
+    'Trajectory',
+    'Vector'
 ]
 
 __version__ = '0.4.0'
