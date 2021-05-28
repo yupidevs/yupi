@@ -2,14 +2,15 @@ import json
 import csv
 import os
 from pathlib import Path
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Union
 import numpy as np
+
 from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 
 
 class TrajectoryPoint(NamedTuple):
-    """A point of a trajectory"""
+    """Represents a point of a trajectory."""
 
     r: Vector
     ang: Vector
@@ -37,8 +38,11 @@ class Trajectory():
     dt : float
         If no time data is given this represents the time between each
         position data value.
-    id : str
+    traj_id : str
         Id of the trajectory.
+    lazy : bool
+        Defines if the velocity vector is not recalculated every time
+        is asked.
 
     Attributes
     ----------
@@ -50,7 +54,8 @@ class Trajectory():
 
     Examples
     --------
-    You can create a trajectory object by giving the arrays that represent it:
+    You can create a trajectory object by giving the arrays that
+    represent it:
 
     >>> x = [0, 1.0, 0.63, -0.37, -1.24, -1.5, -1.08, -0.19, 0.82, 1.63, 1.99, 1.85]
     >>> y = [0, 0, 0.98, 1.24, 0.69, -0.3, -1.23, -1.72, -1.63, -1.01, -0.06, 0.94]
@@ -70,7 +75,7 @@ class Trajectory():
                  z: np.ndarray = None, points: np.ndarray = None,
                  dimensions: np.ndarray = None, t: np.ndarray = None,
                  ang: np.ndarray = None, dt: float = 1.0,
-                 traj_id: str = None):
+                 traj_id: str = None, lazy: bool = False):
 
         from_xyz = x is not None
         from_points = points is not None
@@ -111,20 +116,16 @@ class Trajectory():
         self.t = data[0]
         self.ang = data[1]
         self.id = traj_id
+        self.lazy = lazy
 
         if self.t is None:
             self.dt = dt
             self.dt_std = 0
-            self.v: Vector = self.r.delta / self.dt
+            self.__v: Vector = self.r.delta / self.dt
         else:
             self.dt = np.mean(np.array(self.t.delta))
             self.dt_std = np.std(np.array(self.t.delta))
-            self.v: Vector = (self.r.delta.T / self.t.delta).T
-
-    @property
-    def dim(self) -> int:
-        """int : Trajectory spacial dimensions."""
-        return self.r.shape[1]
+            self.__v: Vector = (self.r.delta.T / self.t.delta).T
 
     def __len__(self):
         return self.r.shape[0]
@@ -153,68 +154,62 @@ class Trajectory():
             yield TrajectoryPoint(r=r, ang=ang, v=v, t=t)
 
     @property
-    def delta_t(self):
-        """
-        Difference between each couple of consecutive samples in the
-        Trajectory.
+    def dim(self) -> int:
+        """int : Trajectory spacial dimensions."""
+        return self.r.shape[1]
 
-        Returns
-        ----------
-        np.ndarray
-            Array containing the time difference between consecutive samples.
-        """
-
+    @property
+    def delta_t(self) -> Vector:
+        """Vector : Difference between each couple of consecutive samples
+        in the Trajectory."""
         if self.t is not None:
             return self.t.delta
 
     @property
     def delta_r(self) -> Vector:
-        """
-        Difference between each couple of consecutive points in the
-        Trajectory.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the position difference between consecutive
-            points.
-        """
-
+        """Vector: Difference between each couple of consecutive points
+        in the Trajectory."""
         return self.r.delta
 
     @property
-    def delta_ang(self):
-        """
-        Difference between each couple of consecutive samples in the
-        ``ang`` array of the Trajectory.
-
-        Returns
-        ----------
-        np.ndarray
-            Array containing the ``ang`` array difference between consecutive
-            samples.
-        None
-            If Trajectory doesn't have ``ang`` informantion
-        """
-
+    def delta_ang(self) -> Union[Vector, None]:
+        """Union[Vector, None] : Difference between each couple of
+        consecutive samples in the ``ang`` vector of the Trajectory."""
         if self.ang is not None:
             return self.ang.delta
+        return None
 
-    @property
-    def ang_velocity(self):
+    def recalculate_velocity(self) -> Vector:
         """
-        Computes the angular velocity from the ang array of the Trajectory.
+        Recalculates the velocity according time data or `dt` if time
+        data is not available.
 
         Returns
-        ----------
-        np.ndarray
-            Array containing the angular velocity of the Trajectory.
-        None
-            If Trajectory doesn't have ang informantion
+        -------
+        Vector
+            Velocity vector.
         """
 
+        if self.t is None:
+            self.__v: Vector = self.r.delta / self.dt
+        else:
+            self.__v: Vector = (self.r.delta.T / self.t.delta).T
+        return self.__v
+
+    @property
+    def v(self) -> Vector:
+        """Vector : Velocity vector"""
+        if self.lazy:
+            return self.__v
+        return self.recalculate_velocity()
+
+    @property
+    def ang_velocity(self) -> Union[Vector, None]:
+        """Union[Vector, None] : Computes the angular velocity from the
+        ``ang`` vector of the Trajectory."""
         if self.ang is not None:
             return self.ang.delta / self.dt
+        return None
 
     def _save_json(self, path: str):
         def convert_to_list(vec: Vector):
@@ -278,7 +273,7 @@ class Trajectory():
         >>> t.save('my_track')
         """
 
-        # Contruct full path
+        # Build full path
         full_path = Path(path) / Path(f'{file_name}.{file_type}')
 
         # Check file existance
@@ -330,14 +325,16 @@ class Trajectory():
         with open(path, 'r') as traj_file:
             data = json.load(traj_file)
 
-            traj_id, dt = data['id'], data['dt']
+            traj_id = data['id']
+            dt = data['dt']
             t = data['t']
             ang = None
+
             if data['ang'] is not None:
-                ang = Vector.create(
-                    [ad for ad in data['ang'].values()]
-                ).T
-            dims = [rd for rd in data['r'].values()]
+                ang_values = list(data['ang'].values())
+                ang = Vector.create(ang_values).T
+
+            dims = list(data['r'].values())
 
             return Trajectory(dimensions=dims, t=t, ang=ang, dt=dt,
                               traj_id=traj_id)
@@ -420,10 +417,7 @@ class Trajectory():
                 return Trajectory._load_csv(file_path)
             else:
                 raise ValueError("Invalid file type.")
-        except (json.JSONDecodeError,
-                KeyError,
-                ValueError,
-                IndexError) as exc:
+        except (json.JSONDecodeError, KeyError, ValueError, IndexError) as exc:
             raise LoadTrajectoryError(path) from exc
 
     @staticmethod
