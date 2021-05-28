@@ -1,5 +1,6 @@
 import abc
 import cv2
+import numpy as np
 
 
 def resize_frame(frame, scale=1):
@@ -11,12 +12,54 @@ def resize_frame(frame, scale=1):
 
 def change_colorspace(image, color_space):
     if color_space == 'BGR':
-        return image.copy()
+        return image
     if color_space == 'GRAY':
-        return cv2.cvtColor(image.copy(), cv2.COLOR_BGR2GRAY)
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     if color_space == 'HSV':
-        return cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
+        return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
+
+class BackgroundEstimator():
+    """
+    This class provides static methods to determine the background in image
+    sequences. It estimates the temporal median of the sequence.
+    """
+    def __init__(self):
+        pass
+
+    def from_video(video_path, samples, start_in=0):
+        """
+        This method takes a video indicated by ``video_path`` and uniformely 
+        take a number of image samples according to the parameter ``samples``.
+        Then, it computes the temporal median of the images in order to 
+        determine de background.
+
+        Parameters
+        ----------
+        video_path : str
+            Path to the video file
+        samples : int
+            Number of samples to get from the video
+        start_in : int, optional
+            If passed, the method will start sampling after the frame indicated
+            by this value, by default 0
+        """ 
+        # Create a cv2 Video Capture Object       
+        cap = cv2.VideoCapture(video_path)
+
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        effective_frames = total_frames - start_in
+        spacing = effective_frames / samples
+
+         # Store frames in a list
+        frames = []
+        for i in range(samples):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, i * spacing + start_in)
+            ret, frame = cap.read()
+            frames.append(frame)
+
+        # Calculate the median along time
+        return np.median(frames, axis=0).astype(dtype=np.uint8) 
 
 class TrackingAlgorithm(metaclass=abc.ABCMeta):
     """
@@ -52,23 +95,39 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
             return cX, cY
         else:
             print('[ERROR] Nothing was over threshold')
-            return 0, 0
+            return None
+    
+    def preprocess(self, frame, roi_bound, preprocessing):
+        frame = frame.copy()
+        if roi_bound:
+            xmin, xmax, ymin, ymax = roi_bound
+            frame = frame[ymin:ymax, xmin:xmax, :]
+        if preprocessing is not None:
+            frame = preprocessing(frame)
+        return frame
 
     @abc.abstractmethod
-    def detect(self, current_chunk, previous_chunk=None):
+    def detect(self, frame, roi_bound=None, preprocessing=None):
         """
         Abstract method that is implemented on inheriting classes.
-        It should compute the location (in the image ``current_chunck``)
+        It should compute the location (in the image ``frame``)
         of the object being tracked.
 
 
         Parameters
         ----------
-        current_chunk : np.ndarray
+        frame : np.ndarray
             Image where the algorithm must identify the object
-        previous_chunk : np.ndarray, optional
-            Previous image where the algorithm already identified the
-            object, by default None.
+        roi_bound : tuple, optional
+            Coordinates of the region of interest of the frame. The expected
+            format if a tuple with the form (xmin, xmax, ymin, ymax). If passed
+            the algorithm will crop this region of the frame and will proceed
+            only in this region, providing the estimations in refered to this
+            region instead of the whole image, by default None.
+        preprocessing : func
+            A function to be applied to the frame (Or cropped version of it if
+            roi_bound is passed) before detecting the object on it, by default
+            None.
         """
 
 
@@ -100,16 +159,26 @@ class IntensityMatching(TrackingAlgorithm):
         self.max_val = max_val
         self.max_pixels = max_pixels
 
-    def detect(self, current_chunk, previous_chunk=None):
+    def detect(self, frame, roi_bound=None, preprocessing=None):
         """
-        Identifies the tracked object in the image ``current_cunk``
+        Identifies the tracked object in the image ``frame``
         by thresholding its grayscale version using the parameters
         defined when the object was constructed.
 
         Parameters
         ----------
-        current_chunk : np.ndarray
+        frame : np.ndarray
             Image containing the object to be tracked
+        roi_bound : tuple, optional
+            Coordinates of the region of interest of the frame. The expected
+            format if a tuple with the form (xmin, xmax, ymin, ymax). If passed
+            the algorithm will crop this region of the frame and will proceed
+            only in this region, providing the estimations in refered to this
+            region instead of the whole image, by default None.
+        preprocessing : func
+            A function to be applied to the frame (Or cropped version of it if
+            roi_bound is passed) before detecting the object on it, by default
+            None.
 
         Returns
         -------
@@ -122,8 +191,11 @@ class IntensityMatching(TrackingAlgorithm):
                in the image)
 
         """
+        # Make a preprocessed (and copied) version of the frame
+        frame = self.preprocess(frame, roi_bound, preprocessing)
+
         # Convert image to grayscale image
-        gray_image = cv2.cvtColor(current_chunk.copy(), cv2.COLOR_BGR2GRAY)
+        gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         if self.max_pixels:
             # Obtain image histogram
@@ -180,16 +252,26 @@ class ColorMatching(TrackingAlgorithm):
         self.color_space = color_space
         self.max_pixels = max_pixels
 
-    def detect(self, current_chunk, previous_chunk=None):
+    def detect(self, frame, roi_bound=None, preprocessing=None):
         """
-        Identifies the tracked object in the image ``current_cunk``
+        Identifies the tracked object in the image ``frame``
         by thresholding it using the bound parameters defined when
         the object was constructed.
 
         Parameters
         ----------
-        current_chunk : np.ndarray
+        frame : np.ndarray
             Image containing the object to be tracked
+        roi_bound : tuple, optional
+            Coordinates of the region of interest of the frame. The expected
+            format if a tuple with the form (xmin, xmax, ymin, ymax). If passed
+            the algorithm will crop this region of the frame and will proceed
+            only in this region, providing the estimations in refered to this
+            region instead of the whole image, by default None.
+        preprocessing : func
+            A function to be applied to the frame (Or cropped version of it if
+            roi_bound is passed) before detecting the object on it, by default
+            None.
 
         Returns
         -------
@@ -201,8 +283,11 @@ class ColorMatching(TrackingAlgorithm):
                in the image)
 
         """
+        # Make a preprocessed (and copied) version of the frame
+        frame = self.preprocess(frame, roi_bound, preprocessing)
+
         # Convert image to desired colorspace
-        copied_image = change_colorspace(current_chunk, self.color_space)
+        copied_image = change_colorspace(frame, self.color_space)
 
         mask = cv2.inRange(copied_image, self.lower_bound, self.upper_bound)
         centroid = self.get_centroid(mask)
@@ -210,20 +295,148 @@ class ColorMatching(TrackingAlgorithm):
         return mask, centroid
 
 
-# TODO: Convert this to TrackingAlgorithm Class
+class FrameDifferencing(TrackingAlgorithm):
+    """
+    Identifies the position of an object by comparison between consecutive 
+    frames
 
-# def frame_diff_detector(frame1, frame2):
-#     # Obtain the frame difference
-#     diff = cv2.absdiff(frame1, frame2)
+    Parameters
+    ----------
+        Minimum difference (in terms of pixel intensity) among current and 
+        previous image to consider that pixel as part of a moving object, 
+        by default 1.
+    """
 
-#     # Convert image to grayscale image
-#     gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+    def __init__(self, frame_diff_threshold=1):
+        super(FrameDifferencing, self).__init__()
+        self.frame_diff_threshold = frame_diff_threshold
+        self.prev_frame = None
 
-#     # Convert the grayscale image to binary image
-#     ret, thresh = cv2.threshold(gray_image, sett.frame_diff_threshold, 255, cv2.THRESH_BINARY)
+    def detect(self, frame, roi_bound=None, preprocessing=None):
+        """
+        Identifies the tracked object in the image ``frame``
+        by comparing the difference with the previous frames. All the pixels
+        differing by more than frame_diff_threshold will be considered
+        part of the moving object.
 
-#     # Give a hint message about what may go wrong
-#     hint = "Try decreasing the value of settings.frame_diff_threshold"
+        Parameters
+        ----------
+        frame : np.ndarray
+            Image containing the object to be tracked
+        roi_bound : tuple, optional
+            Coordinates of the region of interest of the frame. The expected
+            format if a tuple with the form (xmin, xmax, ymin, ymax). If passed
+            the algorithm will crop this region of the frame and will proceed
+            only in this region, providing the estimations in refered to this
+            region instead of the whole image, by default None.
+        preprocessing : func
+            A function to be applied to the frame (Or cropped version of it if
+            roi_bound is passed) before detecting the object on it, by default
+            None.
 
-#     # Return the centroid of the pixels over threshold
-#     return get_centroid(thresh, hint)
+        Returns
+        -------
+        tuple
+             * mask: np.ndarray (a binary version of ``current_chunk`` where
+               elements with value ``0`` indicate the absence of object and 
+               ``1`` the precense of the object.
+             * centroid: tuple (x, y coordinates of the centroid of the object
+               in the image)
+
+        """
+        if self.prev_frame is None:
+            self.prev_frame = frame.copy()
+
+        # Make a preprocessed (and copied) version of the frame
+        cframe = self.preprocess(frame, roi_bound, preprocessing)
+        prev_frame = self.preprocess(self.prev_frame, roi_bound, preprocessing)
+
+        diff = cv2.absdiff(cframe, prev_frame)
+
+        # Convert image to grayscale image
+        gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+
+        # Convert the grayscale image to binary image
+        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)
+
+        # Compute the centroid of the pixels over threshold
+        centroid = self.get_centroid(mask)
+
+        # Update previous image cache
+        self.prev_frame = frame.copy()
+
+        # Convert the grayscale image to binary image
+        return mask, centroid
+
+
+class BackgroundSubtraction(TrackingAlgorithm):
+    """
+    Identifies the position of an object by subtracting a known background.
+
+    Parameters
+    ----------
+    background : np.ndarray
+        Image containing the actual background of the scene where the images 
+        were taken. This algorithm will detect as an object of interest 
+        everything that differs from the background.
+    background_threshold : int, optional
+        Minimum difference (in terms of pixel intensity) among current image and
+        background to consider that pixel as part of a moving object, 
+        by default 1.
+    """
+
+    def __init__(self, background, background_threshold):
+        super(BackgroundSubtraction, self).__init__()
+        self.background_threshold = background_threshold
+        self.background = background
+
+    def detect(self, frame, roi_bound=None, preprocessing=None):
+        """
+        Identifies the tracked object in the image ``frame``
+        by comparing the difference with the background. All the pixels
+        differing by more than background_threshold will be considered
+        part of the moving object.
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Image containing the object to be tracked
+        roi_bound : tuple, optional
+            Coordinates of the region of interest of the frame. The expected
+            format if a tuple with the form (xmin, xmax, ymin, ymax). If passed
+            the algorithm will crop this region of the frame and will proceed
+            only in this region, providing the estimations in refered to this
+            region instead of the whole image, by default None.
+        preprocessing : func
+            A function to be applied to the frame (Or cropped version of it if
+            roi_bound is passed) before detecting the object on it, by default
+            None.
+
+        Returns
+        -------
+        tuple
+             * mask: np.ndarray (a binary version of ``current_chunk`` where
+               elements with value ``0`` indicate the absence of object and 
+               ``1`` the precense of the object.
+             * centroid: tuple (x, y coordinates of the centroid of the object
+               in the image)
+
+        """
+
+        # Make a preprocessed (and copied) version of the frame
+        cframe = self.preprocess(frame, roi_bound, preprocessing)
+        backgrn_roi = self.preprocess(self.background, roi_bound, preprocessing)
+
+        diff = cv2.absdiff(cframe, backgrn_roi)
+
+        # Convert image to grayscale image
+        gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+
+        # Convert the grayscale image to binary image
+        mask = cv2.inRange(gray_image, self.background_threshold, 255)
+
+        # Compute the centroid of the pixels over threshold
+        centroid = self.get_centroid(mask)
+
+        # Convert the grayscale image to binary image
+        return mask, centroid

@@ -120,18 +120,22 @@ class ROI():
         """
 
         # Get the centroid refered to the roi
-        cX_roi, cY_roi = centroid
+        if centroid is not None:
+            cX_roi, cY_roi = centroid
 
-        # Get the centroid refered to the full image
-        cX = self.__prev_cXY[0] - int(self.width/2) + cX_roi
-        cY = self.__prev_cXY[1] - int(self.height/2) + cY_roi
+            # Get the centroid refered to the full image
+            cX = self.__prev_cXY[0] - int(self.width/2) + cX_roi
+            cY = self.__prev_cXY[1] - int(self.height/2) + cY_roi
 
-        cX = min(cX, self.__global_width)
-        cX = max(cX, 0)
-        cY = min(cY, self.__global_height)
-        cY = max(cY, 0)
+            cX = min(cX, self.__global_width)
+            cX = max(cX, 0)
+            cY = min(cY, self.__global_height)
+            cY = max(cY, 0)
 
-        self.__cXY = cX, cY
+            self.__cXY = cX, cY
+
+        else:
+            self.__cXY = self.__prev_cXY
 
     def _get_bounds(self, prev: bool = False) -> tuple:
         """
@@ -332,7 +336,7 @@ class ROI():
         # Bounds of the roi
         xmin, xmax, ymin, ymax = self._get_bounds(prev)
         window = frame[ymin:ymax, xmin:xmax, :]
-        return window
+        return window.copy()
 
 
 class ObjectTracker():
@@ -390,15 +394,14 @@ class ObjectTracker():
             Frame used by the algorithm to detect the tracked object's new
             center.
         """
-        # Get only the ROI from the current frame
-        window = self.roi._crop(frame)
 
-        # Preprocess the image
-        if self.preprocessing is not None:
-            window = self.preprocessing(window)
+        # Get only the ROI from the current frame
+        roi_bound = self.roi._get_bounds()
 
         # Detect the object using the tracking algorithm
-        self.mask, centroid = self.algorithm.detect(window)
+        self.mask, centroid = self.algorithm.detect(frame, 
+                                                    roi_bound, 
+                                                    self.preprocessing)
 
         # Update the roi center using current ant coordinates
         self.roi._recenter(centroid)
@@ -615,7 +618,7 @@ class TrackingScenario():
         # Start processing frams at the given index
         if start_in_frame:
             self.first_frame = start_in_frame
-            self.cap.set(cv2.CAP_PROP_P_FRAMES, start_in_frame)
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, start_in_frame)
 
         # Capture the first frame to process
         ret, prev_frame = self.cap.read()
@@ -655,7 +658,7 @@ class TrackingScenario():
 
     def _regular_iteration(self):
         # Get current frame and ends the processing when no more frames are
-        # Detected
+        # detected
         ret, frame = self.cap.read()
         if not ret:
             logging.info('All frames were processed')
