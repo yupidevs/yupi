@@ -1,5 +1,6 @@
 import abc
 import cv2
+import numpy as np
 
 
 def resize_frame(frame, scale=1):
@@ -17,6 +18,48 @@ def change_colorspace(image, color_space):
     if color_space == 'HSV':
         return cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
 
+
+class BackgroundEstimator():
+    """
+    This class provides static methods to determine the background in image
+    sequences. It estimates the temporal median of the sequence.
+    """
+    def __init__(self):
+        pass
+
+    def from_video(video_path, samples, start_in=0):
+        """
+        This method takes a video indicated by ``video_path`` and uniformely 
+        take a number of image samples according to the parameter ``samples``.
+        Then, it computes the temporal median of the images in order to 
+        determine de background.
+
+        Parameters
+        ----------
+        video_path : str
+            Path to the video file
+        samples : int
+            Number of samples to get from the video
+        start_in : int, optional
+            If passed, the method will start sampling after the frame indicated
+            by this value, by default 0
+        """ 
+        # Create a cv2 Video Capture Object       
+        cap = cv2.VideoCapture(video_path)
+
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        effective_frames = total_frames - start_in
+        spacing = effective_frames / samples
+
+         # Store frames in a list
+        frames = []
+        for i in range(samples):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, i * spacing + start_in)
+            ret, frame = cap.read()
+            frames.append(frame)
+
+        # Calculate the median along time
+        return np.median(frames, axis=0).astype(dtype=np.uint8) 
 
 class TrackingAlgorithm(metaclass=abc.ABCMeta):
     """

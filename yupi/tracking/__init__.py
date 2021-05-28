@@ -19,7 +19,8 @@ from yupi.tracking.algorithms import (
     TrackingAlgorithm,
     IntensityMatching,
     ColorMatching,
-    FrameDifferencing
+    FrameDifferencing,
+    BackgroundEstimator
 )
 from yupi.tracking.undistorters import (
     Undistorter,
@@ -36,6 +37,7 @@ __all__ = [
     'IntensityMatching',
     'FrameDifferencing',
     'ColorMatching',
+    'BackgroundEstimator',
     'Undistorter',
     'ClassicUndistorter',
     'RemapUndistorter',
