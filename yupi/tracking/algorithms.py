@@ -302,9 +302,8 @@ class FrameDifferencing(TrackingAlgorithm):
 
     Parameters
     ----------
-    frame_diff_threshold : int, optional
-        If this parameter is passed, the algoritm will stop searching for
-        candidate pixels after reaching a count equal to this value,
+        Minimum difference (in terms of pixel intensity) among current and 
+        previous image to consider that pixel as part of a moving object, 
         by default 1.
     """
 
