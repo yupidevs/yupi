@@ -3,7 +3,7 @@
 Standing for *Yet Underused Path Instruments*, yupi is a set of tools designed 
 for collecting, generating and processing trajectory data.  
 
-## Instalation
+## Installation
 
 Current recommended installation method is via the pypi package:
 
