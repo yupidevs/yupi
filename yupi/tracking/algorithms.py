@@ -183,7 +183,7 @@ class IntensityMatching(TrackingAlgorithm):
         Returns
         -------
         tuple
-             * mask: np.ndarray (a binary version of ``current_chunk`` where
+             * mask: np.ndarray (a binary version of ``frame`` where
                elements with value ``0`` indicate the absence of object
                and ``1``
                the precense of the object.
@@ -276,7 +276,7 @@ class ColorMatching(TrackingAlgorithm):
         Returns
         -------
         tuple
-             * mask: np.ndarray (a binary version of ``current_chunk`` where
+             * mask: np.ndarray (a binary version of ``frame`` where
                elements with value ``0`` indicate the absence of object and ``1``
                the precense of the object.
              * centroid: tuple (x, y coordinates of the centroid of the object
@@ -337,7 +337,7 @@ class FrameDifferencing(TrackingAlgorithm):
         Returns
         -------
         tuple
-             * mask: np.ndarray (a binary version of ``current_chunk`` where
+             * mask: np.ndarray (a binary version of ``frame`` where
                elements with value ``0`` indicate the absence of object and 
                ``1`` the precense of the object.
              * centroid: tuple (x, y coordinates of the centroid of the object
@@ -415,7 +415,7 @@ class BackgroundSubtraction(TrackingAlgorithm):
         Returns
         -------
         tuple
-             * mask: np.ndarray (a binary version of ``current_chunk`` where
+             * mask: np.ndarray (a binary version of ``frame`` where
                elements with value ``0`` indicate the absence of object and 
                ``1`` the precense of the object.
              * centroid: tuple (x, y coordinates of the centroid of the object
