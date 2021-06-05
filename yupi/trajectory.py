@@ -31,6 +31,10 @@ class Trajectory():
         Array containing position data of Y axis, by default None.
     z : np.ndarray
         Array containing position data of X axis, by default None.
+    points : np.ndarray
+        Array containing position data as a list of points.
+    dimensions : np.ndarray
+        Array containing position data as a list of axis.
     t : np.ndarray
         Array containing time data, by default None.
     ang : np.ndarray
@@ -57,10 +61,22 @@ class Trajectory():
     You can create a trajectory object by giving the arrays that
     represent it:
 
-    >>> x = [0, 1.0, 0.63, -0.37, -1.24, -1.5, -1.08, -0.19, 0.82, 1.63, 1.99, 1.85]
-    >>> y = [0, 0, 0.98, 1.24, 0.69, -0.3, -1.23, -1.72, -1.63, -1.01, -0.06, 0.94]
-    >>> Trajectory(x=x, y=y, traj_id="Spiral")
+    >>> x = [0, 1.2, 3, 2.8]
+    >>> y = [0, 3.1, 0.7, 1.6]
+    >>> Trajectory(x=x, y=y)
 
+    You can also create the trajectory given the points:
+
+    >>> points = [[0, 0], [1.2, 3.1], [3, 0.7], [2.8, 1.6]]
+    >>> Trajectory(points=points)
+
+    Or even create it given all the data for each dimension in a single
+    source:
+
+    >>> dims = [[0, 1.2, 3, 2.8], [0, 3.1, 0.7, 1.6]]
+    >>> Trajectory(dimensions=dims)
+
+    All of these examples create the same trajectory.
 
     Raises
     ------
@@ -160,10 +176,11 @@ class Trajectory():
 
     @property
     def delta_t(self) -> Vector:
-        """Vector : Difference between each couple of consecutive samples
-        in the Trajectory."""
+        """Vector : Difference between each couple of consecutive
+        samples in the Trajectory."""
         if self.t is not None:
             return self.t.delta
+        return None
 
     @property
     def delta_r(self) -> Vector:
