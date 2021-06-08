@@ -591,7 +591,8 @@ class TrackingScenario():
             # TODO: Do this better:
             # Alter the blue channel in ant-related pixels
             window = otrack.roi._crop(frame, prev=True)
-            window[:, :, 0] = otrack.mask
+            if otrack.mask is not None:
+                window[:, :, 0] = otrack.mask
 
             # Draw a point over the roi center and draw bounds
             x1, x2, y1, y2 = otrack.roi._get_bounds()
