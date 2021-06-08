@@ -33,6 +33,7 @@ from yupi.analyzing.statistics import (
 
 from yupi.analyzing.visualization import (
     plot_trajectories,
+    plot_trajectory,
     plot_velocity_hist,
     plot_angle_distribution,
     plot_kurtosis,
@@ -44,6 +45,7 @@ __all__ = [
     'turning_angles',
     'add_dynamic_reference',
     'plot_trajectories',
+    'plot_trajectory',
     'plot_velocity_hist',
     'plot_angle_distribution',
     'plot_kurtosis',
