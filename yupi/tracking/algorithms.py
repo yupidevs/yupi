@@ -520,3 +520,89 @@ class TemplateMatching(TrackingAlgorithm):
 
         # Convert the grayscale image to binary image
         return mask, centroid
+
+
+class OpticalFlow(TrackingAlgorithm):
+    """
+    This class implements optical flow based on 
+    Gunner Farneback's algorithm. A section of the 
+    frame is selected and tracked using dense optical flow.
+
+    Parameters
+    ----------
+    threshold : float
+        Minimum value for the magnitude of optical flow to be considered part
+        of the motion.
+    buffer_size : int, optional
+        Indicates how many frames in the past the algorithm is going to look 
+        before computing the optical flow, by default 1.
+    """
+
+    def __init__(self, threshold, buffer_size=1):
+        super(OpticalFlow, self).__init__()
+        self.threshold = threshold
+        self.previous_frames = []
+
+        assert buffer_size > 0
+
+        self.buffer_size = buffer_size
+
+        
+
+    def detect(self, frame, roi_bound=None, preprocessing=None): 
+        """
+        Identifies the tracked object in the image ``frame``
+        by tracking the motion of a region using optical flow.
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Image containing the object to be tracked
+        roi_bound : tuple, optional
+            Coordinates of the region of interest of the frame. The expected
+            format if a tuple with the form (xmin, xmax, ymin, ymax). If passed
+            the algorithm will crop this region of the frame and will proceed
+            only in this region, providing the estimations refered to this
+            region instead of the whole image, by default None.
+        preprocessing : func
+            A function to be applied to the frame (Or cropped version of it if
+            roi_bound is passed) before detecting the object on it, by default
+            None.
+
+        Returns
+        -------
+        tuple
+                * mask: np.ndarray (a binary version of ``frame`` where
+                elements with value ``0`` indicate the absence of object and 
+                ``1`` the precense of the object.
+                * centroid: tuple (x, y coordinates of the centroid of the object
+                in the image)
+
+        """
+
+        if len(self.previous_frames) == self.buffer_size:
+    
+            cframe = self.preprocess(frame, roi_bound, preprocessing)
+            pframe = self.preprocess(self.previous_frames[-1], roi_bound, preprocessing)         
+
+            cframe = cv2.cvtColor(cframe, cv2.COLOR_BGR2GRAY)
+            pframe = cv2.cvtColor(pframe, cv2.COLOR_BGR2GRAY)
+
+            diff = cv2.calcOpticalFlowFarneback(pframe, cframe, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+            mag, ang = cv2.cartToPolar(diff[..., 0], diff[..., 1])
+
+            # Convert the grayscale image to binary image
+            mask = cv2.inRange(mag, self.threshold, 255)
+
+            # Compute the centroid of the pixels over threshold
+            centroid = self.get_centroid(mask)
+
+            self.previous_frames.pop(0)
+        else:
+            mask, centroid = None, None
+
+        # Store the current frame
+        self.previous_frames.append(frame.copy())
+
+        return mask, centroid
+        

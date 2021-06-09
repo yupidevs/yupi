@@ -22,6 +22,7 @@ from yupi.tracking.algorithms import (
     FrameDifferencing,
     BackgroundSubtraction,
     TemplateMatching,
+    OpticalFlow,
     BackgroundEstimator
 )
 from yupi.tracking.undistorters import (
@@ -41,6 +42,7 @@ __all__ = [
     'ColorMatching',
     'BackgroundSubtraction',
     'TemplateMatching',
+    'OpticalFlow',
     'BackgroundEstimator',
     'Undistorter',
     'ClassicUndistorter',
