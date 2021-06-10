@@ -42,6 +42,24 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~visualization.plot_msd`
           * :py:func:`~visualization.plot_kurtosis`
           * :py:func:`~visualization.plot_vacf`
+   * - | :doc:`Example 2<example2>`
+       |
+       | A comparison of different tracking methods over the 
+       | same input video where the camera is fixed at a constant 
+       | distance from the plane where an ant moves.
+     - * Visualization:
+          * :py:func:`~visualization.plot_trajectories`
+       * Tracking:
+          * :py:func:`~tracking.ROI`
+          * :py:func:`~tracking.ObjectTracker`
+          * :py:func:`~tracking.TrackingScenario`
+          * :py:func:`~tracking.ColorMatching`
+          * :py:func:`~tracking.FrameDifferencing`
+          * :py:func:`~tracking.BackgroundEstimator`
+          * :py:func:`~tracking.BackgroundSubtraction`
+          * :py:func:`~tracking.TemplateMatching`
+          * :py:func:`~tracking.OpticalFlow`
+
 
 .. toctree::
    :maxdepth: 2
@@ -49,3 +67,4 @@ In this table you can easily find the examples that better suits you.
    :hidden:
    
    example1 
+   example2 
