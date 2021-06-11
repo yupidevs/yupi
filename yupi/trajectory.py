@@ -10,6 +10,9 @@ from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 
 
+_threshold = 1e-12
+
+
 class TrajectoryPoint(NamedTuple):
     """Represents a point of a trajectory."""
 
@@ -242,15 +245,40 @@ class Trajectory():
         return Trajectory(points=self.r, t=self.t, ang=self.ang, dt=self.dt,
                           lazy=self.lazy)
 
+    def _operable_with(self, other: Trajectory, threshold=None) -> bool:
+        if threshold is None:
+            threshold = _threshold
+
+        if self.r.shape != other.r.shape:
+            return False
+
+        self_time = self.t
+        if self_time is None:
+            self_time = np.array([self.dt*i for i in range(len(self))])
+
+        other_time = other.t
+        if other_time is None:
+            other_time = np.array([other.dt*i for i in range(len(self))])
+
+        diff = np.abs(self_time - other_time)
+        return all(diff < threshold)
+
     def __iadd__(self, other):
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other)
             if len(offset) != self.dim:
-                raise ValueError('Offset must be the same shape as the other'
+                raise ValueError('Offset must be the same shape as the other '
                                  'trajectory points')
             for p in self.r:
                 p += offset
             return self
+
+        if isinstance(other, Trajectory):
+            if not self._operable_with(other):
+                raise ValueError('Incompatible trajectories')
+            self.r += other.r
+            return self
+
         raise TypeError("unsoported operation (+) between 'Trajectory' and "
                         f"'{type(other).__name__}'")
 
@@ -258,6 +286,11 @@ class Trajectory():
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
             return self + (-1 * offset)
+        if isinstance(other, Trajectory):
+            if not self._operable_with(other):
+                raise ValueError('Incompatible trajectories')
+            self.r -= other.r
+            return self
         raise TypeError("unsoported operation (-) between 'Trajectory' and "
                         f"'{type(other).__name__}'")
 
@@ -270,6 +303,12 @@ class Trajectory():
         traj = self.copy()
         traj -= other
         return traj
+
+    def __radd__(self, other):
+        return self + other
+
+    def __rsub__(self, other):
+        return self - other
 
     def _save_json(self, path: str):
         def convert_to_list(vec: Vector):
