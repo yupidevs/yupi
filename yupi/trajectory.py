@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 import csv
 import os
@@ -227,6 +228,48 @@ class Trajectory():
         if self.ang is not None:
             return self.ang.delta / self.dt
         return None
+
+    def copy(self) -> Trajectory:
+        """
+        Returns a copy of the trajectory.
+
+        Returns
+        -------
+        Trajectory
+            Copy of the trajectory.
+        """
+
+        return Trajectory(points=self.r, t=self.t, ang=self.ang, dt=self.dt,
+                          lazy=self.lazy)
+
+    def __iadd__(self, other):
+        if isinstance(other, (list, tuple, np.ndarray)):
+            offset = np.array(other)
+            if len(offset) != self.dim:
+                raise ValueError('Offset must be the same shape as the other'
+                                 'trajectory points')
+            for p in self.r:
+                p += offset
+            return self
+        raise TypeError("unsoported operation (+) between 'Trajectory' and "
+                        f"'{type(other).__name__}'")
+
+    def __isub__(self, other):
+        if isinstance(other, (list, tuple, np.ndarray)):
+            offset = np.array(other, dtype=float)
+            return self + (-1 * offset)
+        raise TypeError("unsoported operation (-) between 'Trajectory' and "
+                        f"'{type(other).__name__}'")
+
+    def __add__(self, other):
+        traj = self.copy()
+        traj += other
+        return traj
+
+    def __sub__(self, other):
+        traj = self.copy()
+        traj -= other
+        return traj
 
     def _save_json(self, path: str):
         def convert_to_list(vec: Vector):
