@@ -1,5 +1,5 @@
-from yupi.trajectory import Trajectory
 import numpy as np
+from yupi.trajectory import Trajectory
 from yupi.analyzing.transformations import wrap_theta
 
 
