@@ -24,14 +24,15 @@ class BackgroundEstimator():
     This class provides static methods to determine the background in image
     sequences. It estimates the temporal median of the sequence.
     """
+
     def __init__(self):
         pass
 
     def from_video(video_path, samples, start_in=0):
         """
-        This method takes a video indicated by ``video_path`` and uniformely 
+        This method takes a video indicated by ``video_path`` and uniformely
         take a number of image samples according to the parameter ``samples``.
-        Then, it computes the temporal median of the images in order to 
+        Then, it computes the temporal median of the images in order to
         determine de background.
 
         Parameters
@@ -43,7 +44,8 @@ class BackgroundEstimator():
         start_in : int, optional
             If passed, the method will start sampling after the frame indicated
             by this value, by default 0
-        """ 
+        """
+
         # Create a cv2 Video Capture Object       
         cap = cv2.VideoCapture(video_path)
 
@@ -84,6 +86,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
         tuple
             x, y coordinates of the centroid
         """
+
         # Calculate moments
         M = cv2.moments(bin_img)
 
@@ -96,7 +99,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
         else:
             print('[ERROR] Nothing was over threshold')
             return None
-    
+
     def preprocess(self, frame, roi_bound, preprocessing):
         frame = frame.copy()
         if roi_bound:
@@ -151,9 +154,9 @@ class IntensityMatching(TrackingAlgorithm):
         If this parameter is passed, the algoritm will stop searching for
         candidate pixels after reaching a count equal to this value,
         by default None.
-        """
-    def __init__(self, min_val=0, max_val=255, max_pixels=None):
+    """
 
+    def __init__(self, min_val=0, max_val=255, max_pixels=None):
         super(IntensityMatching, self).__init__()
         self.min_val = min_val
         self.max_val = max_val
@@ -189,8 +192,8 @@ class IntensityMatching(TrackingAlgorithm):
                the precense of the object.
              * centroid: tuple (x, y coordinates of the centroid of the object
                in the image)
-
         """
+
         # Make a preprocessed (and copied) version of the frame
         frame = self.preprocess(frame, roi_bound, preprocessing)
 
@@ -281,8 +284,8 @@ class ColorMatching(TrackingAlgorithm):
                the precense of the object.
              * centroid: tuple (x, y coordinates of the centroid of the object
                in the image)
-
         """
+
         # Make a preprocessed (and copied) version of the frame
         frame = self.preprocess(frame, roi_bound, preprocessing)
 
@@ -297,13 +300,13 @@ class ColorMatching(TrackingAlgorithm):
 
 class FrameDifferencing(TrackingAlgorithm):
     """
-    Identifies the position of an object by comparison between consecutive 
+    Identifies the position of an object by comparison between consecutive
     frames
 
     Parameters
     ----------
-        Minimum difference (in terms of pixel intensity) among current and 
-        previous image to consider that pixel as part of a moving object, 
+        Minimum difference (in terms of pixel intensity) among current and
+        previous image to consider that pixel as part of a moving object,
         by default 1.
     """
 
@@ -342,8 +345,8 @@ class FrameDifferencing(TrackingAlgorithm):
                ``1`` the precense of the object.
              * centroid: tuple (x, y coordinates of the centroid of the object
                in the image)
-
         """
+
         if self.prev_frame is None:
             self.prev_frame = frame.copy()
 
@@ -420,7 +423,6 @@ class BackgroundSubtraction(TrackingAlgorithm):
                ``1`` the precense of the object.
              * centroid: tuple (x, y coordinates of the centroid of the object
                in the image)
-
         """
 
         # Make a preprocessed (and copied) version of the frame
@@ -442,7 +444,6 @@ class BackgroundSubtraction(TrackingAlgorithm):
         return mask, centroid
 
 
-
 class TemplateMatching(TrackingAlgorithm):
     """
     Identifies the position of an object by correlating with a template.
@@ -450,8 +451,8 @@ class TemplateMatching(TrackingAlgorithm):
     Parameters
     ----------
     template : np.ndarray
-        Image containing a template of a tipical image of the object being 
-        tracked. This algorithm will detect as an object of interest 
+        Image containing a template of a tipical image of the object being
+        tracked. This algorithm will detect as an object of interest
         the point with higher correlation between the template and the image.
     threshold : float, optional
         Minimum value of correlation to be considered as a match, by default 
@@ -490,11 +491,10 @@ class TemplateMatching(TrackingAlgorithm):
         -------
         tuple
              * mask: np.ndarray (a binary version of ``frame`` where
-               elements with value ``0`` indicate the absence of object and 
+               elements with value ``0`` indicate the absence of object and
                ``1`` the precense of the object.
              * centroid: tuple (x, y coordinates of the centroid of the object
                in the image)
-
         """
 
         # Make a preprocessed (and copied) version of the frame
@@ -547,7 +547,6 @@ class OpticalFlow(TrackingAlgorithm):
 
         self.buffer_size = buffer_size
 
-        
 
     def detect(self, frame, roi_bound=None, preprocessing=None): 
         """
@@ -572,12 +571,11 @@ class OpticalFlow(TrackingAlgorithm):
         Returns
         -------
         tuple
-                * mask: np.ndarray (a binary version of ``frame`` where
-                elements with value ``0`` indicate the absence of object and 
-                ``1`` the precense of the object.
-                * centroid: tuple (x, y coordinates of the centroid of the object
-                in the image)
-
+            * mask: np.ndarray (a binary version of ``frame`` where
+            elements with value ``0`` indicate the absence of object and 
+            ``1`` the precense of the object.
+            * centroid: tuple (x, y coordinates of the centroid of the object
+            in the image)
         """
 
         if len(self.previous_frames) == self.buffer_size:
@@ -605,4 +603,3 @@ class OpticalFlow(TrackingAlgorithm):
         self.previous_frames.append(frame.copy())
 
         return mask, centroid
-        
