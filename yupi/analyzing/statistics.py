@@ -1,7 +1,7 @@
 from typing import List
-from yupi.trajectory import Trajectory
-import numpy as np
 import scipy.stats
+import numpy as np
+from yupi.trajectory import Trajectory
 from yupi.analyzing import turning_angles, subsample_trajectory
 
 
@@ -148,8 +148,8 @@ def estimate_msd_time(trajs: List[Trajectory], lag: int):
 def estimate_msd(trajs: List[Trajectory], time_avg=True, lag=None):
     """
     Estimate the mean square displacement of the list of Trajectory
-    objects, ``trajs``, providing the options of averaging over the ensemble
-    of realizations or over time.
+    objects, ``trajs``, providing the options of averaging over the
+    ensemble of realizations or over time.
 
     Parameters
     ----------
@@ -384,5 +384,4 @@ def estimate_kurtosis(trajs: List[Trajectory], time_avg=True, lag=None):
 
     if not time_avg:
         return estimate_kurtosis_ensemble(trajs)
-    else:
-        return estimate_kurtosis_time(trajs, lag)
+    return estimate_kurtosis_time(trajs, lag)

@@ -130,6 +130,6 @@ def wrap_theta(ang: np.ndarray, degrees=False, centered=False):
     discont = 360 if degrees else 2 * np.pi
     if not centered:
         return ang % discont
-    else:
-        discont_half = discont / 2
-        return -((discont_half - ang) % discont - discont_half)
+
+    discont_half = discont / 2
+    return -((discont_half - ang) % discont - discont_half)

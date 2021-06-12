@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 import csv
 import os
@@ -7,6 +8,9 @@ import numpy as np
 
 from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
+
+
+_threshold = 1e-12
 
 
 class TrajectoryPoint(NamedTuple):
@@ -21,7 +25,8 @@ class TrajectoryPoint(NamedTuple):
 class Trajectory():
     """
     A Trajectory object represents a multidimensional trajectory.
-    It can be iterated to obtain the corresponding point for each timestep.
+    It can be iterated to obtain the corresponding point for each
+    timestep.
 
     Parameters
     ----------
@@ -227,6 +232,117 @@ class Trajectory():
         if self.ang is not None:
             return self.ang.delta / self.dt
         return None
+
+    def add_polar_offset(self, radius: float, angle: float) -> None:
+        """
+        Adds an offset given a point in polar coordinates.
+
+        Parameters
+        ----------
+        radius : float
+            Point's radius.
+        angle : float
+            Point's angle.
+
+        Raises
+        ------
+        TypeError
+            If the trajectory is not 2 dimensional.
+        """
+
+        if self.dim != 2:
+            raise TypeError('Polar offsets can only be applied on 2 '
+                            'dimensional trajectories')
+
+        # From cartesian to polar
+        x, y = self.r.x, self.r.y
+        rad = np.hypot(x, y)
+        ang = np.arctan2(y, x)
+
+        rad += radius
+        ang += angle
+
+        # From polar to cartesian
+        x = rad * np.cos(ang)
+        y = rad * np.sin(ang)
+        self.r = Vector.create([x,y]).T
+
+    def copy(self) -> Trajectory:
+        """
+        Returns a copy of the trajectory.
+
+        Returns
+        -------
+        Trajectory
+            Copy of the trajectory.
+        """
+
+        return Trajectory(points=self.r, t=self.t, ang=self.ang, dt=self.dt,
+                          lazy=self.lazy)
+
+    def _operable_with(self, other: Trajectory, threshold=None) -> bool:
+        if threshold is None:
+            threshold = _threshold
+
+        if self.r.shape != other.r.shape:
+            return False
+
+        self_time = self.t
+        if self_time is None:
+            self_time = np.array([self.dt*i for i in range(len(self))])
+
+        other_time = other.t
+        if other_time is None:
+            other_time = np.array([other.dt*i for i in range(len(self))])
+
+        diff = np.abs(self_time - other_time)
+        return all(diff < threshold)
+
+    def __iadd__(self, other):
+        if isinstance(other, (list, tuple, np.ndarray)):
+            offset = np.array(other)
+            if len(offset) != self.dim:
+                raise ValueError('Offset must be the same shape as the other '
+                                 'trajectory points')
+            self.r += offset
+            return self
+
+        if isinstance(other, Trajectory):
+            if not self._operable_with(other):
+                raise ValueError('Incompatible trajectories')
+            self.r += other.r
+            return self
+
+        raise TypeError("unsoported operation (+) between 'Trajectory' and "
+                        f"'{type(other).__name__}'")
+
+    def __isub__(self, other):
+        if isinstance(other, (list, tuple, np.ndarray)):
+            offset = np.array(other, dtype=float)
+            return self + (-1 * offset)
+        if isinstance(other, Trajectory):
+            if not self._operable_with(other):
+                raise ValueError('Incompatible trajectories')
+            self.r -= other.r
+            return self
+        raise TypeError("unsoported operation (-) between 'Trajectory' and "
+                        f"'{type(other).__name__}'")
+
+    def __add__(self, other):
+        traj = self.copy()
+        traj += other
+        return traj
+
+    def __sub__(self, other):
+        traj = self.copy()
+        traj -= other
+        return traj
+
+    def __radd__(self, other):
+        return self + other
+
+    def __rsub__(self, other):
+        return self - other
 
     def _save_json(self, path: str):
         def convert_to_list(vec: Vector):
