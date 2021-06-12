@@ -1,7 +1,6 @@
-import os
-import cv2
-import numpy as np
 import abc
+import numpy as np
+import cv2
 
 
 class Undistorter(metaclass=abc.ABCMeta):
@@ -26,8 +25,8 @@ class Undistorter(metaclass=abc.ABCMeta):
     Parameters
     ----------
     camera_file : str
-        Path to the camera calibration file ("camera_file.npz" in the above
-        example).
+        Path to the camera calibration file ("camera_file.npz" in the
+        above example).
     """
 
     def __init__(self, camera_file):
@@ -40,20 +39,26 @@ class Undistorter(metaclass=abc.ABCMeta):
         self.c_mtx = npzfile['mtx']
         self.c_dist = npzfile['dist']
         self.c_newcameramtx = npzfile['newcameramtx']
-        c_map = cv2.initUndistortRectifyMap(self.c_mtx, self.c_dist,
-                                            None, self.c_newcameramtx,
-                                            (self.c_w, self.c_h), 5)
+        c_map = cv2.initUndistortRectifyMap(
+            cameraMatrix=self.c_mtx,
+            distCoeffs=self.c_dist,
+            R=None,
+            newCameraMatrix=self.c_newcameramtx,
+            size=(self.c_w, self.c_h),
+            m1type=5
+        )
         self.c_mapx, self.c_mapy = c_map
         self.mask = None
+        self.background = None
 
     @abc.abstractmethod
     def undistort(self, frame):
         """
-        Abstract method that is implemented on inheriting classes. It should
-        compute an undistorted version of frame using the given camera
-        calibration matrix and a method specific to the inheriting class.
+        Abstract method that is implemented on inheriting classes. It
+        should compute an undistorted version of frame using the given
+        camera calibration matrix and a method specific to the
+        inheriting class.
         """
-        pass
 
     # Method to be called to fix the distortion
     def fix(self, frame):
@@ -83,16 +88,14 @@ class ClassicUndistorter(Undistorter):
     Parameters
     ----------
     camera_file : str
-        Path to the camera calibration file ("camera_file.npz" in the above
-        example).
+        Path to the camera calibration file ("camera_file.npz" in the
+        above example).
     """
-
-    def __init__(self, camera_file):
-        super(ClassicUndistorter, self).__init__(camera_file)
 
     def undistort(self, frame):
         """
-        Computes the undistorted version of ``frame`` using ``cv2.undistort``
+        Computes the undistorted version of ``frame`` using
+        ``cv2.undistort``.
 
         Returns
         ----------
@@ -100,8 +103,13 @@ class ClassicUndistorter(Undistorter):
             Undistorted version of frame.
         """
 
-        return cv2.undistort(frame, self.c_mtx, self.c_dist, None,
-                             self.c_newcameramtx)
+        return cv2.undistort(
+            src=frame,
+            cameraMatrix=self.c_mtx,
+            distCoeffs=self.c_dist,
+            dst=None,
+            newCameraMatrix=self.c_newcameramtx
+        )
 
 
 class RemapUndistorter(Undistorter):
@@ -111,16 +119,14 @@ class RemapUndistorter(Undistorter):
     Parameters
     ----------
     camera_file : str
-        Path to the camera calibration file ("camera_file.npz" in the above
-        example).
+        Path to the camera calibration file ("camera_file.npz" in the
+        above example).
     """
-
-    def __init__(self, camera_file):
-        super(RemapUndistorter, self).__init__(camera_file)
 
     def undistort(self, frame):
         """
-        Computes the undistorted version of ``frame`` using ``cv2.remap``
+        Computes the undistorted version of ``frame`` using
+        ``cv2.remap``.
 
         Returns
         ----------

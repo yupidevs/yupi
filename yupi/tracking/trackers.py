@@ -1,8 +1,8 @@
-import cv2
-import json
-import numpy as np
 import logging
 from typing import Callable
+from pathlib import Path
+import cv2
+import numpy as np
 from yupi.tracking.algorithms import TrackingAlgorithm, resize_frame
 from yupi.affine_estimator import get_affine
 from yupi.trajectory import Trajectory
@@ -14,24 +14,25 @@ class ROI():
     """
     Region of interest.
 
-    Region that can be tracked by the algorithms throughout the sequence of
-    image frames.
+    Region that can be tracked by the algorithms throughout the sequence
+    of image frames.
 
     Parameters
     ----------
     size : tuple of float
         Size of the region of interest.
 
-        If both tuple's values are grater than 1 then they are rounded and
-        taken as pixels. Otherwise, if both values are less than 1, the
-        size is taken relative to the video frame size.
+        If both tuple's values are grater than 1 then they are rounded
+        and taken as pixels. Otherwise, if both values are less than 1,
+        the size is taken relative to the video frame size.
     init_mode : str, optional
         ROI's initialization mode, by default 'manual'.
 
         Defines the way ROI initial position is setted.
 
-        The ``init_mode`` parameter can be manual or center. These modes are
-        stored in ``ROI.MANUAL_INIT_MODE`` and ``ROI.CENTER_INIT_MODE``.
+        The ``init_mode`` parameter can be manual or center. These
+        modes are stored in ``ROI.MANUAL_INIT_MODE`` and
+        ``ROI.CENTER_INIT_MODE``.
     scale : float, optional
         Scale of the sample frame to set ROI initial position if
         ``init_method`` is set to ``'manual'``, by default 1.
@@ -41,13 +42,15 @@ class ROI():
     width : float
         Width of the ROI.
 
-        If the width value is between 0 and 1 then this is taken relative
-        to the frames. Otherwise it is a rounded value and taken as pixels.
+        If the width value is between 0 and 1 then this is taken
+        relative to the frames. Otherwise it is a rounded value and
+        taken as pixels.
     height : float
         Height of the ROI.
 
-        If the height value is between 0 and 1 then this is taken relative
-        to the frames. Otherwise it is a rounded value and taken as pixels.
+        If the height value is between 0 and 1 then this is taken
+        relative to the frames. Otherwise it is a rounded value and
+        taken as pixels.
     init_mode : str
         ROI's initialization mode.
     scale : float
@@ -64,9 +67,11 @@ class ROI():
     ValueError
         If any size value is negative.
     ValueError
-        If one of the size value is grater than 1 and the other is less than 1.
+        If one of the size value is grater than 1 and the other is less
+        than 1.
     ValueError
-        If ROI initialization mode is neither ``'manual'`` or ``'center'``.
+        If ROI initialization mode is neither ``'manual'`` or
+        ``'center'``.
     """
 
     MANUAL_INIT_MODE = 'manual'
@@ -83,10 +88,10 @@ class ROI():
         # TODO: check for a more pythonic way to do this comprobation
         if (size[0] < 1 and size[1] > 1) or \
            (size[0] > 1 and size[1] < 1):
-            raise ValueError(size)  # TODO: write error message here
+            raise ValueError('Size values must be between 0 and 1 both or '
+                             'integers greater than 0 both')
 
-        if init_mode != ROI.CENTER_INIT_MODE and \
-           init_mode != ROI.MANUAL_INIT_MODE:
+        if init_mode not in (ROI.CENTER_INIT_MODE, ROI.MANUAL_INIT_MODE):
             raise ValueError(f"ROI '{init_mode}' initialization mode unknown")
 
         if scale < 0:
@@ -141,8 +146,8 @@ class ROI():
         """
         ROI's bounds.
 
-        Calculates the ROI's bounds according to its center, width, height and
-        the global bounds.
+        Calculates the ROI's bounds according to its center, width,
+        height and the global bounds.
 
         Parameters
         ----------
@@ -179,7 +184,8 @@ class ROI():
 
         Parameters:
         frame : np.ndarray
-            Frame used as reference to initialize ROI position at its center.
+            Frame used as reference to initialize ROI position at its
+            center.
 
         Returns
         -------
@@ -188,10 +194,10 @@ class ROI():
         """
 
         self.__global_height, self.__global_width = frame.shape[:2]
-        self.__cXY = int(self.__global_width/2), int(self.__global_height/2)
+        self.__cXY = self.__global_width // 2, self.__global_height // 2
         return self.__cXY
 
-    # TODO: check for 'win2_name' utility. Maybe it it should be 'ROI' as
+    # TODO: check for 'win2_name' utility. Maybe it should be 'ROI' as
     # Default so there is no need to pass it as a parameter
     def _manual_init(self, frame: np.ndarray, name: str,
                      win2_name: str = 'ROI') -> tuple:
@@ -290,8 +296,8 @@ class ROI():
         first_frame : np.ndarray
             First frame of the video.
 
-            If ROI's initialization mode is set to ``'manual'`` this frame
-            will be shown to select the tracking object center.
+            If ROI's initialization mode is set to ``'manual'`` this
+            frame will be shown to select the tracking object center.
 
         Returns
         -------
@@ -352,8 +358,8 @@ class ObjectTracker():
     roi : ROI
         Region of interest where the object will be tracked.
     preprocessing : Callable[[np.ndarray], np.ndarray], optional
-        Preprocessing function aplied to the frame before being used by the
-        algorithm
+        Preprocessing function aplied to the frame before being used by
+        the algorithm.
 
     Attributes
     ----------
@@ -366,8 +372,8 @@ class ObjectTracker():
     history : list of tuple
         ROI's position in every frame of the video.
     preprocessing : Callable[[np.ndarray], np.ndarray]
-        Preprocessing function aplied to the frame before being used by the
-        algorithm
+        Preprocessing function aplied to the frame before being used by
+        the algorithm.
     """
 
     def __init__(self, name: str, algorithm: TrackingAlgorithm, roi: ROI,
@@ -391,8 +397,8 @@ class ObjectTracker():
         Parameters
         ----------
         frame : np.ndarray
-            Frame used by the algorithm to detect the tracked object's new
-            center.
+            Frame used by the algorithm to detect the tracked object's
+            new center.
         """
 
         # Get only the ROI from the current frame
@@ -417,12 +423,14 @@ class CameraTracker():
     Parameters
     ----------
     roi : ROI
-        Region of interest where the background changes will be detected.
+        Region of interest where the background changes will be
+        detected.
 
     Attributes
     ----------
     roi : ROI
-        Region of interest where the background changes will be detected.
+        Region of interest where the background changes will be
+        detected.
     history : list of tuple
         ROI's position in every frame of the video.
     """
@@ -431,6 +439,7 @@ class CameraTracker():
         self.history = []
         self.mse = []
         self.roi = roi
+        self.features = None
 
     def _init_roi(self, prev_frame: np.ndarray) -> bool:
         return self.roi._initialize('Camera', prev_frame)
@@ -457,6 +466,7 @@ class CameraTracker():
         bool
             Whether or not good points were found or sucessfully tracked.
         """
+
         # Initialize a mask of what to track
         h, w = frame.shape[:2]
         mask = 255 * np.ones((h, w), dtype=np.uint8)
@@ -465,9 +475,12 @@ class CameraTracker():
         for x0, xf, y0, yf in ignored_regions:
             mask[y0:yf, x0:xf] = 0
 
-        p_good, aff_params, err = get_affine(prev_frame, frame,
-                                             self.roi._get_bounds(),
-                                             mask)
+        p_good, aff_params, err = get_affine(
+            img1=prev_frame,
+            img2=frame,
+            region=self.roi._get_bounds(),
+            mask=mask
+        )
         self.features = p_good[1:]
 
         if err is None:
@@ -494,14 +507,14 @@ class TrackingScenario():
     preview_scale : float
         Scale of the video preview, by default 1.0.
     auto_mode : bool
-        If True the video is processed auomtically otherwise it's processed
-        manually, by default True.
+        If True the video is processed auomtically otherwise it's
+        processed manually, by default True.
 
         If the video is processed manually, pressing ``ENTER`` key is
         necessary in every frame to continue.
 
-        This mode can be changed in the middle of the processing by pressing
-        ``M`` key.
+        This mode can be changed in the middle of the processing by
+        pressing ``M`` key.
 
     Attributes
     ----------
@@ -514,14 +527,14 @@ class TrackingScenario():
     preview_scale : float
         Scale of the video preview.
     auto_mode : bool
-        If True the video is processed auomtically otherwise it's processed
-        manually, by default True.
+        If True the video is processed auomtically otherwise it's
+        processed manually, by default True.
 
         If the video is processed manually, pressing ``Enter`` key is
         necessary in every frame to continue.
 
-        This mode can be changed in the middle of the processing by pressing
-        ``M`` key.
+        This mode can be changed in the middle of the processing by
+        pressing ``M`` key.
     """
 
     def __init__(self, object_trackers: list,
@@ -533,12 +546,23 @@ class TrackingScenario():
         self.camera_tracker = camera_tracker
         self.undistorter = undistorter
         self.preview_scale = preview_scale
-        self.auto_mode = True
+        self.auto_mode = auto_mode
         self._enabled = True
         self._iteration_counter = 0
 
+        self.video_path = None
+        self.cap = None
+        self.frame_count = None
+        self.fps = None
+        self.w = None
+        self.h = None
+        self.dim = None
+        self.first_frame = None
+        self.prev_frame = None
+
     def _digest_video_path(self, video_path):
-        # TODO: Validate the path
+        if not Path.exists(Path(video_path)):
+            raise ValueError(f"Path '{video_path}' does not exists")
         self.video_path = video_path
 
         # Create capture object
@@ -622,7 +646,7 @@ class TrackingScenario():
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, start_in_frame)
 
         # Capture the first frame to process
-        ret, prev_frame = self.cap.read()
+        _, prev_frame = self.cap.read()
 
         # Correct spherical distortion
         self.prev_frame = self._undistort(prev_frame)
@@ -711,11 +735,11 @@ class TrackingScenario():
 
     def _tracker2trajectory(self, tracker, pix_per_m):
         dt = self.fps
-        id = tracker.name
+        traj_id = tracker.name
         x, y = map(list, zip(*tracker.history))
         x_arr = np.array(x) / pix_per_m
         y_arr = -1 * np.array(y) / pix_per_m
-        return Trajectory(x=x_arr, y=y_arr, dt=dt, traj_id=id)
+        return Trajectory(x=x_arr, y=y_arr, dt=dt, traj_id=traj_id)
 
     def _export_trajectories(self, pix_per_m):
         t_list = []
@@ -750,15 +774,16 @@ class TrackingScenario():
         pix_per_m : int, optional
             Pixel per meters, by default 1.
 
-            This value is used to readjuts the trajectories points to a real
-            scale.
+            This value is used to readjuts the trajectories points to a
+            real scale.
 
         Returns
         -------
         bool
             Whether or not the tracking process ended succefully.
         list
-            List of all the trajectories extracted in the tracking process.
+            List of all the trajectories extracted in the tracking
+            process.
         """
 
         self._digest_video_path(video_path)
