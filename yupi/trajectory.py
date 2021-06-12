@@ -232,6 +232,40 @@ class Trajectory():
             return self.ang.delta / self.dt
         return None
 
+    def add_polar_offset(self, radius: float, angle: float) -> None:
+        """
+        Adds an offset given a point in polar coordinates.
+
+        Parameters
+        ----------
+        radius : float
+            Point's radius.
+        angle : float
+            Point's angle.
+
+        Raises
+        ------
+        TypeError
+            If the trajectory is not 2 dimensional.
+        """
+
+        if self.dim != 2:
+            raise TypeError('Polar offsets can only be applied on 2 '
+                            'dimensional trajectories')
+
+        # From cartesian to polar
+        x, y = self.r.x, self.r.y
+        rad = np.hypot(x, y)
+        ang = np.arctan2(y, x)
+
+        rad += radius
+        ang += angle
+
+        # From polar to cartesian
+        x = rad * np.cos(ang)
+        y = rad * np.sin(ang)
+        self.r = Vector.create([x,y]).T
+
     def copy(self) -> Trajectory:
         """
         Returns a copy of the trajectory.
