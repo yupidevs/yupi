@@ -1,5 +1,5 @@
-import numpy as np
 import abc
+import numpy as np
 from yupi import Trajectory
 
 
@@ -89,7 +89,7 @@ class LatticeRandomWalkGenerator(Generator):
         # Only right/left jumps, uniform probabilities for it
         # And equal length for all jumps are set as default
         # TODO: Check that the model parameters received have the
-        #Eexpected shape
+        # expected shape
         if actions is None:
             actions = np.array([1, -1])
         if actions_prob is None:
@@ -103,7 +103,7 @@ class LatticeRandomWalkGenerator(Generator):
 
     # Compute vector position as a function of time for
     # All the walkers of the ensemble
-    def get_r(self):
+    def _get_r(self):
         # Get movements for every space coordinates according
         # To the sample space of probabilities in self.actions_prob
         dr = [np.random.choice(self.actions, p=p, size=(self.n - 1, self.N))
@@ -122,14 +122,14 @@ class LatticeRandomWalkGenerator(Generator):
     # Get position vectors and generate RandomWalk object
     def generate(self):
         # Get position vectors
-        r = self.get_r()
+        r = self._get_r()
 
         # Generate RandomWalk object
         trajs = []
         for i in range(self.N):
             points = r[:, :, i]
             trajs.append(Trajectory(points=points, dt=self.dt, t=self.t,
-                                    traj_id="Random Walker {}".format(i+1)))
+                                    traj_id=f"Random Walker {i + 1}"))
         return trajs
 
 
@@ -211,12 +211,12 @@ class LangevinGenerator(Generator):
             self.t_scale = t_scale
 
     # Fill noise array with custom noise properties
-    def get_noise(self):
+    def _get_noise(self):
         dist = getattr(np.random, self.noise_pdf)
         self.noise = dist(scale=self.noise_scale, size=self.shape)
 
     # Solve Langevin Equation using the numerical method of Euler-Maruyama
-    def solve_rv(self):
+    def _solve_rv(self):
         for i in range(self.n - 1):
             # Solving for position
             self.r[i + 1] = self.r[i] + \
@@ -228,13 +228,13 @@ class LangevinGenerator(Generator):
                             self.noise[i] * np.sqrt(self.dt)
 
     # Simulate the process
-    def simulate(self):
-        self.get_noise()  # Set the attribute self.noise
-        self.solve_rv()   # Solve the Langevin equation
+    def _simulate(self):
+        self._get_noise()  # Set the attribute self.noise
+        self._solve_rv()   # Solve the Langevin equation
 
     # Generate yupi Trajectory objects
     def generate(self):
-        self.simulate()
+        self._simulate()
 
         self.r *= self.r_scale
         self.v *= self.v_scale
@@ -245,28 +245,5 @@ class LangevinGenerator(Generator):
         for i in range(self.N):
             points = self.r[:, :, i]
             trajs.append(Trajectory(points=points, dt=self.dt, t=self.t,
-                                    traj_id="LangevinSolution {}".format(i+1)))
+                                    traj_id=f"LangevinSolution {i + 1}"))
         return trajs
-
-
-# Testing
-if __name__ == '__main__':
-    from yupi.analyzing.visualization import plot_trajectories
-
-    np.random.seed(0)
-
-    print("Testing RandomWalker")
-
-    # Set parameter values
-    T = 500
-    dim = 2
-    N = 5
-    dt = 1
-    actions = [1, 0, -1]
-    prob = [[.5, .1, .4],
-            [.5, 0, .5]]
-
-    # Get RandomWalk object and get position vectors
-    rw = LatticeRandomWalkGenerator(T, dim, N, dt, actions, prob)
-    tr = rw.generate()
-    plot_trajectories(tr, max_trajectories=3, legend=False)

@@ -25,7 +25,8 @@ class TrajectoryPoint(NamedTuple):
 class Trajectory():
     """
     A Trajectory object represents a multidimensional trajectory.
-    It can be iterated to obtain the corresponding point for each timestep.
+    It can be iterated to obtain the corresponding point for each
+    timestep.
 
     Parameters
     ----------
