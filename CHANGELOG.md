@@ -1,5 +1,55 @@
 # CHANGELOG
 
+## [0.4.2] 2021-06-12
+
+### Added
+
+- Add documentation for example002
+- Implement offset add and sub on trajectoies
+- Implement add and sub between trajectories
+- Implement polar offset
+
+### Fixed
+
+- Fix examples links on documentation
+
+## [0.4.1] 2021-06-09
+
+### Added
+
+- Add yupi exceptions
+- Add recursively parameter in load_folder method
+- Add framedifferencing tracking algorithm
+- Add vector docstrings
+- Add a background estimator for videos
+- Add lazy paremeter on trajectory
+- Add background subtraction as tracking algoritm
+- Add `plot_trajectory` function on `__init__.py`
+- Add template matching algorithm
+- Add optical flow algorithm
+
+### Fixed
+
+- Fix exception handling on trajectory loading
+- Change velocity calculation on trajectory
+- Fix docstring on load_folder
+- Change scipy dependency version
+- Fix start_in_frame param in track trackingscenario
+- Fix trackers for algorithms requiring 2 frames
+- Fix drifting in trackers failing detecting a frame
+- Fix docstring in frame differencing
+- Fix docstring of some algorithms
+- Fix wrong references in the docs of algorithms
+- Fix a typo in readme
+
+### Others
+
+- Update the api of tracking algorithms
+- Update the readme
+- Update docs trajectory creation methods
+- All tracking algorithms to return an empty mask
+- Set version 0.4.1
+
 ## [0.4.0] 2021-05-7
 
 ### Added
