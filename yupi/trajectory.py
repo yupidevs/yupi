@@ -303,8 +303,7 @@ class Trajectory():
             if len(offset) != self.dim:
                 raise ValueError('Offset must be the same shape as the other '
                                  'trajectory points')
-            for p in self.r:
-                p += offset
+            self.r += offset
             return self
 
         if isinstance(other, Trajectory):
