@@ -28,7 +28,7 @@ In this table you can easily find the examples that better suits you.
        | of a lysozyme molecule in water. Several molecule 
        | trajectories are generated and later analyzed.
      - * Generation:
-          * :py:class:`~generators.LangevinGenerator`
+          * :py:class:`~generating.LangevinGenerator`
        * Statistics:
           * :py:func:`~statistics.estimate_velocity_samples`
           * :py:func:`~statistics.estimate_turning_angles`
@@ -50,15 +50,15 @@ In this table you can easily find the examples that better suits you.
      - * Visualization:
           * :py:func:`~visualization.plot_trajectories`
        * Tracking:
-          * :py:func:`~tracking.ROI`
-          * :py:func:`~tracking.ObjectTracker`
-          * :py:func:`~tracking.TrackingScenario`
-          * :py:func:`~tracking.ColorMatching`
-          * :py:func:`~tracking.FrameDifferencing`
-          * :py:func:`~tracking.BackgroundEstimator`
-          * :py:func:`~tracking.BackgroundSubtraction`
-          * :py:func:`~tracking.TemplateMatching`
-          * :py:func:`~tracking.OpticalFlow`
+          * :py:func:`~tracking.trackers.ROI`
+          * :py:func:`~tracking.trackers.ObjectTracker`
+          * :py:func:`~tracking.trackers.TrackingScenario`
+          * :py:func:`~tracking.algorithms.ColorMatching`
+          * :py:func:`~tracking.algorithms.FrameDifferencing`
+          * :py:func:`~tracking.algorithms.BackgroundEstimator`
+          * :py:func:`~tracking.algorithms.BackgroundSubtraction`
+          * :py:func:`~tracking.algorithms.TemplateMatching`
+          * :py:func:`~tracking.algorithms.OpticalFlow`
 
 
 .. toctree::
