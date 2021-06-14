@@ -558,6 +558,7 @@ class TrackingScenario():
         self.h = None
         self.dim = None
         self.first_frame = None
+        self.last_frame = None
         self.prev_frame = None
 
     def _digest_video_path(self, video_path):
@@ -684,6 +685,12 @@ class TrackingScenario():
     def _regular_iteration(self):
         # Get current frame and ends the processing when no more frames are
         # detected
+        
+        frame_id = self._iteration_counter + self.first_frame
+        if self.last_frame is not None and frame_id >= self.last_frame:
+            return False, True
+
+
         ret, frame = self.cap.read()
         if not ret:
             logging.info('All frames were processed')
@@ -704,7 +711,6 @@ class TrackingScenario():
         if self.camera_tracker:
             ret = self.camera_tracker._track(self.prev_frame, frame,
                                              roi_array)
-        frame_id = self._iteration_counter + self.first_frame
 
         if not ret:
             msg = f'CameraTracker - No matrix was estimated (Frame {frame_id})'
@@ -761,7 +767,7 @@ class TrackingScenario():
         return t_list
 
     def track(self, video_path: str, start_in_frame: int = 0,
-              pix_per_m: int = 1):
+              end_in_frame: int = None, pix_per_m: int = 1):
         """
         Starts the tracking process.
 
@@ -771,6 +777,9 @@ class TrackingScenario():
             Path of the video used to track the objects.
         start_in_frame : int, optional
             Initial frame in which starts the processing, by default 0.
+        end_in_frame : int, optional
+            Last frame being processed, if nothing is passed all frames until 
+            the end of the video will be processed, by default None.
         pix_per_m : int, optional
             Pixel per meters, by default 1.
 
@@ -785,6 +794,8 @@ class TrackingScenario():
             List of all the trajectories extracted in the tracking
             process.
         """
+        if end_in_frame > start_in_frame:
+            self.last_frame = int(end_in_frame)
 
         self._digest_video_path(video_path)
 
