@@ -231,7 +231,6 @@ class ROI():
                 self.__cXY = int(x / self.scale), int(y / self.scale)
 
                 # Copy of true frame and its resized version
-                img = frame.copy()
                 img_ = frame_.copy()
 
                 # Draw a circle in the selected pixel
