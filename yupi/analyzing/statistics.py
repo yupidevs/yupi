@@ -35,7 +35,7 @@ def estimate_turning_angles(trajs: List[Trajectory], accumulate=False,
         objects.
     """
 
-    theta = [turning_angles(traj) for traj in trajs]
+    theta = [turning_angles(t, accumulate, degrees, centered) for t in trajs]
     return np.concatenate(theta)
 
 
