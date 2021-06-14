@@ -95,8 +95,12 @@ class Trajectory():
     def __init__(self, x: np.ndarray = None, y: np.ndarray = None,
                  z: np.ndarray = None, points: np.ndarray = None,
                  dimensions: np.ndarray = None, t: np.ndarray = None,
-                 ang: np.ndarray = None, dt: float = 1.0,
+                 ang: np.ndarray = None, dt: float = None,
                  traj_id: str = None, lazy: bool = False):
+
+        if t is None and dt is None:
+            raise ValueError("Some time data must be given. Options are 't' "
+                             "or 'dt'.")
 
         from_xyz = x is not None
         from_points = points is not None
@@ -134,7 +138,6 @@ class Trajectory():
         if self.r is None:
             raise ValueError('No position data were given.')
 
-        self.__dt_vector = None
         self.__t = data[0]
         self.ang = data[1]
         self.id = traj_id
