@@ -149,6 +149,17 @@ class Trajectory():
             self.dt_std = np.std(np.array(self.__t.delta))
             self.__v: Vector = (self.r.delta.T / self.__t.delta).T
 
+    @property
+    def uniformly_spaced(self) -> bool:
+        """bool : True if the time data is uniformly spaced"""
+        if self.__t is not None:
+            starts_at_zero = self.__t[0] == 0
+            std_is_zero = self.dt_std == 0
+            if starts_at_zero and std_is_zero:
+                return True
+            return False
+        return True
+
     def __len__(self):
         return self.r.shape[0]
 
@@ -181,14 +192,6 @@ class Trajectory():
         return self.r.shape[1]
 
     @property
-    def delta_t(self) -> Vector:
-        """Vector : Difference between each couple of consecutive
-        samples in the Trajectory."""
-        if self.t is not None:
-            return self.t.delta
-        return None
-
-    @property
     def delta_r(self) -> Vector:
         """Vector: Difference between each couple of consecutive points
         in the Trajectory."""
@@ -213,7 +216,7 @@ class Trajectory():
             Velocity vector.
         """
 
-        if self.__t is None:
+        if self.uniformly_spaced:
             self.__v: Vector = self.r.delta / self.dt
         else:
             self.__v: Vector = (self.r.delta.T / self.__t.delta).T
@@ -225,15 +228,13 @@ class Trajectory():
         if self.lazy:
             return self.__v
         return self.recalculate_velocity()
-    
+
     @property
     def t(self) -> Vector:
-        if self.__t is not None:
-            return self.__t
-        elif self.__dt_vector is None:
-            dt_vec = [self.dt*i for i in range(len(self))]
-            self.__dt_vector = Vector.create(dt_vec)
-        return self.__dt_vector
+        """Vector : Time vector"""
+        if self.__t is None:
+            self.__t = Vector.create([self.dt*i for i in range(len(self))])
+        return self.__t
 
     @property
     def ang_velocity(self) -> Union[Vector, None]:
