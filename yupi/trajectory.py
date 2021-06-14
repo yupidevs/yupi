@@ -134,19 +134,20 @@ class Trajectory():
         if self.r is None:
             raise ValueError('No position data were given.')
 
-        self.t = data[0]
+        self.__dt_vector = None
+        self.__t = data[0]
         self.ang = data[1]
         self.id = traj_id
         self.lazy = lazy
 
-        if self.t is None:
+        if self.__t is None:
             self.dt = dt
             self.dt_std = 0
             self.__v: Vector = self.r.delta / self.dt
         else:
-            self.dt = np.mean(np.array(self.t.delta))
-            self.dt_std = np.std(np.array(self.t.delta))
-            self.__v: Vector = (self.r.delta.T / self.t.delta).T
+            self.dt = np.mean(np.array(self.__t.delta))
+            self.dt_std = np.std(np.array(self.__t.delta))
+            self.__v: Vector = (self.r.delta.T / self.__t.delta).T
 
     def __len__(self):
         return self.r.shape[0]
@@ -165,8 +166,8 @@ class Trajectory():
             data[2] = self.v[i - 1] if i > 0 else Vector.create([0]*self.dim)
 
             # Time
-            if self.t is not None:
-                data[3] = self.t[i]
+            if self.__t is not None:
+                data[3] = self.__t[i]
             else:
                 data[3] = current_time
                 current_time += self.dt
@@ -212,10 +213,10 @@ class Trajectory():
             Velocity vector.
         """
 
-        if self.t is None:
+        if self.__t is None:
             self.__v: Vector = self.r.delta / self.dt
         else:
-            self.__v: Vector = (self.r.delta.T / self.t.delta).T
+            self.__v: Vector = (self.r.delta.T / self.__t.delta).T
         return self.__v
 
     @property
@@ -224,6 +225,15 @@ class Trajectory():
         if self.lazy:
             return self.__v
         return self.recalculate_velocity()
+    
+    @property
+    def t(self) -> Vector:
+        if self.__t is not None:
+            return self.__t
+        elif self.__dt_vector is None:
+            dt_vec = [self.dt*i for i in range(len(self))]
+            self.__dt_vector = Vector.create(dt_vec)
+        return self.__dt_vector
 
     @property
     def ang_velocity(self) -> Union[Vector, None]:
@@ -277,7 +287,7 @@ class Trajectory():
             Copy of the trajectory.
         """
 
-        return Trajectory(points=self.r, t=self.t, ang=self.ang, dt=self.dt,
+        return Trajectory(points=self.r, t=self.__t, ang=self.ang, dt=self.dt,
                           lazy=self.lazy)
 
     def _operable_with(self, other: Trajectory, threshold=None) -> bool:
@@ -288,12 +298,7 @@ class Trajectory():
             return False
 
         self_time = self.t
-        if self_time is None:
-            self_time = np.array([self.dt*i for i in range(len(self))])
-
         other_time = other.t
-        if other_time is None:
-            other_time = np.array([other.dt*i for i in range(len(self))])
 
         diff = np.abs(self_time - other_time)
         return all(diff < threshold)
@@ -359,7 +364,7 @@ class Trajectory():
             'dt': self.dt,
             'r': convert_to_list(self.r.T),
             'ang': convert_to_list(ang),
-            't': convert_to_list(self.t)
+            't': convert_to_list(self.__t)
         }
         with open(str(path), 'w') as traj_file:
             json.dump(json_dict, traj_file)
