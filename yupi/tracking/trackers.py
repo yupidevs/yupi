@@ -247,9 +247,6 @@ class ROI():
         cv2.waitKey(0)
         return self.__cXY
 
-    # TODO: check for 'name' utility. It is only use for the return message
-    # I think this method should only return True/False and then handle the
-    # Error in the tracking scenario
     def _check_roi_init(self, name: str) -> bool:
         """
         Checks for ROI initialization.
