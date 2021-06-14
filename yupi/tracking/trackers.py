@@ -199,8 +199,7 @@ class ROI():
 
     # TODO: check for 'win2_name' utility. Maybe it should be 'ROI' as
     # Default so there is no need to pass it as a parameter
-    def _manual_init(self, frame: np.ndarray, name: str,
-                     win2_name: str = 'ROI') -> tuple:
+    def _manual_init(self, frame: np.ndarray, name: str) -> tuple:
         """
         Initialize ROI using manual initialization mode.
 
@@ -242,16 +241,6 @@ class ROI():
                 pt2 = (int(xmax * self.scale), int(ymax * self.scale))
                 cv2.rectangle(img_, pt1, pt2, (0, 255, 255), 1)
                 cv2.imshow(win1_name, img_)
-
-                # Get roi in the full size frame
-
-                # Cv2.circle(img_, (x, y), 3, (0, 255, 255), 1)
-                # Roi = self._crop(img_)
-
-                # Roi padding just to display the new window
-                # PadL, padR = np.hsplit(np.zeros_like(roi), 2)
-                # Roi_ = np.hstack([padL, roi, padR])
-                # Cv2.imshow(win2_name, roi_)
 
                 logging.info('ROI initialized, now press any key to continue')
 
