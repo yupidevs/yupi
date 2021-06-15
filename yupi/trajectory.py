@@ -10,7 +10,7 @@ from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 
 
-_threshold = 1e-12
+_threshold = 1e-15
 
 
 class TrajectoryPoint(NamedTuple):
@@ -159,14 +159,15 @@ class Trajectory():
             self.dt_std = np.std(np.array(self.__t.delta))
             self.__v: Vector = (self.r.delta.T / self.__t.delta).T
 
-        if t is not None and dt is not None:
-            if self.dt != dt:
-                raise ValueError("You are giving 'dt' and 't' but 'dt' does "
-                                 "not match with time values delta.")
-            if self.dt_std != 0:
-                raise ValueError("You are giving 'dt' and 't' but 't' is not "
-                                 "uniformly spaced.")
-            if self.__t[0] != t0:
+        if t is not None:
+            if dt is not None:
+                if abs(self.dt - dt) > _threshold:
+                    raise ValueError("You are giving 'dt' and 't' but 'dt' "
+                                    "does not match with time values delta.")
+                if abs(self.dt_std - 0) > _threshold:
+                    raise ValueError("You are giving 'dt' and 't' but 't' is "
+                                     "not uniformly spaced.")
+            if abs(self.__t[0] - t0) > _threshold:
                 raise ValueError("You are giving 'dt' and 't' but 't0' is not "
                                  "the same as the first value of 't'.")
 
