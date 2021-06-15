@@ -31,15 +31,17 @@ class Trajectory():
     Parameters
     ----------
     x : np.ndarray
-        Array containing position data of X axis.
+        Array containing position data of X axis, by default None
     y : np.ndarray
         Array containing position data of Y axis, by default None.
     z : np.ndarray
         Array containing position data of X axis, by default None.
     points : np.ndarray
-        Array containing position data as a list of points.
+        Array containing position data as a list of points, by default
+        None
     dimensions : np.ndarray
-        Array containing position data as a list of axis.
+        Array containing position data as a list of axis, by default
+        None
     t : np.ndarray
         Array containing time data, by default None.
     ang : np.ndarray
@@ -47,6 +49,9 @@ class Trajectory():
     dt : float
         If no time data is given this represents the time between each
         position data value.
+    t0 : float
+        If no time data is given this represents the initial time value,
+        by default 0.
     traj_id : str
         Id of the trajectory.
     lazy : bool
@@ -86,21 +91,24 @@ class Trajectory():
     Raises
     ------
     ValueError
-        If ``x`` is not given.
+        If positional data is given in more than one way.
     ValueError
-        If all the given input data (``x``, ``y``, ``z``, ``t``, ``ang``)
-        does not have the same shape.
+        If no positional data is given.
+    ValueError
+        If all the given input data (``x``, ``y``, ``z``, ``t``,
+        ``ang``) does not have the same shape.
+    ValueError
+        If ``t`` and ``dt`` given but ``t`` is not uniformly spaced.
+    ValueError
+        If ``t`` and ``dt`` given but ``dt`` does not match ``t``
+        values delta.
     """
 
     def __init__(self, x: np.ndarray = None, y: np.ndarray = None,
                  z: np.ndarray = None, points: np.ndarray = None,
                  dimensions: np.ndarray = None, t: np.ndarray = None,
-                 ang: np.ndarray = None, dt: float = None,
+                 ang: np.ndarray = None, dt: float = None, t0: float = 0.0,
                  traj_id: str = None, lazy: bool = False):
-
-        if t is None and dt is None:
-            raise ValueError("Some time data must be given. Options are 't' "
-                             "or 'dt'.")
 
         from_xyz = x is not None
         from_points = points is not None
@@ -122,9 +130,7 @@ class Trajectory():
             dimensions = [d for d in [x, y, z] if d is not None]
             from_dimensions = True
 
-        if from_dimensions:
-            if len(dimensions) == 0:
-                raise ValueError('Trajectory requires at least one dimension.')
+        if from_dimensions and len(dimensions) > 0:
             lengths.extend([len(d) for d in dimensions])
             self.r = Vector.create(dimensions, dtype=float).T
 
@@ -132,25 +138,37 @@ class Trajectory():
             lengths.append(len(points))
             self.r = Vector.create(points, dtype=float)
 
-        if lengths.count(lengths[0]) != len(lengths):
-            raise ValueError('All input arrays must have the same shape.')
-
         if self.r is None:
             raise ValueError('No position data were given.')
 
+        if lengths.count(lengths[0]) != len(lengths):
+            raise ValueError('All input arrays must have the same shape.')
+
+        self.__t0 = t0
         self.__t = data[0]
         self.ang = data[1]
         self.id = traj_id
         self.lazy = lazy
 
         if self.__t is None:
-            self.dt = dt
+            self.dt = dt if dt is not None else 1.0
             self.dt_std = 0
             self.__v: Vector = self.r.delta / self.dt
         else:
             self.dt = np.mean(np.array(self.__t.delta))
             self.dt_std = np.std(np.array(self.__t.delta))
             self.__v: Vector = (self.r.delta.T / self.__t.delta).T
+
+        if t is not None and dt is not None:
+            if self.dt != dt:
+                raise ValueError("You are giving 'dt' and 't' but 'dt' does "
+                                 "not match with time values delta.")
+            if self.dt_std != 0:
+                raise ValueError("You are giving 'dt' and 't' but 't' is not "
+                                 "uniformly spaced.")
+            if self.__t[0] != t0:
+                raise ValueError("You are giving 'dt' and 't' but 't0' is not "
+                                 "the same as the first value of 't'.")
 
     @property
     def uniformly_spaced(self) -> bool:
@@ -236,7 +254,8 @@ class Trajectory():
     def t(self) -> Vector:
         """Vector : Time vector"""
         if self.__t is None:
-            self.__t = Vector.create([self.dt*i for i in range(len(self))])
+            dt_vec = [self.__t0 + self.dt*i for i in range(len(self))]
+            self.__t = Vector.create(dt_vec)
         return self.__t
 
     @property
