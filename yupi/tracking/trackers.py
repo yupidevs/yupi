@@ -390,8 +390,8 @@ class ObjectTracker():
         roi_bound = self.roi._get_bounds()
 
         # Detect the object using the tracking algorithm
-        self.mask, centroid = self.algorithm.detect(frame, 
-                                                    roi_bound, 
+        self.mask, centroid = self.algorithm.detect(frame,
+                                                    roi_bound,
                                                     self.preprocessing)
 
         # Update the roi center using current ant coordinates
@@ -443,13 +443,14 @@ class CameraTracker():
         igonerd_regions : list of tuple
             Tracked object's boundaries.
 
-            Tracked object's does not form part of the background so they
-            should be ignored.
+            Tracked object's does not form part of the background so
+            they should be ignored.
 
         Returns
         -------
         bool
-            Whether or not good points were found or sucessfully tracked.
+            Whether or not good points were found or sucessfully
+            tracked.
         """
 
         # Initialize a mask of what to track
@@ -670,7 +671,7 @@ class TrackingScenario():
     def _regular_iteration(self):
         # Get current frame and ends the processing when no more frames are
         # detected
-        
+
         frame_id = self._iteration_counter + self.first_frame
         if self.last_frame is not None and frame_id >= self.last_frame:
             return False, True
@@ -763,8 +764,9 @@ class TrackingScenario():
         start_in_frame : int, optional
             Initial frame in which starts the processing, by default 0.
         end_in_frame : int, optional
-            Last frame being processed, if nothing is passed all frames until 
-            the end of the video will be processed, by default None.
+            Last frame being processed, if nothing is passed all frames
+            until the end of the video will be processed, by default
+            None.
         pix_per_m : int, optional
             Pixel per meters, by default 1.
 
@@ -779,6 +781,7 @@ class TrackingScenario():
             List of all the trajectories extracted in the tracking
             process.
         """
+
         if end_in_frame is not None and end_in_frame > start_in_frame:
             self.last_frame = int(end_in_frame)
 
