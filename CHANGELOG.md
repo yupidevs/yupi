@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## [0.5.1] 2021-06-17
+
+### Added
+
+- Add `uniformly_spaced` property on trajectory
+- Add constant add and sub on trajectories
+- Add contant multiplication on trajectories
+
+### Fixed
+
+- Change time data calculation if only dt is given
+- Fix comparation using threshold
+- Fix a bug on default parameters of trackers
+- Fix logging on algorithms
+
+### Others
+
+- Improve tests
+
 ## [0.4.2] 2021-06-12
 
 ### Added
