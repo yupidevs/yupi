@@ -387,6 +387,22 @@ class Trajectory():
     def __rsub__(self, other):
         return self - other
 
+    def __imul__(self, other):
+        if isinstance(other, (int, float)):
+            self.r *= other
+            return self
+
+        raise TypeError("unsoported operation (*) between 'Trajectory' and "
+                        f"'{type(other).__name__}'")
+
+    def __mul__(self, other):
+        traj = self.copy()
+        traj *= other
+        return traj
+
+    def __rmul__(self, other):
+        return self * other
+
     def _save_json(self, path: str):
         def convert_to_list(vec: Vector):
             if vec is None:
