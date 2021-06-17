@@ -1,5 +1,6 @@
 import abc
 import cv2
+import logging
 import numpy as np
 
 
@@ -97,7 +98,8 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
             cX = int(M['m10'] / M['m00'])
             cY = int(M['m01'] / M['m00'])
             return cX, cY
-        print('[ERROR] Nothing was over threshold')
+        logging.warning("Nothing was over threshold. Algorithm: %s",
+                        type(self).__name__)
         return None
 
     def preprocess(self, frame, roi_bound, preprocessing):

@@ -10,7 +10,7 @@ from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 
 
-_threshold = 1e-12
+_threshold = 1e-15
 
 
 class TrajectoryPoint(NamedTuple):
@@ -31,15 +31,17 @@ class Trajectory():
     Parameters
     ----------
     x : np.ndarray
-        Array containing position data of X axis.
+        Array containing position data of X axis, by default None
     y : np.ndarray
         Array containing position data of Y axis, by default None.
     z : np.ndarray
         Array containing position data of X axis, by default None.
     points : np.ndarray
-        Array containing position data as a list of points.
+        Array containing position data as a list of points, by default
+        None
     dimensions : np.ndarray
-        Array containing position data as a list of axis.
+        Array containing position data as a list of axis, by default
+        None
     t : np.ndarray
         Array containing time data, by default None.
     ang : np.ndarray
@@ -47,6 +49,9 @@ class Trajectory():
     dt : float
         If no time data is given this represents the time between each
         position data value.
+    t0 : float
+        If no time data is given this represents the initial time value,
+        by default 0.
     traj_id : str
         Id of the trajectory.
     lazy : bool
@@ -86,16 +91,23 @@ class Trajectory():
     Raises
     ------
     ValueError
-        If ``x`` is not given.
+        If positional data is given in more than one way.
     ValueError
-        If all the given input data (``x``, ``y``, ``z``, ``t``, ``ang``)
-        does not have the same shape.
+        If no positional data is given.
+    ValueError
+        If all the given input data (``x``, ``y``, ``z``, ``t``,
+        ``ang``) does not have the same shape.
+    ValueError
+        If ``t`` and ``dt`` given but ``t`` is not uniformly spaced.
+    ValueError
+        If ``t`` and ``dt`` given but ``dt`` does not match ``t``
+        values delta.
     """
 
     def __init__(self, x: np.ndarray = None, y: np.ndarray = None,
                  z: np.ndarray = None, points: np.ndarray = None,
                  dimensions: np.ndarray = None, t: np.ndarray = None,
-                 ang: np.ndarray = None, dt: float = 1.0,
+                 ang: np.ndarray = None, dt: float = None, t0: float = 0.0,
                  traj_id: str = None, lazy: bool = False):
 
         from_xyz = x is not None
@@ -118,9 +130,7 @@ class Trajectory():
             dimensions = [d for d in [x, y, z] if d is not None]
             from_dimensions = True
 
-        if from_dimensions:
-            if len(dimensions) == 0:
-                raise ValueError('Trajectory requires at least one dimension.')
+        if from_dimensions and len(dimensions) > 0:
             lengths.extend([len(d) for d in dimensions])
             self.r = Vector.create(dimensions, dtype=float).T
 
@@ -128,25 +138,49 @@ class Trajectory():
             lengths.append(len(points))
             self.r = Vector.create(points, dtype=float)
 
-        if lengths.count(lengths[0]) != len(lengths):
-            raise ValueError('All input arrays must have the same shape.')
-
         if self.r is None:
             raise ValueError('No position data were given.')
 
-        self.t = data[0]
+        if lengths.count(lengths[0]) != len(lengths):
+            raise ValueError('All input arrays must have the same shape.')
+
+        self.__t0 = t0
+        self.__t = data[0]
         self.ang = data[1]
         self.id = traj_id
         self.lazy = lazy
 
-        if self.t is None:
-            self.dt = dt
+        if self.__t is None:
+            self.dt = dt if dt is not None else 1.0
             self.dt_std = 0
             self.__v: Vector = self.r.delta / self.dt
         else:
-            self.dt = np.mean(np.array(self.t.delta))
-            self.dt_std = np.std(np.array(self.t.delta))
-            self.__v: Vector = (self.r.delta.T / self.t.delta).T
+            self.dt = np.mean(np.array(self.__t.delta))
+            self.dt_std = np.std(np.array(self.__t.delta))
+            self.__v: Vector = (self.r.delta.T / self.__t.delta).T
+
+        if t is not None:
+            if dt is not None:
+                if abs(self.dt - dt) > _threshold:
+                    raise ValueError("You are giving 'dt' and 't' but 'dt' "
+                                    "does not match with time values delta.")
+                if abs(self.dt_std - 0) > _threshold:
+                    raise ValueError("You are giving 'dt' and 't' but 't' is "
+                                     "not uniformly spaced.")
+            if abs(self.__t[0] - t0) > _threshold:
+                raise ValueError("You are giving 'dt' and 't' but 't0' is not "
+                                 "the same as the first value of 't'.")
+
+    @property
+    def uniformly_spaced(self) -> bool:
+        """bool : True if the time data is uniformly spaced"""
+        if self.__t is not None:
+            starts_at_zero = self.__t[0] == 0
+            std_is_zero = self.dt_std == 0
+            if starts_at_zero and std_is_zero:
+                return True
+            return False
+        return True
 
     def __len__(self):
         return self.r.shape[0]
@@ -165,8 +199,8 @@ class Trajectory():
             data[2] = self.v[i - 1] if i > 0 else Vector.create([0]*self.dim)
 
             # Time
-            if self.t is not None:
-                data[3] = self.t[i]
+            if self.__t is not None:
+                data[3] = self.__t[i]
             else:
                 data[3] = current_time
                 current_time += self.dt
@@ -178,14 +212,6 @@ class Trajectory():
     def dim(self) -> int:
         """int : Trajectory spacial dimensions."""
         return self.r.shape[1]
-
-    @property
-    def delta_t(self) -> Vector:
-        """Vector : Difference between each couple of consecutive
-        samples in the Trajectory."""
-        if self.t is not None:
-            return self.t.delta
-        return None
 
     @property
     def delta_r(self) -> Vector:
@@ -212,10 +238,10 @@ class Trajectory():
             Velocity vector.
         """
 
-        if self.t is None:
+        if self.uniformly_spaced:
             self.__v: Vector = self.r.delta / self.dt
         else:
-            self.__v: Vector = (self.r.delta.T / self.t.delta).T
+            self.__v: Vector = (self.r.delta.T / self.__t.delta).T
         return self.__v
 
     @property
@@ -224,6 +250,14 @@ class Trajectory():
         if self.lazy:
             return self.__v
         return self.recalculate_velocity()
+
+    @property
+    def t(self) -> Vector:
+        """Vector : Time vector"""
+        if self.__t is None:
+            dt_vec = [self.__t0 + self.dt*i for i in range(len(self))]
+            self.__t = Vector.create(dt_vec)
+        return self.__t
 
     @property
     def ang_velocity(self) -> Union[Vector, None]:
@@ -277,7 +311,7 @@ class Trajectory():
             Copy of the trajectory.
         """
 
-        return Trajectory(points=self.r, t=self.t, ang=self.ang, dt=self.dt,
+        return Trajectory(points=self.r, t=self.__t, ang=self.ang, dt=self.dt,
                           lazy=self.lazy)
 
     def _operable_with(self, other: Trajectory, threshold=None) -> bool:
@@ -288,19 +322,18 @@ class Trajectory():
             return False
 
         self_time = self.t
-        if self_time is None:
-            self_time = np.array([self.dt*i for i in range(len(self))])
-
         other_time = other.t
-        if other_time is None:
-            other_time = np.array([other.dt*i for i in range(len(self))])
 
         diff = np.abs(self_time - other_time)
         return all(diff < threshold)
 
     def __iadd__(self, other):
+        if isinstance(other, (int, float)):
+            self.r += other
+            return self
+
         if isinstance(other, (list, tuple, np.ndarray)):
-            offset = np.array(other)
+            offset = np.array(other, dtype=float)
             if len(offset) != self.dim:
                 raise ValueError('Offset must be the same shape as the other '
                                  'trajectory points')
@@ -317,14 +350,24 @@ class Trajectory():
                         f"'{type(other).__name__}'")
 
     def __isub__(self, other):
+        if isinstance(other, (int, float)):
+            self.r -= other
+            return self
+
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
-            return self + (-1 * offset)
+            if len(offset) != self.dim:
+                raise ValueError('Offset must be the same shape as the other '
+                                 'trajectory points')
+            self.r -= offset
+            return self
+
         if isinstance(other, Trajectory):
             if not self._operable_with(other):
                 raise ValueError('Incompatible trajectories')
             self.r -= other.r
             return self
+
         raise TypeError("unsoported operation (-) between 'Trajectory' and "
                         f"'{type(other).__name__}'")
 
@@ -344,6 +387,22 @@ class Trajectory():
     def __rsub__(self, other):
         return self - other
 
+    def __imul__(self, other):
+        if isinstance(other, (int, float)):
+            self.r *= other
+            return self
+
+        raise TypeError("unsoported operation (*) between 'Trajectory' and "
+                        f"'{type(other).__name__}'")
+
+    def __mul__(self, other):
+        traj = self.copy()
+        traj *= other
+        return traj
+
+    def __rmul__(self, other):
+        return self * other
+
     def _save_json(self, path: str):
         def convert_to_list(vec: Vector):
             if vec is None:
@@ -359,7 +418,7 @@ class Trajectory():
             'dt': self.dt,
             'r': convert_to_list(self.r.T),
             'ang': convert_to_list(ang),
-            't': convert_to_list(self.t)
+            't': convert_to_list(self.__t)
         }
         with open(str(path), 'w') as traj_file:
             json.dump(json_dict, traj_file)
