@@ -1,5 +1,3 @@
-import os
-import numpy as np
 import pytest
 from yupi import Trajectory
 
@@ -82,58 +80,3 @@ def test_creation_general():
     Trajectory(points=[[1, 2], [2, 3]], dt=0.5, ang=[0, 1.2], traj_id='test')
     Trajectory(dimensions=[[1, 2], [2, 3]], dt=0.5, t=[1, 1.5], t0=1,
                traj_id='test')
-
-
-def test_iteration():
-    points = np.array([[1.0, 2.0], [4.0, 3.0]])
-    angs = np.array([0.0, 2.0])
-    time = np.array([0.0, 1.0])
-    t1 = Trajectory(points=points, ang=angs, t=time)
-
-    for i, tp in enumerate(t1):
-        point = points[i]
-        ang = angs[i]
-        t = time[i]
-
-        # Position
-        assert point[0] == tp.r[0]
-        assert point[1] == tp.r[1]
-
-        # Time
-        assert t == tp.t
-
-        # Ang
-        assert ang == tp.ang
-
-
-def test_save():
-    t1 = Trajectory(x=[1,2,3], y=[4,5,6])
-
-    # Wrong trajectory file extension at saving
-    with pytest.raises(ValueError):
-        t1.save('t1', file_type='abc')
-
-    # Saving json
-    t1.save('t1', file_type='json')
-
-    # Saving csv
-    t1.save('t1', file_type='csv')
-    
-
-def test_load():
-    # Wrong trajectory file extension at loading
-    with pytest.raises(ValueError):
-        t1 = Trajectory.load('t1.abc')
-
-    # Loading json
-    t1 = Trajectory.load('t1.json')
-    for tp, point in zip(t1, [[1,4], [2,5], [3,6]]):
-        assert (np.array(point) == tp.r).all()
-
-    # Loading csv
-    t1 = Trajectory.load('t1.csv')
-    for tp, point in zip(t1, [[1,4], [2,5], [3,6]]):
-        assert (np.array(point) == tp.r).all()
-
-    os.remove('t1.json')
-    os.remove('t1.csv')
