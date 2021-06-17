@@ -328,8 +328,11 @@ class Trajectory():
         return all(diff < threshold)
 
     def __iadd__(self, other):
+        if isinstance(other, (int, float)):
+            self.r += other
+
         if isinstance(other, (list, tuple, np.ndarray)):
-            offset = np.array(other)
+            offset = np.array(other, dtype=float)
             if len(offset) != self.dim:
                 raise ValueError('Offset must be the same shape as the other '
                                  'trajectory points')
@@ -346,14 +349,23 @@ class Trajectory():
                         f"'{type(other).__name__}'")
 
     def __isub__(self, other):
+        if isinstance(other, (int, float)):
+            self.r -= other
+
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
-            return self + (-1 * offset)
+            if len(offset) != self.dim:
+                raise ValueError('Offset must be the same shape as the other '
+                                 'trajectory points')
+            self.r -= offset
+            return self
+
         if isinstance(other, Trajectory):
             if not self._operable_with(other):
                 raise ValueError('Incompatible trajectories')
             self.r -= other.r
             return self
+
         raise TypeError("unsoported operation (-) between 'Trajectory' and "
                         f"'{type(other).__name__}'")
 
