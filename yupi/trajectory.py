@@ -330,6 +330,7 @@ class Trajectory():
     def __iadd__(self, other):
         if isinstance(other, (int, float)):
             self.r += other
+            return self
 
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
@@ -351,6 +352,7 @@ class Trajectory():
     def __isub__(self, other):
         if isinstance(other, (int, float)):
             self.r -= other
+            return self
 
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
