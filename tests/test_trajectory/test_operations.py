@@ -47,7 +47,7 @@ def test_iteration(points, angles, traj):
         assert ang == approx(tp.ang, APPROX_REL_TOLERANCE)  # Angle
 
 
-def test_contant_addition(points, traj):
+def test_constant_addition(points, traj):
     new_traj = traj + 10
     new_points = points + 10
 
@@ -77,7 +77,7 @@ def test_wrong_addition(traj):
         traj += 'wrong'
 
 
-def test_contant_substraction(points, traj):
+def test_constant_substraction(points, traj):
     new_traj = traj - 10
     new_points = points - 10
 
@@ -105,3 +105,18 @@ def test_traj_substraction(points, traj):
 def test_wrong_substraction(traj):
     with pytest.raises(TypeError):
         traj -= 'wrong'
+
+
+def test_constant_multiplication(points, traj):
+    new_traj = traj * 3
+    new_points = points * 3
+
+    for true_point, point in zip(new_points, new_traj.r):
+        assert true_point == approx(point, APPROX_REL_TOLERANCE)
+
+
+def test_wrong_multiplication(traj):
+    with pytest.raises(TypeError):
+        traj *= 'wrong'
+    with pytest.raises(TypeError):
+        traj *= [1, 2]
