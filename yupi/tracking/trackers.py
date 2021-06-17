@@ -779,7 +779,7 @@ class TrackingScenario():
             List of all the trajectories extracted in the tracking
             process.
         """
-        if end_in_frame > start_in_frame:
+        if end_in_frame is not None and end_in_frame > start_in_frame:
             self.last_frame = int(end_in_frame)
 
         self._digest_video_path(video_path)
