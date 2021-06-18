@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [0.5.2]  2021-06-18
+
+### Fixed
+
+- Fix trajectory initialization
+
+### Others
+
+- Improve tests
+
 ## [0.5.1] 2021-06-17
 
 ### Added
@@ -14,10 +24,6 @@
 - Fix comparation using threshold
 - Fix a bug on default parameters of trackers
 - Fix logging on algorithms
-
-### Others
-
-- Improve tests
 
 ## [0.4.2] 2021-06-12
 
@@ -61,14 +67,6 @@
 - Fix wrong references in the docs of algorithms
 - Fix a typo in readme
 
-### Others
-
-- Update the api of tracking algorithms
-- Update the readme
-- Update docs trajectory creation methods
-- All tracking algorithms to return an empty mask
-- Set version 0.4.1
-
 ## [0.4.0] 2021-05-7
 
 ### Added
@@ -90,11 +88,6 @@
 ### Removed
 
 - Remove \\\\ from estimate turning angles
-
-### Others
-
-- Specify input arguments
-- Separate vector class
 
 ## [0.3.2] 2021-03-25
 
@@ -203,8 +196,3 @@
 
 ## [0.2.0] 2021-03-04
 
-### Added
-
-- Add loggin
-- Create LICENSE
-- Add color matching algorithms

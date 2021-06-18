@@ -56,6 +56,7 @@ def test_creation_with_time():
     Trajectory(x=[1, 2], y=[2, 3], t=[0, 0.1])
     Trajectory(x=[1, 2], y=[2, 3], dt=0.1)
     Trajectory(x=[1, 2], y=[2, 3], t=[0, 0.1], dt=0.1)
+    Trajectory(x=[1, 2], y=[2, 3], t=[0.4, 0.5])
     Trajectory(x=[1, 2], y=[2, 3], t=[0.4, 0.5], dt=0.1, t0=0.4)
 
     with pytest.raises(ValueError):
