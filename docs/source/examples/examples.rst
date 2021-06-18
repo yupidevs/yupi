@@ -59,6 +59,20 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~tracking.algorithms.BackgroundSubtraction`
           * :py:func:`~tracking.algorithms.TemplateMatching`
           * :py:func:`~tracking.algorithms.OpticalFlow`
+   * - | :doc:`Example 3<example3>`
+       |
+       | Tracking a scaled-size rover wheel moving over the sand. 
+       | The position is subsequently compared to the ideal 
+       | position assuming it does not slip or sink.
+     - * Visualization:
+          * :py:func:`~visualization.plot_trajectories`
+       * Tracking:
+          * :py:func:`~tracking.trackers.ROI`
+          * :py:func:`~tracking.trackers.ObjectTracker`
+          * :py:func:`~tracking.trackers.TrackingScenario`
+          * :py:func:`~tracking.algorithms.ColorMatching`
+          * :py:func:`~tracking.algorithms.TemplateMatching`
+
 
 
 .. toctree::
@@ -68,3 +82,4 @@ In this table you can easily find the examples that better suits you.
    
    example1 
    example2 
+   example3 

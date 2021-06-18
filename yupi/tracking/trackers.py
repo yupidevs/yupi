@@ -726,7 +726,7 @@ class TrackingScenario():
         cv2.destroyAllWindows()
 
     def _tracker2trajectory(self, tracker, pix_per_m):
-        dt = self.fps
+        dt = 1/self.fps
         traj_id = tracker.name
         x, y = map(list, zip(*tracker.history))
         x_arr = np.array(x) / pix_per_m

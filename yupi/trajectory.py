@@ -184,28 +184,45 @@ class Trajectory():
     def __len__(self):
         return self.r.shape[0]
 
-    def __iter__(self):
-        current_time = 0
-        for i in range(len(self)):
+    def __getitem__(self, index):
+        if isinstance(index, int):
             # *dim, *ang, v, t
-            data = [self.r[i], [], None, None]
+            data = [self.r[index], [], None, None]
 
             # Angle
             if self.ang is not None:
-                data[1] = self.ang[i]
+                data[1] = self.ang[index]
 
             # Velocity
-            data[2] = self.v[i - 1] if i > 0 else Vector.create([0]*self.dim)
+            data[2] = self.v[index - 1] if index > 0 else Vector.create([0]*self.dim)
 
             # Time
             if self.__t is not None:
-                data[3] = self.__t[i]
+                data[3] = self.__t[index]
             else:
-                data[3] = current_time
-                current_time += self.dt
+                data[3] = self.__t0 + self.dt * index
 
             r, ang, v, t = data
-            yield TrajectoryPoint(r=r, ang=ang, v=v, t=t)
+            return TrajectoryPoint(r=r, ang=ang, v=v, t=t)
+
+        if isinstance(index, slice):
+            start, stop, step = index.indices(len(self))
+
+            new_points = self.r[start:stop:step]
+            new_ang = None
+            if self.ang is not None:
+                new_ang = self.ang[start:stop:step]
+            if self.uniformly_spaced:
+                new_dt = self.dt * step
+                new_t0 = self.__t0 + start * self.dt
+                return Trajectory(points=new_points, ang=new_ang, dt=new_dt,
+                                  t0=new_t0)
+            new_t = self.t[start:stop:step]
+            return Trajectory(points=new_points, ang=new_ang, t=new_t)
+
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
 
     @property
     def dim(self) -> int:

@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [0.5.3] 2021-06-18
+
+### Added
+
+- Add example 3 to docs
+- Add trajectory slicing
+
+### Fixed
+
+- Fix a bug in time arrays from tracking
+
 ## [0.5.2]  2021-06-18
 
 ### Fixed
