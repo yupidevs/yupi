@@ -30,6 +30,11 @@ def timed_traj(points, angles, time):
     return Trajectory(points=points, ang=angles, t=time)
 
 
+@fixture
+def simple_traj():
+    return Trajectory(x=[0,1], y=[0,1])
+
+
 def test_length(points, traj):
     assert len(traj) == len(points)
 
@@ -55,6 +60,17 @@ def test_iteration(points, angles, traj):
         assert point == approx(tp.r, APPROX_REL_TOLERANCE)  # Position
         assert t == approx(tp.t, APPROX_REL_TOLERANCE)      # Time
         assert ang == approx(tp.ang, APPROX_REL_TOLERANCE)  # Angle
+
+def test_rotation(simple_traj):
+    # 45 degrees
+    ang = np.pi / 4
+
+    # [0, 0] -> [0,       0]
+    # [1, 1] -> [0, sqrt(2)]
+    simple_traj.rotate(ang)
+
+    assert simple_traj.r[0] == approx([0,0], APPROX_REL_TOLERANCE)
+    assert simple_traj.r[1] == approx([0,np.sqrt(2)], APPROX_REL_TOLERANCE)
 
 
 def test_constant_addition(points, traj):
