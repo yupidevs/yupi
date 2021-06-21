@@ -38,7 +38,10 @@ from yupi.analyzing.visualization import (
     plot_angle_distribution,
     plot_kurtosis,
     plot_msd,
-    plot_vacf
+    plot_vacf,
+    LINE,
+    DOTTED,
+    LINE_DOTTED
 )
 
 __all__ = [
@@ -51,6 +54,9 @@ __all__ = [
     'plot_kurtosis',
     'plot_msd',
     'plot_vacf',
+    'LINE',
+    'DOTTED',
+    'LINE_DOTTED',
     'subsample_trajectory',
     'wrap_theta',
     'estimate_turning_angles',
