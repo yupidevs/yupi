@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [0.5.4] 2021-06-21
+
+### Added
+
+- Add rotate function to trajectories
+
+### Others
+
+- Improve the description of example 3
+- Improve plot trajectories function
+
 ## [0.5.3] 2021-06-18
 
 ### Added
@@ -10,16 +21,6 @@
 ### Fixed
 
 - Fix a bug in time arrays from tracking
-
-## [0.5.2]  2021-06-18
-
-### Fixed
-
-- Fix trajectory initialization
-
-### Others
-
-- Improve tests
 
 ## [0.5.1] 2021-06-17
 
