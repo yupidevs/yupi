@@ -7,12 +7,12 @@ APPROX_REL_TOLERANCE = 1e-12
 
 @fixture
 def points():
-    return np.array([[1, 2], [4, 3], [4, 1]], dtype=float)
+    return np.array([[1, 2], [4, 3], [4, 1], [6, 8], [5, 7]], dtype=float)
 
 
 @fixture
 def angles():
-    return np.array([0, 1, 2], dtype=float)
+    return np.array([0, 1, 2, 1, 1.5], dtype=float)
 
 
 @fixture
@@ -20,8 +20,18 @@ def traj(points, angles):
     return Trajectory(points=points, ang=angles)
 
 
-def test_length(traj):
-    assert len(traj) == 3
+@fixture
+def time():
+    return [0, 0.1, 0.18, 0.26, 0.41]
+
+
+@fixture
+def timed_traj(points, angles, time):
+    return Trajectory(points=points, ang=angles, t=time)
+
+
+def test_length(points, traj):
+    assert len(traj) == len(points)
 
 
 def test_copy(traj):
@@ -120,3 +130,50 @@ def test_wrong_multiplication(traj):
         traj *= 'wrong'
     with pytest.raises(TypeError):
         traj *= [1, 2]
+
+
+def test_slicing(traj, timed_traj):
+    slice_1 = timed_traj[:]
+    slice_2 = timed_traj[2:]
+    slice_3 = timed_traj[:-2]
+    slice_4 = timed_traj[1:4]
+    slice_5 = traj[::2]
+    slice_6 = traj[1:4:2]
+
+    # Test lengths
+    assert len(slice_1) == len(timed_traj)
+    assert len(slice_2) == len(timed_traj) - 2
+    assert len(slice_3) == len(timed_traj) - 2
+    assert len(slice_4) == 3
+    assert len(slice_5) == 3
+    assert len(slice_6) == 2
+
+    # Test points
+    assert slice_1.r == approx(timed_traj.r[:], APPROX_REL_TOLERANCE)
+    assert slice_2.r == approx(timed_traj.r[2:], APPROX_REL_TOLERANCE)
+    assert slice_3.r == approx(timed_traj.r[:-2], APPROX_REL_TOLERANCE)
+    assert slice_4.r == approx(timed_traj.r[1:4], APPROX_REL_TOLERANCE)
+    assert slice_5.r == approx(traj.r[::2], APPROX_REL_TOLERANCE)
+    assert slice_6.r == approx(traj.r[1:4:2], APPROX_REL_TOLERANCE)
+
+    # Test time
+    assert slice_1.t == approx(timed_traj.t[:], APPROX_REL_TOLERANCE)
+    assert slice_2.t == approx(timed_traj.t[2:], APPROX_REL_TOLERANCE)
+    assert slice_3.t == approx(timed_traj.t[:-2], APPROX_REL_TOLERANCE)
+    assert slice_4.t == approx(timed_traj.t[1:4], APPROX_REL_TOLERANCE)
+    assert slice_5.t == approx(traj.t[::2], APPROX_REL_TOLERANCE)
+    assert slice_6.t == approx(traj.t[1:4:2], APPROX_REL_TOLERANCE)
+
+    # Test angle
+    assert slice_1.ang == approx(timed_traj.ang[:], APPROX_REL_TOLERANCE)
+    assert slice_2.ang == approx(timed_traj.ang[2:], APPROX_REL_TOLERANCE)
+    assert slice_3.ang == approx(timed_traj.ang[:-2], APPROX_REL_TOLERANCE)
+    assert slice_4.ang == approx(timed_traj.ang[1:4], APPROX_REL_TOLERANCE)
+    assert slice_5.ang == approx(traj.ang[::2], APPROX_REL_TOLERANCE)
+    assert slice_6.ang == approx(traj.ang[1:4:2], APPROX_REL_TOLERANCE)
+
+    # Test dt
+    assert slice_5.dt == approx(traj.dt * 2, APPROX_REL_TOLERANCE)
+    assert slice_6.dt == approx(traj.dt * 2, APPROX_REL_TOLERANCE)
+
+    
