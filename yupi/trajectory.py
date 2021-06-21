@@ -317,6 +317,17 @@ class Trajectory():
         y = rad * np.sin(ang)
         self.r = Vector.create([x,y]).T
 
+    def rotate(self, angle: float):
+        """
+        Rotates the trajectory around the center coordinates [0,0]
+
+        Parameters
+        ----------
+        angle : float
+            Angle in radians to rotate the trajectory.
+        """
+        self.add_polar_offset(0, angle)
+
     def copy(self) -> Trajectory:
         """
         Returns a copy of the trajectory.

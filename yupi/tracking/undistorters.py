@@ -27,9 +27,15 @@ class Undistorter(metaclass=abc.ABCMeta):
     camera_file : str
         Path to the camera calibration file ("camera_file.npz" in the
         above example).
+    turn : bool
+        This parameter is used to rotate 90 degrees the frame, before 
+        undistorting it. It is useful when the input video is rotated respect
+        the orginal orientation used when the camera was calibrated (Not a very
+        frequent use case). The undistorted result will be rotated -90 degrees
+        before returning. By default is False.
     """
 
-    def __init__(self, camera_file):
+    def __init__(self, camera_file, turn=False):
         # Read camera undistort matrix
         npzfile = np.load(camera_file)
 
@@ -39,6 +45,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         self.c_mtx = npzfile['mtx']
         self.c_dist = npzfile['dist']
         self.c_newcameramtx = npzfile['newcameramtx']
+        self.turn = turn
         c_map = cv2.initUndistortRectifyMap(
             cameraMatrix=self.c_mtx,
             distCoeffs=self.c_dist,
@@ -60,8 +67,18 @@ class Undistorter(metaclass=abc.ABCMeta):
         inheriting class.
         """
 
+    # Turn the image if required
+    def _rotate(self, frame, input=True):
+        if self.turn:
+            direction = cv2.ROTATE_90_COUNTERCLOCKWISE
+            if input:
+                direction = cv2.ROTATE_90_CLOCKWISE
+            frame = cv2.rotate(frame, direction)
+        return frame
+
     # Method to be called to fix the distortion
     def fix(self, frame):
+        frame = self._rotate(frame, input=True)
         if self.mask is None:
             self.create_mask(frame)
         corrected = self.undistort(frame)
@@ -78,7 +95,8 @@ class Undistorter(metaclass=abc.ABCMeta):
 
     # Apply the mask to a frame to adjust border colors
     def masked(self, frame):
-        return cv2.bitwise_or(frame, self.mask)
+        frame = cv2.bitwise_or(frame, self.mask)        
+        return  self._rotate(frame, input=False)
 
 
 class ClassicUndistorter(Undistorter):
@@ -90,6 +108,12 @@ class ClassicUndistorter(Undistorter):
     camera_file : str
         Path to the camera calibration file ("camera_file.npz" in the
         above example).
+    turn : bool
+        This parameter is used to rotate 90 degrees the frame, before 
+        undistorting it. It is useful when the input video is rotated respect
+        the orginal orientation used when the camera was calibrated (Not a very
+        frequent use case). The undistorted result will be rotated -90 degrees
+        before returning. By default is False.
     """
 
     def undistort(self, frame):
@@ -121,6 +145,12 @@ class RemapUndistorter(Undistorter):
     camera_file : str
         Path to the camera calibration file ("camera_file.npz" in the
         above example).
+    turn : bool
+        This parameter is used to rotate 90 degrees the frame, before 
+        undistorting it. It is useful when the input video is rotated respect
+        the orginal orientation used when the camera was calibrated (Not a very
+        frequent use case). The undistorted result will be rotated -90 degrees
+        before returning. By default is False.
     """
 
     def undistort(self, frame):

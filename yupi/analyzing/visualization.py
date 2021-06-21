@@ -1,3 +1,4 @@
+import logging
 from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,9 +6,16 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from yupi.trajectory import Trajectory
 
 
+LINE = '-'
+DOTTED = 'o'
+LINE_DOTTED = '-o'
+
 # TODO: Fix this implementation for dim != 2
-def plot_trajectories(trajs: List[Trajectory], max_trajectories=None,
-                      title=None, legend=True, show=True):
+def plot_trajectories(trajs: List[Trajectory], line_style: str = LINE,
+                      max_trajectories: bool = None, title: str = None,
+                      legend: bool = True, show: bool = True,
+                      connected: bool = False, unit: str = None, color = None,
+                      **kwargs):
     """
     Plot all or ``max_trajectories`` trajectories from ```trajs``.
 
@@ -15,6 +23,9 @@ def plot_trajectories(trajs: List[Trajectory], max_trajectories=None,
     ----------
     trajs : List[Trajectory]
         Input trajectories.
+    line_style : str
+        Type of the trajectory line to plot. It uses the matplotlib,
+        notation, by default '-'.
     max_trajectories : int, optional
         Number of trajectories to plot, by default None.
     title : str, optional
@@ -22,11 +33,50 @@ def plot_trajectories(trajs: List[Trajectory], max_trajectories=None,
     legend : bool, optional
         If True, legend is shown. By default True.
     show : bool, optional
-        If Tue, the plot is shown. By default True.
+        If True, the plot is shown. By default True.
+    connected : bool
+        If True, all the trajectory points of same index will be,
+        connected.
+
+        If the trajectories do not have same length then the points
+        will be connected until the shortest trajectory last index.
+    color : str or tuple or list
+        Defines the color of the trajectories, by default None.
+
+        If color is of type ``str`` or ``tuple`` (rgb) then the color
+        is applied to all trajectories. If color is of type ``list``
+        then the trajectories take the color according to the index.
+
+        If there are less colors than trajectories then the remaining
+        trajectories are colored automatically (not with the same
+        color).
     """
 
     if max_trajectories is None:
         max_trajectories = len(trajs)
+
+    unit = '' if unit is None else f' [{unit}]'
+
+    colors = None
+    if color is not None:
+        if isinstance(color, (str, tuple)):
+            kwargs['color'] = color
+        elif isinstance(color, list):
+            colors = color
+
+    if connected:
+        lengths = list(map(len, trajs))
+        min_len = min(lengths)
+        max_len = max(lengths)
+        if min_len != max_len:
+            logging.warning('Not all the trajectories have the same length.')
+        for i in range(min_len):
+            traj_points = [t[i] for t in trajs]
+            traj_points.append(traj_points[0])
+            for tp1, tp2 in zip(traj_points[:-1], traj_points[1:]):
+                xs = [tp1.r[0], tp2.r[0]]
+                ys = [tp1.r[1], tp2.r[1]]
+                plt.plot(xs, ys, color=(0.2, 0.2, 0.2), linewidth=0.5)
 
     for i, t in enumerate(trajs):
         if i == max_trajectories:
@@ -34,7 +84,12 @@ def plot_trajectories(trajs: List[Trajectory], max_trajectories=None,
 
         # Plotting
         x, y = t.r.x, t.r.y
-        traj_plot = plt.plot(x, y, '-')
+        if colors is not None:
+            if i < len(colors):
+                kwargs['color'] = colors[i]
+            else:
+                kwargs.pop('color')
+        traj_plot = plt.plot(x, y, line_style, **kwargs)
         color = traj_plot[-1].get_color()
         plt.plot(x[0], y[0], 'o', mfc='white', zorder=2,
                  label=f'{t.id} initial position', color=color)
@@ -49,8 +104,8 @@ def plot_trajectories(trajs: List[Trajectory], max_trajectories=None,
         plt.tick_params(direction='in')
         plt.axis('equal')
         plt.grid(True)
-        plt.xlabel('x [m]')
-        plt.ylabel('y [m]')
+        plt.xlabel(f'x{unit}')
+        plt.ylabel(f'y{unit}')
 
     if show:
         plt.show()

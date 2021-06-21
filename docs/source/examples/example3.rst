@@ -2,9 +2,11 @@ Example 3
 =========
 
 Tracking a scaled-size rover wheel moving over sand [1]. 
-The position is subsequently compared to the ideal position 
-assuming it does not slip or sink. Code and multimedia 
-resources are available 
+The wheel is forced to move at a fixed angular velocity.
+The actual linear displacement is subsequently computed
+to evaluate how much does it differs from the ideal 
+displacement (a straight line assuming it does not slip 
+or sink). Code and multimedia resources are available 
 `here <https://github.com/yupidevs/yupi_examples/>`_.
 
 The example is structured as follows:
