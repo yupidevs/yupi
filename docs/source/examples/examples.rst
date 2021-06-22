@@ -72,7 +72,18 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~tracking.trackers.TrackingScenario`
           * :py:func:`~tracking.algorithms.ColorMatching`
           * :py:func:`~tracking.algorithms.TemplateMatching`
-
+   * - | :doc:`Example 4<example4>`
+       |
+       | Tracking an intruder while penetrating a granular 
+       | material in a quasi 2D enviroment.
+     - * Visualization:
+          * :py:func:`~visualization.plot_trajectories`
+       * Tracking:
+          * :py:func:`~tracking.trackers.ROI`
+          * :py:func:`~tracking.trackers.ObjectTracker`
+          * :py:func:`~tracking.trackers.TrackingScenario`
+          * :py:func:`~tracking.algorithms.ColorMatching`
+          * :py:func:`~tracking.algorithms.RemapUndistorter`
 
 
 .. toctree::
@@ -83,3 +94,4 @@ In this table you can easily find the examples that better suits you.
    example1 
    example2 
    example3 
+   example4 
