@@ -7,10 +7,10 @@ where an ant moves. Code and multimedia resources are available
 `here <https://github.com/yupidevs/yupi_examples/>`_.
 
 The example is structured as follows:
-1. Setup dependencies
-2. Creation of the tracking objects
-3. Results
-4. References
+ #. Setup dependencies
+ #. Creation of the tracking objects
+ #. Results
+ #. References
 
 
 1. Setup dependencies
