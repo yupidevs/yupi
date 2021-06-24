@@ -68,8 +68,7 @@ def add_dynamic_reference(traj: Trajectory,
     traj.x = x_al
     traj.y = y_al
 
-    return Trajectory(x=x_al, y=y_al, ang=traj.ang, t=traj.t, dt=traj.dt,
-                      traj_id=traj.id)
+    return Trajectory(x=x_al, y=y_al, ang=traj.ang, t=traj.t, traj_id=traj.id)
 
 
 def subsample_trajectory(traj: Trajectory, step=1, step_in_seconds=False):
