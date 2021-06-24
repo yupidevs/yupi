@@ -84,7 +84,20 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~tracking.trackers.TrackingScenario`
           * :py:func:`~tracking.algorithms.ColorMatching`
           * :py:func:`~tracking.algorithms.RemapUndistorter`
-
+   * - | :doc:`Example 5<example5>`
+       |
+       | Simultaneous tracking of an ant and the camera 
+       | capturing its movement with the reconstruction of the 
+       | trajectory of the ant respect its initial position.
+     - * Visualization:
+          * :py:func:`~visualization.plot_trajectories`
+       * Tracking:
+          * :py:func:`~tracking.trackers.ROI`
+          * :py:func:`~tracking.trackers.ObjectTracker`
+          * :py:func:`~tracking.trackers.CameraTracker`
+          * :py:func:`~tracking.trackers.TrackingScenario`
+          * :py:func:`~tracking.algorithms.ColorMatching`
+          * :py:func:`~tracking.algorithms.RemapUndistorter`
 
 .. toctree::
    :maxdepth: 2
@@ -95,3 +108,4 @@ In this table you can easily find the examples that better suits you.
    example2 
    example3 
    example4 
+   example5 
