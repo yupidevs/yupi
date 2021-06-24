@@ -2,18 +2,15 @@ Example 4
 =========
 
 Tracking an intruder while penetrating a granular 
-material in a quasi 2D enviroment.
-`here <https://github.com/yupidevs/yupi_examples/>`_.
+material in a quasi 2D enviroment. Code and multimedia resources are 
+available `here <https://github.com/yupidevs/yupi_examples/>`_.
 
 The example is structured as follows:
-1. Setup dependencies
-2. Tracking tracking objects
-3. Computation of the variables
-4. Results
-5. References
-
-
-
+ #. Setup dependencies
+ #. Tracking tracking objects
+ #. Computation of the variables
+ #. Results
+ #. References
 
 
 

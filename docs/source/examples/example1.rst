@@ -8,11 +8,11 @@ the Langevin theory to explain Brownian Motion (those for Mean
 Square Displacement or Velocity Autocorrelation Function). 
 
 The example is structured as follows:
-1. Setup dependencies
-2. Definition of parameters
-3. Generating trajectories
-4. Data analysis and plotting
-5. References
+ #. Setup dependencies
+ #. Definition of parameters
+ #. Generating trajectories
+ #. Data analysis and plotting
+ #. References
 
 
 1. Setup dependencies
