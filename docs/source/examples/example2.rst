@@ -6,6 +6,13 @@ where the camera is fixed at a constant distance from the plane
 where an ant moves. Code and multimedia resources are available 
 `here <https://github.com/yupidevs/yupi_examples/>`_.
 
+In the work of Frayle-Pérez et. al [1], the authors studied the 
+capabilities of different image processing algorithms that can be 
+used for image segmentation and tracking of the motion of insects 
+under controlled environments. In this example, we are going to 
+illustrate a comparison of a subset of these algorithms and evaluate 
+them using one of the videos from the original paper.
+
 The example is structured as follows:
  #. Setup dependencies
  #. Creation of the tracking objects
@@ -39,7 +46,7 @@ Set up the path to multimedia resources:
 -----------------------------------
 
 First, we create an empty list to add all the trackers. Each tracker is 
-associated with a tracking algorithm so we can evualuate the differences in 
+associated with a tracking algorithm so we can evaluate the differences in 
 the tracking process performed by each algorithm.
 
 .. code-block:: python
@@ -65,9 +72,9 @@ tracked object.
    trackers.append( ObjectTracker('frame_diff', algorithm, ROI((50, 50))) )
 
 BackgroundSubtraction algorithm requires a picture that contains only the 
-background of the scene. However, if don't have one, you can estimate it from a
-video using a BackgroundEstimator. Then, you can specify the 
-background_threshold that indicates the the minumum difference in pixel 
+background of the scene. However, if there is none available, it is possible 
+to can estimate it from a video using a BackgroundEstimator. Then, we specify the 
+background_threshold that indicates the the minimum difference in pixel 
 intensity among a frame and the background to be considered part of the 
 moving object.
 
@@ -89,9 +96,9 @@ and the region of the frame is maximum.
    trackers.append( ObjectTracker('temp_match', algorithm, ROI((50, 50))) )
 
 OpticalFlow algorithm computes a dense optical flow among the current frame and
-the i-th previous frame, specified by the parameter buffer_size. If the magnitud
-of the flow is over a certain threshold it will be considered as part of the
-moving object.
+the i-th previous frame, specified by the parameter buffer_size. If the 
+magnitude of the flow is over a certain threshold it will be considered as part 
+of the moving object.
 
 .. code-block:: python
 
@@ -101,35 +108,38 @@ moving object.
 3. Results
 ----------
 
-Create a Tracking Scenario with all the trackers.
+Once all the trackers are collected in a list, we can create a TrackingScenario: 
 
 
 .. code-block:: python
 
    scenario = TrackingScenario(trackers)
 
-Track the video using the preconfigured scenario. We should notice that we will
-have to initialize the Region-of-Interest (ROI) of each tracker manually. See 
-the API reference for different initialization methods of ROIs.
-
+and track the video using the configured scenario. The track method will process 
+the video pointed by video_path, using the additional settings we passed. In this 
+case we are forcing to start in frame 120 and use a scale factor of 1020 pixels per 
+meter. We should notice that we will have to initialize the Region-of-Interest (ROI) 
+of each tracker manually, unless we stated it different while creating each of the 
+ROI instances of the trackers.
 
 .. code-block:: python
 
    retval, tl = scenario.track(video_path, pix_per_m=1024, start_in_frame=120)
 
-.. figure:: /images/example2.png
-   :alt: Output of example2
-   :align: center
 
 After the tracking process finishes we will have a list of Trajectory objects
-in the var tl. We can plot them together to evualuate the consistency of all
+in the var tl. We can plot them together to evaluate the consistency of all
 methods.
 
 .. code-block:: python
 
    plot_trajectories(tl)
 
-We can notice the estimated trajectories are very consistent among eachother 
+.. figure:: /images/example2.png
+   :alt: Output of example2
+   :align: center
+
+We can notice the estimated trajectories are very consistent among each other 
 despite the difference on the tracking methods. It is also important to realize
 that the differences in the very last part of the track are due the escape of 
 the object being tracked from the scene. In those cases, each method do its 
