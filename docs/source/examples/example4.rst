@@ -5,6 +5,21 @@ Tracking an intruder while penetrating a granular
 material in a quasi 2D enviroment. Code and multimedia resources are 
 available `here <https://github.com/yupidevs/yupi_examples/>`_.
 
+The work carried out in [1] studied 
+penetration of an intruder inside a granular material, 
+focusing in the influence of a wall for the trajectory 
+of the intruder. The authors tested different configurations 
+and observed specific phenomenons during the penetration 
+process (i.e. repulsion and rotation), enabling the 
+quantification of those phenomenons and its dependence 
+with the initial distance of the intruder from the wall.
+
+In this example, we provide a script that extracts the 
+trajectory of the intruder from one of the videos used 
+to produce the results of the original paper. Moreover, 
+we include details to generate a plot that looks like the 
+one presented in the paper.
+
 The example is structured as follows:
  #. Setup dependencies
  #. Tracking tracking objects
@@ -45,6 +60,10 @@ caused by the camera lens.
 
    undistorter = RemapUndistorter(camera_file)
 
+The variable camera\_file contains the path to a .npz file with the 
+matrix of calibration for the specific camera configuration, more details 
+on how to produce it can be found `in here 
+<https://yupi.readthedocs.io/en/latest/api_reference/tracking/undistorters.html>`_.
 
 Then, we initialize two trackers, one for each marker of the intruder:
 
@@ -57,14 +76,15 @@ Then, we initialize two trackers, one for each marker of the intruder:
    magenta = ObjectTracker('magenta marker', algorithm2,  ROI((30, 50)))
 
 
-Create a Tracking Scenario with all the trackers.
+And this time, we will create the TrackingScenario with the trackers and 
+also the Undistorter.
 
 .. code-block:: python
 
    scenario = TrackingScenario([cyan, magenta], 
                             undistorter=undistorter)
 
-Then, we track the video using the preconfigured scenario. We should notice 
+Then, we track the video using the configured scenario. We should notice 
 that we will have to initialize the Region-of-Interest (ROI) of each tracker 
 manually. See the API reference for different initialization methods of ROIs.
 
@@ -80,16 +100,14 @@ manually. See the API reference for different initialization methods of ROIs.
 3. Computation of the variables
 -------------------------------
 
-We can improve the standard plot, by making some transformation to the tracked
-trajectories. 
-
-First, we can rotate them 90 degrees to better illustrate the effect of 
-gravity:
+We can improve the visualization, by making some transformation to the tracked
+trajectories. First, we can rotate them 90 degrees to better illustrate the 
+effect of gravity:
 
 .. code-block:: python
 
-   tl[0].add_polar_offset(0, - pi / 2)
-   tl[1].add_polar_offset(0, - pi / 2)
+   tl[0].rotate(- pi / 2)
+   tl[1].rotate(- pi / 2)
 
 
 Next, we update the system of reference to place it in the initial position of
