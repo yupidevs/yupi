@@ -184,7 +184,7 @@ class LangevinGenerator(Generator):
         # Shape of the dynamic variables
         self.shape = (self.n, dim, N)
         # Time array
-        self.t = np.linspace(0, T, num=self.n)
+        self.t = np.linspace(0, T, num=self.n, endpoint=False)
         # Position array
         self.r = np.empty(self.shape)
         # Velocity array
