@@ -1,4 +1,5 @@
 import abc
+from typing import Callable, Tuple
 import numpy as np
 from yupi import Trajectory
 
@@ -54,7 +55,6 @@ class LatticeRandomWalkGenerator(Generator):
     """
     Multidimensional Lattice Random Walk Generator.
 
-
     Parameters
     ----------
     T : float
@@ -67,18 +67,23 @@ class LatticeRandomWalkGenerator(Generator):
         Time step of the Trajectory, by default 1.0.
     actions_prob : np.ndarray, optional
         Probability of each action (i.e., decrease, stead or increase)
-        to be taken, according to every axis. If this parameter is not 
-        passed the walker will assume uniform probability for each action, 
-        by default None.
-    step_length : np.ndarray, optional
-        Distribution of step lengths that will be taken by the walker on each
-        timestep, dimension and instance of a trajectory. Expected
-        shape of this parameter is (int(T/dt)-1, dim, N), by default None.
+        to be taken, according to every axis. If this parameter is not
+        passed the walker will assume uniform probability for each
+        action, by default None.
+    step_length_func : Callable[[Tuple], np.ndarray], optional
+        Function that returns the distribution of step lengths that
+        will be taken by the walker on each timestep, dimension and
+        instance of a trajectory. Expected shape of the return value is
+        (int(T/dt)-1, dim, N), by default np.ones.
+    step_length_kwargs : dict, optional
+        Key-word arguments of the ``step_length_func``, by default
+        ``{}``.
     """
 
     def __init__(self, T: float, dim: int = 1, N: int = 1, dt: float = 1,
                  actions_prob: np.ndarray = None,
-                 step_length: np.ndarray = None):
+                 step_length_func: Callable[[Tuple], np.ndarray] = np.ones,
+                 step_length_kwargs: dict = {}):
 
         super().__init__(T, dim, N, dt)
 
@@ -87,26 +92,20 @@ class LatticeRandomWalkGenerator(Generator):
         self.r = np.zeros((self.n, dim, N))  # Position array
 
         # Model parameters
-
-        # TODO: Check that the model parameters received have the
-        # expected shape
-
         actions = np.array([-1,0,1])
-
 
         if actions_prob is None:
             actions_prob = np.tile([1/3, 1/3, 1/3], (dim, 1))
- 
+
         actions_prob = np.asarray(actions_prob, dtype=np.float32)
 
         if actions_prob.shape[0] != dim:
             raise ValueError('actions_prob must have shape like (dims, 3)')
-        elif actions_prob.shape[1] != actions.shape[0]:
+        if actions_prob.shape[1] != actions.shape[0]:
             raise ValueError('actions_prob must have shape like (dims, 3)')
 
-
-        if step_length is None:
-            step_length = np.ones((self.n - 1, dim, N))
+        shape_tuple = (self.n - 1, dim, N)
+        step_length = step_length_func(shape_tuple, **step_length_kwargs)
 
         self.actions = actions
         self.actions_prob = actions_prob
