@@ -65,19 +65,20 @@ class LatticeRandomWalkGenerator(Generator):
         Number of trajectories, by default 1.
     dt : float, optional
         Time step of the Trajectory, by default 1.0.
-    actions : np.ndarray, optional
-        Vector of actions the walker can take, by default None.
     actions_prob : np.ndarray, optional
-        Probability of every action to be taken according to
-        every axis, by default None.
-    jump_len : np.ndarray, optional
-        Length of every single jump of the walker, by default None.
+        Probability of each action (i.e., decrease, stead or increase)
+        to be taken, according to every axis. If this parameter is not 
+        passed the walker will assume uniform probability for each action, 
+        by default None.
+    step_length : np.ndarray, optional
+        Distribution of step lengths that will be taken by the walker on each
+        timestep, dimension and instance of a trajectory. Expected
+        shape of this parameter is (int(T/dt)-1, dim, N), by default None.
     """
 
     def __init__(self, T: float, dim: int = 1, N: int = 1, dt: float = 1,
-                 actions: np.ndarray = None,
                  actions_prob: np.ndarray = None,
-                 jump_len: np.ndarray = None):
+                 step_length: np.ndarray = None):
 
         super().__init__(T, dim, N, dt)
 
@@ -86,20 +87,30 @@ class LatticeRandomWalkGenerator(Generator):
         self.r = np.zeros((self.n, dim, N))  # Position array
 
         # Model parameters
-        # Only right/left jumps, uniform probabilities for it
-        # And equal length for all jumps are set as default
+
         # TODO: Check that the model parameters received have the
         # expected shape
-        if actions is None:
-            actions = np.array([1, -1])
+
+        actions = np.array([-1,0,1])
+
+
         if actions_prob is None:
-            actions_prob = np.tile([.5, .5], (dim, 1))
-        if jump_len is None:
-            jump_len = np.ones((dim, N))
+            actions_prob = np.tile([1/3, 1/3, 1/3], (dim, 1))
+ 
+        actions_prob = np.asarray(actions_prob, dtype=np.float32)
+
+        if actions_prob.shape[0] != dim:
+            raise ValueError('actions_prob must have shape like (dims, 3)')
+        elif actions_prob.shape[1] != actions.shape[0]:
+            raise ValueError('actions_prob must have shape like (dims, 3)')
+
+
+        if step_length is None:
+            step_length = np.ones((self.n - 1, dim, N))
 
         self.actions = actions
         self.actions_prob = actions_prob
-        self.jump_len = jump_len
+        self.step_length = step_length
 
     # Compute vector position as a function of time for
     # All the walkers of the ensemble
@@ -113,7 +124,7 @@ class LatticeRandomWalkGenerator(Generator):
         dr = np.swapaxes(dr, 0, 1)
 
         # Scale displacements according to the jump length statistics
-        dr = dr * self.jump_len
+        dr = dr * self.step_length
 
         # Integrate displacements to get position vectors
         self.r[1:] = np.cumsum(dr, axis=0)
@@ -247,3 +258,25 @@ class LangevinGenerator(Generator):
             trajs.append(Trajectory(points=points, dt=self.dt, t=self.t,
                                     traj_id=f"LangevinSolution {i + 1}"))
         return trajs
+
+
+if __name__ == '__main__':
+
+    from yupi.analyzing import plot_trajectories
+        
+    # set parameter values
+    T = 500     # total time (number of time steps if dt==1)
+    dim = 2     # dimension of the walker trajectories
+    N = 3       # number of random walkers
+    dt = 1      # time step
+
+
+    # probability of every action to be taken
+    # according to every axis
+    prob = [[.5, .1, .4],  # x-axis
+            [.5, 0, .5]]   # y-axis
+
+    # get RandomWalk object and get position vectors
+    rw = LatticeRandomWalkGenerator(T, dim, N, dt, prob)
+    tr = rw.generate()
+    plot_trajectories(tr)
