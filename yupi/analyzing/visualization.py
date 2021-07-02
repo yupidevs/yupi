@@ -14,7 +14,7 @@ LINE_DOTTED = '-o'
 def plot_trajectories(trajs: List[Trajectory], line_style: str = LINE,
                       max_trajectories: bool = None, title: str = None,
                       legend: bool = True, show: bool = True,
-                      connected: bool = False, unit: str = None, color = None,
+                      connected: bool = False, unit: str = 'm', color = None,
                       **kwargs):
     """
     Plot all or ``max_trajectories`` trajectories from ```trajs``.

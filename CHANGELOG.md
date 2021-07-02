@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## [0.5.6] 2021-07-02
+
+### Added
+
+- Add example 5 to docs
+
+### Fixed
+
+- Fix langevin generator time array
+- Fix default unit on trajectory plots
+- Change lattice generator step_length parameter
+- Fix trajectory threshold
+
+### Others
+
+- Refactor example 2
+- Refactor example 3
+- Refactor example 4
+- Refactor example 5
+- Better explain latticerandom walker
+
+## [0.5.5] 2021-06-24
+
+### Added
+
+- Add example 4 in docs
+
+### Fixed
+
+- Fix unconsistent trajectory creation
+- Fix list of contents in examples
+
+### Others
+
+- Update a reference in example 4 in docs
+
 ## [0.5.4] 2021-06-21
 
 ### Added
@@ -205,6 +241,3 @@
 
 - Fix multiple trajectories plot
 - Fix roi manual selection
-
-## [0.2.0] 2021-03-04
-
