@@ -90,7 +90,7 @@ manually. See the API reference for different initialization methods of ROIs.
 
 .. code-block:: python
 
-   retval, tl = scenario.track(video_path, pix_per_m=2826, start_in_frame=200)
+   retval, tl = scenario.track(video_path, pix_per_m=2826, start_frame=200)
    plot_trajectories(tl)
 
 .. figure:: /images/example4-1.png
