@@ -12,12 +12,11 @@ LINE_DOTTED = '-o'
 
 # TODO: Fix this implementation for dim != 2
 def plot_trajectories(trajs: List[Trajectory], line_style: str = LINE,
-                      max_trajectories: bool = None, title: str = None,
-                      legend: bool = True, show: bool = True,
-                      connected: bool = False, unit: str = 'm', color = None,
-                      **kwargs):
+                      title: str = None, legend: bool = True,
+                      show: bool = True, connected: bool = False,
+                      unit: str = 'm', color = None, **kwargs):
     """
-    Plot all or ``max_trajectories`` trajectories from ```trajs``.
+    Plot trajectories from ```trajs``.
 
     Parameters
     ----------
@@ -26,8 +25,6 @@ def plot_trajectories(trajs: List[Trajectory], line_style: str = LINE,
     line_style : str
         Type of the trajectory line to plot. It uses the matplotlib,
         notation, by default '-'.
-    max_trajectories : int, optional
-        Number of trajectories to plot, by default None.
     title : str, optional
         Title of the plot, by default None.
     legend : bool, optional
@@ -51,9 +48,6 @@ def plot_trajectories(trajs: List[Trajectory], line_style: str = LINE,
         trajectories are colored automatically (not with the same
         color).
     """
-
-    if max_trajectories is None:
-        max_trajectories = len(trajs)
 
     unit = '' if unit is None else f' [{unit}]'
 
@@ -79,8 +73,6 @@ def plot_trajectories(trajs: List[Trajectory], line_style: str = LINE,
                 plt.plot(xs, ys, color=(0.2, 0.2, 0.2), linewidth=0.5)
 
     for i, t in enumerate(trajs):
-        if i == max_trajectories:
-            break
 
         # Plotting
         x, y = t.r.x, t.r.y
