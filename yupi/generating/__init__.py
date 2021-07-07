@@ -8,12 +8,12 @@ from ``yupi.generating``.
 
 from yupi.generating.generators import (
     Generator,
-    LatticeRandomWalkGenerator,
+    RandomWalkGenerator,
     LangevinGenerator
 )
 
 __all__ = [
     'Generator',
-    'LatticeRandomWalkGenerator',
+    'RandomWalkGenerator',
     'LangevinGenerator'
 ]
