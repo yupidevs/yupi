@@ -104,7 +104,7 @@ manually. See the API reference for different initialization methods of ROIs.
 
 .. code-block:: python
 
-   retval, tl = scenario.track(video_path, pix_per_m=4441, start_in_frame=10, end_in_frame=200)
+   retval, tl = scenario.track(video_path, pix_per_m=4441, start_frame=10, end_frame=200)
 
 
 
