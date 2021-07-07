@@ -51,9 +51,9 @@ class Generator(metaclass=abc.ABCMeta):
         """
 
 
-class LatticeRandomWalkGenerator(Generator):
+class RandomWalkGenerator(Generator):
     """
-    Multidimensional Lattice Random Walk Generator.
+    Multidimensional Random Walk Generator.
 
     Parameters
     ----------
@@ -276,6 +276,6 @@ if __name__ == '__main__':
             [.5, 0, .5]]   # y-axis
 
     # get RandomWalk object and get position vectors
-    rw = LatticeRandomWalkGenerator(T, dim, N, dt, prob)
+    rw = RandomWalkGenerator(T, dim, N, dt, prob)
     tr = rw.generate()
     plot_trajectories(tr)

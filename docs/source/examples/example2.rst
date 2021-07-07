@@ -124,7 +124,7 @@ ROI instances of the trackers.
 
 .. code-block:: python
 
-   retval, tl = scenario.track(video_path, pix_per_m=1024, start_in_frame=120)
+   retval, tl = scenario.track(video_path, pix_per_m=1024, start_frame=120)
 
 
 After the tracking process finishes we will have a list of Trajectory objects

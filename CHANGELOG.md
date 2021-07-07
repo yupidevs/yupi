@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [0.5.7] 2021-07-06
+
+### Fixed
+
+- Change `start_in_frame` and `end_in_frame`
+- Change `latticerandomwalk` to `randomwalk`
+
+### Removed
+
+- Remove `max_trajectories` param from plots
+
 ## [0.5.6] 2021-07-02
 
 ### Added
@@ -13,14 +24,6 @@
 - Change lattice generator step_length parameter
 - Fix trajectory threshold
 
-### Others
-
-- Refactor example 2
-- Refactor example 3
-- Refactor example 4
-- Refactor example 5
-- Better explain latticerandom walker
-
 ## [0.5.5] 2021-06-24
 
 ### Added
@@ -32,20 +35,11 @@
 - Fix unconsistent trajectory creation
 - Fix list of contents in examples
 
-### Others
-
-- Update a reference in example 4 in docs
-
 ## [0.5.4] 2021-06-21
 
 ### Added
 
 - Add rotate function to trajectories
-
-### Others
-
-- Improve the description of example 3
-- Improve plot trajectories function
 
 ## [0.5.3] 2021-06-18
 
@@ -237,7 +231,3 @@
 
 - Add scale to tracking scenario
 
-### Fixed
-
-- Fix multiple trajectories plot
-- Fix roi manual selection

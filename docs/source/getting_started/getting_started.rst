@@ -66,7 +66,7 @@ If you want to generate :py:class:`~yupi.Trajectory` objects based on some stati
 
 .. code-block:: python
 
-   from yupi.generating import LatticeRandomWalkGenerator
+   from yupi.generating import RandomWalkGenerator
 
    # Set parameter values
    T = 500     # Total time (number of time steps if dt==1)
@@ -80,7 +80,7 @@ If you want to generate :py:class:`~yupi.Trajectory` objects based on some stati
            [.5,  0, .5]]   # y-axis
 
    # Get RandomWalk object and get position vectors
-   rw = LatticeRandomWalkGenerator(T, dim, N, dt, prob)
+   rw = RandomWalkGenerator(T, dim, N, dt, prob)
    tr = rw.generate()
 
 
