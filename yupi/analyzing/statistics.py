@@ -540,3 +540,42 @@ def estimate_kurtosis(trajs: List[Trajectory], time_avg=True, lag=None):
     kurt_mean = np.mean(kurt, axis=1)
     kurt_std = np.std(kurt, axis=1)
     return kurt_mean, kurt_std
+
+
+@_check_same_dt
+@_check_uniform_time_spaced
+def estimate_psd(trajs: List(Trajectory), lag: int, omega=False):
+    """
+    Estimate the power spectral density of a list of Trajectory object 
+    as the Fourier transform of its velocity autocorrelation function.
+
+    Parameters
+    ----------
+    trajs : List[Trajectory]
+        Input list of trajectories.
+    lag : int
+        Number of steps that multiplied by ``dt`` defines the lag
+        time.
+    omega: bool
+        If True, return (psd, omega), where omega is the array of 
+        angular frequencies. Otherwise, just the power spectrum is 
+        returned. By default False.
+
+    Returns
+    -------
+    np.ndarray
+        Power spectral density.
+    """
+
+    vacf = estimate_vacf_time(trajs, lag)
+    ft = np.fft.fft(vacf, axis=0)
+    ft = np.fft.fftshift(ft)
+    ft_abs = np.abs(ft)
+    ft_mean = np.mean(ft_abs, axis=1)
+
+    if not omega:
+        return ft_mean
+    
+    omega_ = 2*np.pi * np.fft.fftfreq(lag, trajs[0].dt)
+    omega_ = np.fft.fftshift(omega_)
+    return ft_mean, omega_
