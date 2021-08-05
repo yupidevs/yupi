@@ -1,9 +1,13 @@
 Converting your data into Trajectory objects
 --------------------------------------------
 
-Yupi stores the data using an efficient internal representation based on Numpy arrays. If you already have some trajectory data, convert it to a yupi :py:class:`~yupi.Trajectory` can be done by creating an instance of the class using the expected parameters. All of the examples that we will show create the same trajectory but in a diferent way.
+Yupi stores data using an efficient internal representation based on Numpy arrays. If you already have some trajectory data, convert it is possible to convert it into a yupi :py:class:`~yupi.Trajectory`. Next, we show how to create the same trajectory in different ways.
 
-One of the ways to create a :py:class:`~yupi.Trajectory` is assigning each axis data directly:
+
+Creating trajectories with x, y and z information
+=================================================
+
+When the data belongs to trajectories of dimensions within 1 and 3, it is possible to create a :py:class:`~yupi.Trajectory` by assigning each axis data directly:
 
 .. code-block:: python
 
@@ -14,7 +18,13 @@ One of the ways to create a :py:class:`~yupi.Trajectory` is assigning each axis 
 
    track = Trajectory(x=x, y=y, traj_id="Spiral")
 
-On the other hand, if you have all the axis information in a single variable you don't need to extract each axis. The following example shows how to proceed in this case:
+For the three-dimensional case, you can pass a variable **z** to the constructor. If the trajectory has more than 4 dimensions, check the next way of creating the object.
+
+
+Creating trajectories with independent axis information
+=======================================================
+
+An extension to the previous case, that can be useful for Trajectories of higher dimensions, is to provide all the axis information in a single variable. The following example shows how to proceed in this case:
 
 .. code-block:: python
 
@@ -27,9 +37,11 @@ On the other hand, if you have all the axis information in a single variable you
 
    track = Trajectory(dimensions=dims, traj_id="Spiral")
 
-This way its not only more clean but allows the creation of trajectories with more than 3 dimensions.
 
-There is also a third way of convert your data into a :py:class:`~yupi.Trajectory` and it is by giving a list of points:
+Creating trajectories with independent samples
+==============================================
+
+There is also a third way of convert your data into a :py:class:`~yupi.Trajectory`. It requires to pass a list of d-dimensional data points:
 
 .. code-block:: python
 
@@ -41,3 +53,10 @@ There is also a third way of convert your data into a :py:class:`~yupi.Trajector
 
    track = Trajectory(points=points, traj_id="Spiral")
 
+
+Note that the dimension of each point must be equal, and it will define the dimension of the trajectory.
+
+A brief comment on time
+=======================
+
+By default, the data will be assumed to be uniformly sampled in time, at a sampling time of 1. If you have the corresponding sequence of time data, you can pass it to the constructor using **t** parameter. Alternatively, if the data is uniformly sampled, you can only pass the value of **dt**.
