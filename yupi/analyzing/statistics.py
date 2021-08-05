@@ -488,7 +488,7 @@ def estimate_kurtosis(trajs: List[Trajectory], time_avg=True, lag=None):
 
 @_check_same_dt
 @_check_uniform_time_spaced
-def estimate_psd(trajs: List(Trajectory), lag: int, omega=False):
+def estimate_psd(trajs: List[Trajectory], lag: int, omega=False):
     """
     Estimate the power spectral density of a list of Trajectory object 
     as the Fourier transform of its velocity autocorrelation function.
