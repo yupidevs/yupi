@@ -1,12 +1,12 @@
 from typing import List
 import scipy.stats
 import numpy as np
-from yupi.trajectory import Trajectory
+from yupi.trajectory import Trajectory, _threshold
 from yupi.analyzing import turning_angles, subsample_trajectory
 
 
 def estimate_turning_angles(trajs: List[Trajectory], accumulate=False,
-                            degrees=False, centered=False):
+                            degrees=False, centered=False, wrap=True):
     """Return a concatenation of all the turning angles that forms
     a set of trajectories.
 
@@ -35,7 +35,17 @@ def estimate_turning_angles(trajs: List[Trajectory], accumulate=False,
         objects.
     """
 
-    theta = [turning_angles(t, accumulate, degrees, centered) for t in trajs]
+    if not trajs:
+        raise ValueError('Empty collection of trajectories')
+
+    if any((abs(t.dt_std - 0) > _threshold for t in trajs)):
+        raise ValueError('All trajectories must be uniformly time spaced')
+
+    dt = trajs[0].dt
+    if any((abs(t.dt - dt) > _threshold for t in trajs)):
+        raise ValueError("All trajectories must have the same 'dt'")
+
+    theta = [turning_angles(t, accumulate, degrees, centered, wrap) for t in trajs]
     return np.concatenate(theta)
 
 
