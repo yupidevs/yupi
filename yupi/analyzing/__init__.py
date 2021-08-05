@@ -44,6 +44,10 @@ from yupi.analyzing.visualization import (
     LINE_DOTTED
 )
 
+from yupi.analyzing.filters import (
+    expo_convolution
+)
+
 __all__ = [
     'turning_angles',
     'add_dynamic_reference',
@@ -69,5 +73,6 @@ __all__ = [
     'estimate_vacf',
     'estimate_kurtosis_ensemble',
     'estimate_kurtosis_time',
-    'estimate_kurtosis'
+    'estimate_kurtosis',
+    'expo_convolution'
 ]
