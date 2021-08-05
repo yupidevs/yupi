@@ -73,7 +73,7 @@ tracked object.
 
 BackgroundSubtraction algorithm requires a picture that contains only the 
 background of the scene. However, if there is none available, it is possible 
-to can estimate it from a video using a BackgroundEstimator. Then, we specify the 
+to estimate it from a video using a BackgroundEstimator. Then, we specify the 
 background_threshold that indicates the the minimum difference in pixel 
 intensity among a frame and the background to be considered part of the 
 moving object.
