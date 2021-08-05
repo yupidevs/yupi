@@ -1,5 +1,5 @@
 Examples
-========
+--------
 
 In addition to this section, you can find a 
 `dedicated GitHub repository <https://github.com/yupidevs/yupi_examples/>`_
@@ -9,11 +9,8 @@ results shown in this section.
 
 Examples are designed to illustrate a complex integration of yupi tools in 
 order to reproduce the results of an existing (or yet to come) scientific paper. 
-Before start with the examples make sure you have already read our :doc:`Getting 
-Started<../getting_started/getting_started>` section.
+Before start with the examples make sure you have already reviewed the tutorials.
 
-Description of current examples
--------------------------------
 
 In this table you can easily find the examples that better suits you.
 
@@ -101,7 +98,7 @@ In this table you can easily find the examples that better suits you.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Advanced Resources
    :hidden:
    
    example1 
