@@ -128,7 +128,6 @@ def estimate_velocity_samples(trajs: List[Trajectory], step: int = 1):
 
 
 @_check_same_t
-@_check_same_lenght
 def estimate_msd_ensemble(trajs: List[Trajectory]):
     """
     Compute the square displacements for every Trajectory object
@@ -411,7 +410,7 @@ def _estimate_kurtosis(arr):
         m2 = np.mean(arr_zm**2)
         m4 = np.mean(arr_zm**4)
 
-        # Compute kurtosis for those cases in which the 
+        # Compute kurtosis for those cases in which the
         # second moment is different from zero
         if m2 == 0:
             return 0
@@ -419,7 +418,7 @@ def _estimate_kurtosis(arr):
         return kurtosis
 
     # MULTIDIMENSIONAL CASE
-    # arr should have shape (dim, trials) 
+    # arr should have shape (dim, trials)
     # (i.e., a horizontal sequence of column vectors)
 
     # Subtract the mean position
@@ -431,17 +430,17 @@ def _estimate_kurtosis(arr):
     except np.linalg.LinAlgError:
         # Exception for the case of singular matrices
         return 0
-    
+
     # Kurtosis definition for multivariate r.v.'s
     k = np.sum(arr_zm * (cov_inv @ arr_zm), axis=0)
     kurtosis = np.mean(k**2)
 
     return kurtosis
 
-
+@_check_same_t
 def estimate_kurtosis_ensemble(trajs: List[Trajectory]):
-    """Estimate kurtosis as a function of time of the 
-    list of Trajectory objects, ``trajs``. The average 
+    """Estimate kurtosis as a function of time of the
+    list of Trajectory objects, ``trajs``. The average
     is perform over the ensemble of realizations.
 
     Parameters
@@ -467,6 +466,8 @@ def estimate_kurtosis_ensemble(trajs: List[Trajectory]):
     return np.array(kurtosis)
 
 
+@_check_same_dt
+@_check_uniform_time_spaced
 def estimate_kurtosis_time(trajs: List[Trajectory], lag):
     """
     Estimate the kurtosis for every Trajectory object stored 
@@ -502,10 +503,11 @@ def estimate_kurtosis_time(trajs: List[Trajectory], lag):
     return kurtosis
 
 
+@_check_same_dim
 def estimate_kurtosis(trajs: List[Trajectory], time_avg=True, lag=None):
     """
-    Estimate the kurtosis of the list of Trajectory objects, ``trajs``, 
-    providing the options of averaging over the ensemble of realizations 
+    Estimate the kurtosis of the list of Trajectory objects, ``trajs``,
+    providing the options of averaging over the ensemble of realizations
     or over time.
 
     Parameters
@@ -513,8 +515,8 @@ def estimate_kurtosis(trajs: List[Trajectory], time_avg=True, lag=None):
     trajs : List[Trajectory]
         Input list of trajectories.
     time_avg : bool, optional
-        If True, kurtosis is estimated averaging over time. Otherwise, 
-        an ensemble average will be performed and all Trajectory objects 
+        If True, kurtosis is estimated averaging over time. Otherwise,
+        an ensemble average will be performed and all Trajectory objects
         will have to have the same length. By default True.
     lag : int, optional
         If None, ``time_avg`` should be set to ``False`` indicating
@@ -533,7 +535,7 @@ def estimate_kurtosis(trajs: List[Trajectory], time_avg=True, lag=None):
     if not time_avg:
         kurt = estimate_kurtosis_ensemble(trajs)
         return kurt
-    
+
     kurt = estimate_kurtosis_time(trajs, lag)
     kurt_mean = np.mean(kurt, axis=1)
     kurt_std = np.std(kurt, axis=1)
