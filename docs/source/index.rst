@@ -30,6 +30,7 @@ Standing for Yet Underused Path Instruments, **yupi** is a set of tools designed
    Converting data into Trajectory objects <tutorials/converting>
    tutorials/generating
    tutorials/tracking
+   tutorials/operations
    tutorials/storing
    tutorials/analyzing
 
