@@ -4,7 +4,7 @@ from yupi.analyzing.transformations import wrap_theta
 
 
 def turning_angles(traj: Trajectory, accumulate=False, degrees=False,
-                   centered=False):
+                   centered=False, wrap=True):
     """
     Return the sequence of turning angles that forms the trajectory.
 
@@ -40,6 +40,11 @@ def turning_angles(traj: Trajectory, accumulate=False, degrees=False,
     if not accumulate:
         theta = np.ediff1d(theta)  # Relative turning angles
     else:
-        theta -= theta[0]          # Rumulative turning angles
+        theta -= theta[0]          # Accumulative turning angles
 
-    return wrap_theta(theta, degrees, centered)
+    if degrees:
+        theta = np.rad2deg(theta)
+
+    if wrap:
+        return wrap_theta(theta, degrees, centered)
+    return theta

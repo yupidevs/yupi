@@ -7,11 +7,11 @@ where an ant moves. Code and multimedia resources are available
 `here <https://github.com/yupidevs/yupi_examples/>`_.
 
 In the work of Frayle-Pérez et. al [1], the authors studied the 
-capabilities of different image processing algorithms that can be 
-used for image segmentation and tracking of the motion of insects 
-under controlled environments. In this example, we are going to 
-illustrate a comparison of a subset of these algorithms and evaluate 
-them using one of the videos from the original paper.
+capabilities of different image processing algorithms that 
+can be used for image segmentation and tracking of the motion 
+of insects under controlled environments. In this section, we 
+illustrate a comparison of a subset of these algorithms and 
+evaluate them using one of the videos from the original paper.
 
 The example is structured as follows:
  #. Setup dependencies
@@ -54,8 +54,10 @@ the tracking process performed by each algorithm.
    trackers = []
 
 The first algorithm we will add is ColorMatching. It only requires the user to
-specify the range of colors it will consider as the ones of the object, in the 
-selected color space, by default BGR.
+specify the range of colors that will considered by the algorithm as the ones 
+belonging to the object. The range of colors can be indicated in different 
+color spaces, by default BGR.
+
 
 .. code-block:: python
 
@@ -73,7 +75,7 @@ tracked object.
 
 BackgroundSubtraction algorithm requires a picture that contains only the 
 background of the scene. However, if there is none available, it is possible 
-to can estimate it from a video using a BackgroundEstimator. Then, we specify the 
+to estimate it from a video using a BackgroundEstimator. Then, we specify the 
 background_threshold that indicates the the minimum difference in pixel 
 intensity among a frame and the background to be considered part of the 
 moving object.
@@ -84,10 +86,10 @@ moving object.
    algorithm = BackgroundSubtraction(background, background_threshold=5)
    trackers.append( ObjectTracker('bkgnd_sub', algorithm, ROI((50, 50))) )
 
-When using TemplateMatching algorithm it is required to provide a template
-image containing a typical sample of the object being tracked. Then, it will
-determine the point in a frame in which the correlation between the template
-and the region of the frame is maximum.
+For the case of TemplateMatching algorithm, a template
+image containing a typical sample of the object being tracked must be 
+provided. Then, it will compute the point in a frame in which the 
+correlation between the template and the region of the frame is maximum.
 
 .. code-block:: python
 
@@ -97,7 +99,7 @@ and the region of the frame is maximum.
 
 OpticalFlow algorithm computes a dense optical flow among the current frame and
 the i-th previous frame, specified by the parameter buffer_size. If the 
-magnitude of the flow is over a certain threshold it will be considered as part 
+magnitude of the flow is above a certain threshold it will be considered as part 
 of the moving object.
 
 .. code-block:: python
@@ -116,10 +118,10 @@ Once all the trackers are collected in a list, we can create a TrackingScenario:
    scenario = TrackingScenario(trackers)
 
 and track the video using the configured scenario. The track method will process 
-the video pointed by video_path, using the additional settings we passed. In this 
-case we are forcing to start in frame 120 and use a scale factor of 1020 pixels per 
-meter. We should notice that we will have to initialize the Region-of-Interest (ROI) 
-of each tracker manually, unless we stated it different while creating each of the 
+the video pointed by video_path, using the additional settings we provide. In this 
+case we are forcing to start at frame 120 and use a scale factor of 1020 pixels per 
+meter. We should must initialize the ROI 
+of each tracker manually, unless we stated it differently while creating each of the 
 ROI instances of the trackers.
 
 .. code-block:: python
@@ -128,7 +130,7 @@ ROI instances of the trackers.
 
 
 After the tracking process finishes we will have a list of Trajectory objects
-in the var tl. We can plot them together to evaluate the consistency of all
+in the var **tl**. We can plot them together to evaluate the consistency of all
 methods.
 
 .. code-block:: python
@@ -139,11 +141,11 @@ methods.
    :alt: Output of example2
    :align: center
 
-We can notice the estimated trajectories are very consistent among each other 
-despite the difference on the tracking methods. It is also important to realize
+It is easy to see that the estimated trajectories are very consistent with each other 
+despite the differences on the tracking methods. It is also important to realize
 that the differences in the very last part of the track are due the escape of 
-the object being tracked from the scene. In those cases, each method do its 
-own estimation of the possible next position.
+the object being tracked from the scene. In those cases, each method does its 
+own estimation of the likely next position.
 
 4. References
 --------------------------
