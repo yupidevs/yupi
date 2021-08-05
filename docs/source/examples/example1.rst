@@ -106,7 +106,7 @@ Plot spacial trajectories
 .. code-block:: python
 
    ax1 = plt.subplot(231)
-   ypa.plot_trajectories(trajs, max_trajectories=5, legend=False, show=False)
+   ypa.plot_trajectories(trajs[:5], legend=False, show=False)
 
 Plot velocity histogram 
 

@@ -626,11 +626,11 @@ class TrackingScenario():
         cv2.imshow('yupi processing window', frame)
         # Return frame
 
-    def _first_iteration(self, start_in_frame):
+    def _first_iteration(self, start_frame):
         # Start processing frams at the given index
-        if start_in_frame:
-            self.first_frame = start_in_frame
-            self.cap.set(cv2.CAP_PROP_POS_FRAMES, start_in_frame)
+        if start_frame:
+            self.first_frame = start_frame
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
         # Capture the first frame to process
         _, prev_frame = self.cap.read()
@@ -752,8 +752,8 @@ class TrackingScenario():
             t_list.append(t)
         return t_list
 
-    def track(self, video_path: str, start_in_frame: int = 0,
-              end_in_frame: int = None, pix_per_m: int = 1):
+    def track(self, video_path: str, start_frame: int = 0,
+              end_frame: int = None, pix_per_m: int = 1):
         """
         Starts the tracking process.
 
@@ -761,9 +761,9 @@ class TrackingScenario():
         ----------
         video_path : str
             Path of the video used to track the objects.
-        start_in_frame : int, optional
+        start_frame : int, optional
             Initial frame in which starts the processing, by default 0.
-        end_in_frame : int, optional
+        end_frame : int, optional
             Last frame being processed, if nothing is passed all frames
             until the end of the video will be processed, by default
             None.
@@ -782,14 +782,14 @@ class TrackingScenario():
             process.
         """
 
-        if end_in_frame is not None and end_in_frame > start_in_frame:
-            self.last_frame = int(end_in_frame)
+        if end_frame is not None and end_frame > start_frame:
+            self.last_frame = int(end_frame)
 
         self._digest_video_path(video_path)
 
         end = False
         if self._iteration_counter == 0:
-            retval = self._first_iteration(start_in_frame)
+            retval = self._first_iteration(start_frame)
             if not retval:
                 return retval, None
 
