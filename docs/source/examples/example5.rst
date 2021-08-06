@@ -23,10 +23,12 @@ by the authors.
 
 
 The example is structured as follows:
- #. Setup dependencies
- #. Tracking tracking objects
- #. Results
- #. References
+  | :ref:`Setup dependencies 5`
+  | :ref:`Tracking tracking objects 5`
+  | :ref:`Results 5`
+  | :ref:`References 5`
+
+.. _Setup dependencies 5:
 
 1. Setup dependencies
 ---------------------
@@ -47,6 +49,7 @@ Set up the path to multimedia resources:
    video_path = 'resources/videos/Serrano2019.mp4'
    camera_file = 'resources/cameras/gph3+1080-60fps-MEDIUM.npz'
 
+.. _Tracking tracking objects 5:
 
 2. Tracking tracking objects
 ----------------------------
@@ -84,9 +87,11 @@ Then, we track the video using the configured scenario.
 
    retval, tl = scenario.track(video_path, pix_per_m=6300)
 
+.. _Results 5:
 
 3. Results
 ----------
+
 Now, we can produce a plot quite similar to the one of the original paper [1]:
 
 .. code-block:: python
@@ -98,6 +103,7 @@ Now, we can produce a plot quite similar to the one of the original paper [1]:
    :align: center
 
 
+.. _References 5:
 
 4. References
 --------------------------
