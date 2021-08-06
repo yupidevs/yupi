@@ -8,12 +8,13 @@ observe the classical scaling laws of the Langevin theory to
 explain Brownian Motion. 
 
 The example is structured as follows:
- #. Setup dependencies
- #. Definition of parameters
- #. Generating trajectories
- #. Data analysis and plotting
- #. References
+  | :ref:`Setup dependencies 1`
+  | :ref:`Definition of parameters 1`
+  | :ref:`Generating trajectories 1`
+  | :ref:`Data analysis and plots 1`
+  | :ref:`References 1`
 
+.. _Setup dependencies 1:
 
 1. Setup dependencies
 ---------------------
@@ -33,6 +34,8 @@ Fix the random generator seed to make results reproducible:
 
    np.random.seed(0)
 
+
+.. _Definition of parameters 1:
 
 2. Definition of parameters
 ---------------------------
@@ -90,6 +93,7 @@ Langevin Generator:
    v0_adim = np.random.randn(dim, N)        # initial dimensionless speeds
 
 
+.. _Generating trajectories 1:
 
 3. Generating trajectories
 --------------------------
@@ -107,6 +111,8 @@ The set_scale method allows to scale the values of Velocity, Position
 and Time after solving the statistical differential equation. It is also
 possible to multiply them directly to the input v0, r0, dt and T, but it
 makes the Generator slower.
+
+.. _Data analysis and plots 1:
 
 4. Data analysis and plots
 --------------------------
@@ -177,6 +183,7 @@ Generate plot
    :alt: Output of example1
    :align: center
 
+.. _References 1:
 
 5. References
 -------------

@@ -14,11 +14,13 @@ illustrate a comparison of a subset of these algorithms and
 evaluate them using one of the videos from the original paper.
 
 The example is structured as follows:
- #. Setup dependencies
- #. Creation of the tracking objects
- #. Results
- #. References
+  | :ref:`Setup dependencies 2`
+  | :ref:`Creation of the tracking objects 2`
+  | :ref:`Results 2`
+  | :ref:`References 2`
 
+
+.. _Setup dependencies 2:
 
 1. Setup dependencies
 ---------------------
@@ -41,6 +43,8 @@ Set up the path to multimedia resources:
    video_path = 'resources/videos/Frayle2017.mp4'
    template_file = 'resources/templates/ant_small.png'
 
+
+.. _Creation of the tracking objects 2:
 
 2. Creation of the tracking objects
 -----------------------------------
@@ -107,6 +111,8 @@ of the moving object.
    algorithm = OpticalFlow(threshold=0.3, buffer_size=3)
    trackers.append( ObjectTracker('optical_flow', algorithm, ROI((50, 50))) )
 
+.. _Results 2:
+
 3. Results
 ----------
 
@@ -146,6 +152,8 @@ despite the differences on the tracking methods. It is also important to realize
 that the differences in the very last part of the track are due the escape of 
 the object being tracked from the scene. In those cases, each method does its 
 own estimation of the likely next position.
+
+.. _References 2:
 
 4. References
 --------------------------
