@@ -9,7 +9,6 @@ The API of yupi is divided into four modules:
 All the resources of the library should be imported directly
 from one of the aforementioned modules. However, we ordered the resources
 according the functionality into subcategories to simplify searching.
-
 """
 
 import logging
