@@ -188,18 +188,19 @@ def plot_vacf(vacf, dt, lag, x_units: str = 's', y_units: str = '(m/s)^2', show=
 
 
 def plot_psd(psd_mean, omega, psd_std=None, show=True):
-    """[summary]
+    """Plot the Power Spectral Density.
 
     Parameters
     ----------
-    psd_mean : [type]
-        [description]
-    omega : [type]
-        [description]
-    psd_std : int, optional
-        [description], by default 50
+    psd_mean : np.ndarray
+        Power spectral density array.
+    omega : np.ndarray
+        Array of angular frequencies.
+    psd_std : np.ndarray, optional
+        Standard deviation of the power spectrum. 
+        By default None.
     show : bool, optional
-        [description], by default True
+        If True, the plot is shown. By default True.
     """
 
     plt.plot(omega, psd_mean, label='psd')
