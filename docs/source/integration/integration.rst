@@ -112,6 +112,5 @@ If you have a tracktable trajectory you can always convert it to a *yupi.Traject
 
 .. code-block:: python
 
-  # Converting the trajectory from tracktable to yupi
   yupi_track_1 = tracktable2yupi(tracktable_track_1)
 
