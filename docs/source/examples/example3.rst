@@ -33,12 +33,14 @@ efficiency of the rolling process.
 
 
 The example is structured as follows:
- #. Setup dependencies
- #. Tracking tracking objects
- #. Computation of the variables
- #. Results
- #. References
+  | :ref:`Setup dependencies 3`
+  | :ref:`Tracking tracking objects 3`
+  | :ref:`Computation of the variables 3`
+  | :ref:`Results 3`
+  | :ref:`References 3`
 
+
+.. _Setup dependencies 3:
 
 1. Setup dependencies
 ---------------------
@@ -59,6 +61,8 @@ Set up the path to multimedia resources:
    video_path = 'resources/videos/Viera2017.mp4'
    template_path = 'resources/templates/pivot.png'
 
+
+.. _Tracking tracking objects 3:
 
 2. Tracking tracking objects
 ----------------------------
@@ -89,6 +93,8 @@ pixels per meter.
 
    retval, tl = scenario.track(video_path, pix_per_m=4441, start_frame=10, end_frame=200)
 
+
+.. _Computation of the variables 3:
 
 3. Computation of the variables
 -------------------------------
@@ -141,6 +147,8 @@ tracking process:
    v_meas = wheel.v.norm
 
 
+.. _Results 3:
+
 4. Results
 ----------
 
@@ -170,6 +178,8 @@ Even when we are observing only one realization of the experiment,
 and assuming the angular velocity of the wheel being perfectly constant, 
 we can notice the consistency of this result with the ones reported in 
 the original paper [1].
+
+.. _References 3:
 
 5. References
 --------------------------

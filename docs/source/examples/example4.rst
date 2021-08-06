@@ -19,13 +19,15 @@ the original paper. Moreover, we include details to generate a plot
 closely resembling the one presented in the paper [1].
 
 The example is structured as follows:
- #. Setup dependencies
- #. Tracking tracking objects
- #. Computation of the variables
- #. Results
- #. References
+  | :ref:`Setup dependencies 4`
+  | :ref:`Tracking tracking objects 4`
+  | :ref:`Computation of the variables 4`
+  | :ref:`Results 4`
+  | :ref:`References 4`
 
 
+
+.. _Setup dependencies 4:
 
 1. Setup dependencies
 ---------------------
@@ -47,6 +49,8 @@ Set up the path to multimedia resources:
    video_path = 'resources/videos/Diaz2020.MP4'
    camera_file = 'resources/cameras/gph3+.npz'
 
+
+.. _Tracking tracking objects 4:
 
 2. Tracking tracking objects
 ----------------------------
@@ -96,6 +100,8 @@ scaling factor (pix_per_m) and the frame to start the processing:
    :alt: Output of example4
    :align: center
 
+.. _Computation of the variables 4:
+
 3. Computation of the variables
 -------------------------------
 
@@ -120,6 +126,8 @@ the center of the intruder:
 
 
 
+.. _Results 4:
+
 4. Results
 ----------
 
@@ -136,7 +144,9 @@ Now, we can produce a plot quite similar to the one of the original paper [1]:
 
 
 
+.. _References 4:
+
 5. References
---------------------------
+-------------
 
 | [1] Díaz-Melián, V. L., et al. "Rolling away from the Wall into Granular Matter." Physical Review Letters 125.7 (2020): 078002.
