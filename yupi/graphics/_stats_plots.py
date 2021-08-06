@@ -23,7 +23,7 @@ def plot_velocity_hist(v, show: bool = True, units: str = 'm/s', **kwargs):
     show : bool, optional
         If True, the plot is shown. By default True.
     units : string, optional
-        Velocity units.
+        Velocity units. By default 'm/s'.
     """
 
     if 'color' not in kwargs:
@@ -44,19 +44,19 @@ def plot_velocity_hist(v, show: bool = True, units: str = 'm/s', **kwargs):
         plt.show()
 
 
-def plot_angles_hist(ang, bins=50, ax=None, show=True):
-    """[summary]
+def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
+    """Plot a histogram of the array of angles ``ang``.
 
     Parameters
     ----------
-    ang : [type]
-        [description]
-    bins : int, optional
-        [description], by default 50
-    ax : [type], optional
-        [description], by default None
-    plot : bool, optional
-        [description], by default True
+    ang : np.ndarray
+        Array of angles.
+    bins: int
+        Number of histogram bins.
+    show : bool, optional
+        If True, the plot is shown. By default True.
+    ax : matplotlib.axes._subplots.AxesSubplot, optional
+        Axes to plot. By default None.
     """
 
     if ax is None:
