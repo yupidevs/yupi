@@ -27,7 +27,7 @@ As any other :py:class:`~generating.Generator` in yupi, you can specify the para
 
 The :py:class:`~yupi.RandomWalkGenerator` starts the generation of every trajectory in the origin of the reference frame. Then, iteratively, it computes an increment on each dimension. The increment (also called actions) can be -1, 0 or 1, and it is taken independently on each dimension for each iteration. Additionally, the user can define a list to establish the probabilities of taking each of the available actions:
 
-.. code-block:: python  
+.. code-block:: python 
 
    prob = [[.5, .1, .4],   # x-axis
            [.5,  0, .5]]   # y-axis
@@ -36,7 +36,7 @@ Notice that the size of this list should coincide with the desired dimensions of
 
 Then, we can construct a :py:class:`~yupi.RandomWalkGenerator` with the given variables and call its generate method:
 
-.. code-block:: python 
+.. code-block:: python
 
    rw = RandomWalkGenerator(T, dim, N, dt, prob)
    tr = rw.generate()
@@ -52,7 +52,7 @@ Langevin Equation. It allows to produce :py:class:`~yupi.Trajectory` objects tha
 
 To use it, we first need to define the general parameters for a generator:
 
-.. code-block:: python 
+.. code-block:: python
 
     T = 500     # Total time (number of time steps if dt==1)
     dim = 2     # Dimension of the walker trajectories
@@ -62,16 +62,16 @@ To use it, we first need to define the general parameters for a generator:
 
 Then, some specific parameters can be set before the generator initialization:
 
-.. code-block:: python 
+.. code-block:: python
 
     tau = 1               # Relaxation time
-    noise_pdf = 'normal'  # Noise probabilistic distribution function 
+    noise_pdf = 'normal'  # Noise probabilistic distribution function
     noise_scale = 0.1     # Scale of the noise pdf
 
 
 Finally, the generator is created and the trajectories can be generated:
 
-.. code-block:: python 
+.. code-block:: python
 
     lg = LangevinGenerator(T, dim, N, dt, tau, noise_pdf, noise_scale)
     trajectories = lg.generate()
@@ -88,4 +88,4 @@ A more complex application of this :py:class:`~generating.Generator` can be seen
 Defining a Custom Generator
 ===========================
 
-A user-defined generator can be easily added by building on top of an abstract class :py:class:`~generating.Generator` (which is the base of the already implemented generators). 
+A user-defined generator can be easily added by building on top of an abstract class :py:class:`~generating.Generator` (which is the base of the already implemented generators).

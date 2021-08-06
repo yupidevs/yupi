@@ -3,7 +3,7 @@ from numpy.linalg.linalg import norm as nrm
 
 
 class Vector(np.ndarray):
-    """Represents a vector""" 
+    """Represents a vector"""
 
     @property
     def norm(self):
@@ -53,7 +53,7 @@ class Vector(np.ndarray):
         Raises
         ------
         TypeError
-            If the vector has no axis 1. 
+            If the vector has no axis 1.
         TypeError
             If `dim` is not an integer.
         ValueError
@@ -67,7 +67,7 @@ class Vector(np.ndarray):
         >>> v.component(1)
         Vector([2, 2, 0])
         """
-        
+       
         if len(self.shape) < 2:
             raise TypeError('Operation not supperted on simple vectors')
         if not isinstance(dim, int):
@@ -86,6 +86,6 @@ class Vector(np.ndarray):
         Vector
             Vector created
         """
-        
+       
         arr = np.array(*args, **kwargs)
         return arr.view(Vector)

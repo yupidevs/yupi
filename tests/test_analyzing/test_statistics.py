@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from yupi import Trajectory
-from yupi.analyzing import *
+from yupi.stats import *
 
 
 @pytest.fixture
@@ -16,14 +16,14 @@ def non_uniform_traj():
     return Trajectory(points=points, t=t)
 
 def test_turning_angles(traj, non_uniform_traj):
-    
-    ta = estimate_turning_angles([traj])
+   
+    ta = turning_angles_ensemble([traj])
     assert ta == pytest.approx([np.pi/2, 3*np.pi/2])
-    
-    ta = estimate_turning_angles([traj], degrees=True, wrap=False)
+   
+    ta = turning_angles_ensemble([traj], degrees=True, wrap=False)
     assert ta == pytest.approx([90, -90])
 
-def test_velocity_samples():
+def test_speed_ensemble():
     pass
 
 def test_msd():
@@ -45,20 +45,20 @@ def test_checkers():
 
     # Exact dimension checker
     with pytest.raises(ValueError):
-        estimate_turning_angles([non_equal_dim_traj])
-    
+        turning_angles_ensemble([non_equal_dim_traj])
+   
     # Uniform time spaced checker
     with pytest.raises(ValueError):
-        estimate_turning_angles([simple_traj, non_equal_spacing_traj])
+        turning_angles_ensemble([simple_traj, non_equal_spacing_traj])
 
     # Same dt checker
     with pytest.raises(ValueError):
-        estimate_turning_angles([simple_traj, non_equal_dt_traj])
+        turning_angles_ensemble([simple_traj, non_equal_dt_traj])
 
     # Same dim checker
     with pytest.raises(ValueError):
-        estimate_velocity_samples([simple_traj, non_equal_dim_traj])
+        speed_ensemble([simple_traj, non_equal_dim_traj])
 
     # Same t checker
     with pytest.raises(ValueError):
-        estimate_msd([simple_traj, non_equal_t0_traj], time_avg=False)
+        msd([simple_traj, non_equal_t0_traj], time_avg=False)

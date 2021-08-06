@@ -25,7 +25,7 @@ If you want to contribute directly to the project (improve documentation, implem
 Adding new examples of usage
 ----------------------------
 
-Even without contributing to the yupi source code, if you develop an application based on yupi, you can request its addition to the dedicated repository of yupi examples hosted in `this Github repository <https://github.com/yupidevs/yupi_examples/stargazers>`_. 
+Even without contributing to the yupi source code, if you develop an application based on yupi, you can request its addition to the dedicated repository of yupi examples hosted in `this Github repository <https://github.com/yupidevs/yupi_examples/stargazers>`_.
 
 
 Increasing yupi visibility
@@ -33,8 +33,8 @@ Increasing yupi visibility
 
 To help us reach a broader audience in the scientific community, you can help us by:
 
- * Star the project `yupi <https://github.com/yupidevs/yupi/stargazers>`_ in Github  
- * Star the project `yupi_examples <https://github.com/yupidevs/yupi_examples/stargazers>`_ in Github 
- * Cite our arxiv paper (comming soon) 
+ * Star the project `yupi <https://github.com/yupidevs/yupi/stargazers>`_ in Github 
+ * Star the project `yupi_examples <https://github.com/yupidevs/yupi_examples/stargazers>`_ in Github
+ * Cite our arxiv paper (comming soon)
 
 

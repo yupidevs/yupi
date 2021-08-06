@@ -1,34 +1,34 @@
 Example 3
 =========
 
-Tracking a scaled-size rover wheel moving over sand. 
+Tracking a scaled-size rover wheel moving over sand.
 The wheel is forced to move at a fixed angular velocity.
 The actual linear velocity is subsequently computed
-to evaluate how much does it differs from the ideal 
-velocity. Code and multimedia resources are available 
+to evaluate how much does it differs from the ideal
+velocity. Code and multimedia resources are available
 `here <https://github.com/yupidevs/yupi_examples/>`_.
 
-The work of [1] studied the motion 
-of vehicles on granular materials experimentally. In their 
-article, they reported the analysis of the trajectories 
-performed by a scaled-size wheel while rolling on sand at 
-two different gravitational accelerations, exploiting the 
-instrument designed by [2]. This example aims at partially 
-reproducing some of the results shown in the paper using one 
+The work of [1] studied the motion
+of vehicles on granular materials experimentally. In their
+article, they reported the analysis of the trajectories
+performed by a scaled-size wheel while rolling on sand at
+two different gravitational accelerations, exploiting the
+instrument designed by [2]. This example aims at partially
+reproducing some of the results shown in the paper using one
 of the original videos provided by the authors.
 
-In the video, one can observe a wheel forced to move on sand 
-at a fixed angular velocity. In optimal rolling conditions, 
-one can expect the wheel to move at a constant linear velocity. 
-However, due to slippage and compaction-decompaction of the 
-granular soil, the actual linear velocity differs from the one 
-expected under ideal conditions. To study the factors that affect 
-the wheel motion, the first step is quantifying how different 
-the rolling process is with respect to the expected in ideal 
+In the video, one can observe a wheel forced to move on sand
+at a fixed angular velocity. In optimal rolling conditions,
+one can expect the wheel to move at a constant linear velocity.
+However, due to slippage and compaction-decompaction of the
+granular soil, the actual linear velocity differs from the one
+expected under ideal conditions. To study the factors that affect
+the wheel motion, the first step is quantifying how different
+the rolling process is with respect to the expected in ideal
 conditions.
 
-This example addresses the problem of capturing the trajectory 
-of the wheel and computing its linear velocity, and the 
+This example addresses the problem of capturing the trajectory
+of the wheel and computing its linear velocity, and the
 efficiency of the rolling process.
 
 
@@ -67,10 +67,10 @@ Set up the path to multimedia resources:
 2. Tracking tracking objects
 ----------------------------
 
-Similarly to the previous example, we start by storing all the 
-trackers in a list and pass it to the TrackingScenario. We are going 
-to track the central pivot using TemplateMatching algorithm and the 
-green LED coupled with the wheel using ColorMatching algorithm. 
+Similarly to the previous example, we start by storing all the
+trackers in a list and pass it to the TrackingScenario. We are going
+to track the central pivot using TemplateMatching algorithm and the
+green LED coupled with the wheel using ColorMatching algorithm.
 
 .. code-block:: python
 
@@ -85,9 +85,9 @@ green LED coupled with the wheel using ColorMatching algorithm.
 
    scenario = TrackingScenario(trackers)
 
-In this case we are forcing the processing to start at frame 10 and stop 
-in frame 200. Additionally, we are using  a scale factor of 4441 
-pixels per meter. 
+In this case we are forcing the processing to start at frame 10 and stop
+in frame 200. Additionally, we are using  a scale factor of 4441
+pixels per meter.
 
 .. code-block:: python
 
@@ -105,17 +105,17 @@ Next, we can estimate the trajectory of the LED referred to the center pivot:
 
    center, led = tl
    led_centered = led - center
-   led_centered.id = 'led'
+   led_centered.traj_id= 'led'
 
 Since the led and the center of the wheel are placed at a constant distance of
-0.039 m, we can estimate the trajectory of the wheel referred to the center 
+0.039 m, we can estimate the trajectory of the wheel referred to the center
 pivot:
 
 .. code-block:: python
 
    wheel_centered = led_centered.copy()
    wheel_centered.add_polar_offset(0.039, 0)
-   wheel_centered.id = 'wheel'
+   wheel_centered.traj_id= 'wheel'
    plot_trajectories([wheel_centered, led_centered])
 
 
@@ -124,7 +124,7 @@ pivot:
    :align: center
 
 Finally, the trajectory of the wheel referred to its initial position, can be
-obtained by subtracting the initial from the final position after completing 
+obtained by subtracting the initial from the final position after completing
 the whole trajectory.
 
 
@@ -139,7 +139,7 @@ Now, we can compute the linear velocity in optimal conditions (omega x r)
 
    v_opt = 4 * 0.07
 
-And compute the linear velocity using the trajectory estimated by the 
+And compute the linear velocity using the trajectory estimated by the
 tracking process:
 
 .. code-block:: python
@@ -173,10 +173,10 @@ The temporal evolution of the efficiency can be plotted by:
    :align: center
 
 We can notice how the linear velocity of the wheel is not constant
-despite the constant angular velocity, due to slippery in the terrain. 
-Even when we are observing only one realization of the experiment, 
-and assuming the angular velocity of the wheel being perfectly constant, 
-we can notice the consistency of this result with the ones reported in 
+despite the constant angular velocity, due to slippery in the terrain.
+Even when we are observing only one realization of the experiment,
+and assuming the angular velocity of the wheel being perfectly constant,
+we can notice the consistency of this result with the ones reported in
 the original paper [1].
 
 .. _References 3:

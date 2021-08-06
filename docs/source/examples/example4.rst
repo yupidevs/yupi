@@ -1,21 +1,21 @@
 Example 4
 =========
 
-Tracking an intruder while penetrating a granular 
-material in a quasi 2D enviroment. Code and multimedia resources are 
+Tracking an intruder while penetrating a granular
+material in a quasi 2D enviroment. Code and multimedia resources are
 available `here <https://github.com/yupidevs/yupi_examples/>`_.
 
-The work carried out by [1] studied 
-penetration of an intruder inside a granular material, 
-focusing on the influence of a wall on the trajectory 
-of the intruder. The authors tested different configurations 
-and observed specific phenomena during the penetration 
-process (e.g., repulsion and rotation), as well as their 
+The work carried out by [1] studied
+penetration of an intruder inside a granular material,
+focusing on the influence of a wall on the trajectory
+of the intruder. The authors tested different configurations
+and observed specific phenomena during the penetration
+process (e.g., repulsion and rotation), as well as their
 dependence on the initial distance of the intruder from the wall.
 
-In this example, we provide a script that extracts the trajectory of 
-the intruder from one of the videos used to produce the results of 
-the original paper. Moreover, we include details to generate a plot 
+In this example, we provide a script that extracts the trajectory of
+the intruder from one of the videos used to produce the results of
+the original paper. Moreover, we include details to generate a plot
 closely resembling the one presented in the paper [1].
 
 The example is structured as follows:
@@ -55,17 +55,17 @@ Set up the path to multimedia resources:
 2. Tracking tracking objects
 ----------------------------
 
-Since the camera used for this application introduced a considerable 
-spherical distortion, we need to create an instance of an Undistorter 
+Since the camera used for this application introduced a considerable
+spherical distortion, we need to create an instance of an Undistorter
 to correct it:
 
 .. code-block:: python
 
    undistorter = RemapUndistorter(camera_file)
 
-The variable camera_file contains the path to a .npz file with the 
-matrix of calibration for the specific camera configuration, more details 
-on how to produce it can be found `in here 
+The variable camera_file contains the path to a .npz file with the
+matrix of calibration for the specific camera configuration, more details
+on how to produce it can be found `in here
 <https://yupi.readthedocs.io/en/latest/api_reference/tracking/undistorters.html>`_.
 
 Then, we initialize two trackers, one for each marker of the intruder:
@@ -75,19 +75,19 @@ Then, we initialize two trackers, one for each marker of the intruder:
    algorithm1 = ColorMatching((70,40,20), (160,80,20)) # BGR
    cyan = ObjectTracker('cyan marker', algorithm1, ROI((50, 50)))
 
-   algorithm2 = ColorMatching((30,20, 50), (95, 45,120))         
+   algorithm2 = ColorMatching((30,20, 50), (95, 45,120))        
    magenta = ObjectTracker('magenta marker', algorithm2,  ROI((30, 50)))
 
 
-Now, we will create the TrackingScenario with the trackers and 
+Now, we will create the TrackingScenario with the trackers and
 also the Undistorter.
 
 .. code-block:: python
 
-   scenario = TrackingScenario([cyan, magenta], 
+   scenario = TrackingScenario([cyan, magenta],
                             undistorter=undistorter)
 
-Then, we track the video using the configured scenario providing the 
+Then, we track the video using the configured scenario providing the
 scaling factor (pix_per_m) and the frame to start the processing:
 
 
@@ -106,7 +106,7 @@ scaling factor (pix_per_m) and the frame to start the processing:
 -------------------------------
 
 We can improve the visualization, by applying some transformations to the tracked
-trajectories. First, we can rotate them 90 degrees to better illustrate the 
+trajectories. First, we can rotate them 90 degrees to better illustrate the
 effect of gravity:
 
 .. code-block:: python

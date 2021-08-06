@@ -1,11 +1,11 @@
 Example 1
 =========
 
-We use a Langevin Generator tuned to generate the trajectories 
+We use a Langevin Generator tuned to generate the trajectories
 of a lysozyme molecule in water. After generating a significant
 amount of trajectories, we analyze the statistics of them and
-observe the classical scaling laws of the Langevin theory to 
-explain Brownian Motion. 
+observe the classical scaling laws of the Langevin theory to
+explain Brownian Motion.
 
 The example is structured as follows:
   | :ref:`Setup dependencies 1`
@@ -49,7 +49,7 @@ First, we establish the generic parameters of the generator first:
    N = 1000         # number of trajectories
    dt_adim = 1e-1   # dimensionless time step
 
-Let us define some deterministic parameters of the simulation 
+Let us define some deterministic parameters of the simulation
 (i.e., particle and fluid properties and physical constants):
 
 .. code-block:: python
@@ -63,7 +63,7 @@ Let us define some deterministic parameters of the simulation
    d2 = 18e-10      # semi-minor axis [m] [2]
 
 
-We can indirectly measure quantities that are related with the generator 
+We can indirectly measure quantities that are related with the generator
 parameters required
 
 .. code-block:: python
@@ -81,7 +81,7 @@ Then, we can estimate intrinsic reference quantities:
    tr = tau        # intrinsic reference time
    lr = vr * tr    # intrinsic reference length
 
-And finally, the actual statistical model parameters for the 
+And finally, the actual statistical model parameters for the
 Langevin Generator:
 
 .. code-block:: python
@@ -107,7 +107,7 @@ we just need to instantiate the class and generate the Trajectories:
    lg.set_scale(v_scale=vr, r_scale=lr, t_scale=tr)
    trajs = lg.generate()
 
-The set_scale method allows to scale the values of Velocity, Position 
+The set_scale method allows to scale the values of Velocity, Position
 and Time after solving the statistical differential equation. It is also
 possible to multiply them directly to the input v0, r0, dt and T, but it
 makes the Generator slower.
@@ -130,28 +130,28 @@ Plot spacial trajectories
    ax1 = plt.subplot(231)
    ypa.plot_trajectories(trajs[:5], legend=False, show=False)
 
-Plot velocity histogram 
+Plot velocity histogram
 
 .. code-block:: python
 
-   v = ypa.estimate_velocity_samples(trajs, step=1)
+   v = ypa.velocity_samples(trajs, step=1)
    ax2 = plt.subplot(232)
    ypa.plot_velocity_hist(v, bins=20, show=False)
 
-Plot turning angles 
+Plot turning angles
 
 .. code-block:: python
 
-   theta = ypa.estimate_turning_angles(trajs)
+   theta = ypa.turning_angles(trajs)
    ax3 = plt.subplot(233, projection='polar')
    ypa.plot_angle_distribution(theta, show=False)
 
-Plot Mean Square Displacement 
+Plot Mean Square Displacement
 
 .. code-block:: python
 
    lag_msd = 30
-   msd, msd_std = ypa.estimate_msd(trajs, time_avg=True, lag=lag_msd)
+   msd, msd_std = ypa.msd(trajs, time_avg=True, lag=lag_msd)
    ax4 = plt.subplot(234)
    ypa.plot_msd(msd, msd_std, dt, lag=lag_msd, show=False)
 
@@ -159,16 +159,16 @@ Plot Kurtosis
 
 .. code-block:: python
 
-   kurtosis = ypa.estimate_kurtosis(trajs, time_avg=False, lag=30)
+   kurtosis = ypa.kurtosis(trajs, time_avg=False, lag=30)
    ax5 = plt.subplot(235)
    ypa.plot_kurtosis(kurtosis, dt=dt, show=False)
 
-Plot Velocity autocorrelation function 
+Plot Velocity autocorrelation function
 
 .. code-block:: python
 
    lag_vacf = 50
-   vacf, _ = ypa.estimate_vacf(trajs, time_avg=True, lag=lag_vacf)
+   vacf, _ = ypa.vacf(trajs, time_avg=True, lag=lag_vacf)
    ax6 = plt.subplot(236)
    ypa.plot_vacf(vacf, dt, lag_vacf, show=False)
 

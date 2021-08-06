@@ -12,7 +12,7 @@ To store your :py:class:`~yupi.Trajectory` object, (e.g. any of the ones created
 
    track.save('spiral', file_type='json')
 
-This will produce a *json* file with all the details of the object that can be loaded anytime using yupi. Additionally, *csv* is another **file_type** available to store :py:class:`~yupi.Trajectory` objects. 
+This will produce a *json* file with all the details of the object that can be loaded anytime using yupi. Additionally, *csv* is another **file_type** available to store :py:class:`~yupi.Trajectory` objects.
 
 
 Reading Trajectory objects

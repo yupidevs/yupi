@@ -12,7 +12,7 @@ according the functionality into subcategories to simplify searching.
 """
 
 import logging
-from yupi.trajectory import Trajectory
+from yupi.trajectory import Trajectory, TrajectoryPoint
 from yupi.vector import Vector
 
 logging.basicConfig(
@@ -23,6 +23,7 @@ logging.basicConfig(
 
 __all__ = [
     'Trajectory',
+    'TrajectoryPoint',
     'Vector'
 ]
 
