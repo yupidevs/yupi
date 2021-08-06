@@ -49,19 +49,6 @@ Rotation can be made using the **rotate** method:
     traj_2.rotate(-np.pi / 2)   # traj_2 points: [[0,0], [0,1]]
 
 
-Adding and subtracting
-======================
-
-If two trajectories have the same length and dimensions they can be added or
-subtracted by:
-
-
-.. code-block:: python
-
-    traj_a = Trajectory(points=[[1,2], [3,3], [4,2]])
-    traj_b = Trajectory(points=[[0,0], [1,4], [2,3]])
-    traj_c = traj_a + traj_b   # traj_c points: [[1,2], [4,7], [6,5]]
-
 Indexing and slicing
 ====================
 
@@ -80,3 +67,34 @@ Slicing is possible too and it is used to obtain a subtrajectory. All variance o
     sub_traj_1 = traj[2:]    # sub_traj_1.r = [[4,2], [4,1], [2,7]]
     sub_traj_2 = traj[:-1]   # sub_traj_2.r = [[1,2], [3,3], [4,2], [4,1]]
     sub_traj_3 = traj[2:4]   # sub_traj_3.r = [[4,2], [4,1]]
+
+
+
+Filtering
+=========
+
+:py:class:`~yupi.Trajectory` objects can be filtered in different ways. By 
+default, yupi offers an Exponential Convolutional Filter, typically used in
+the context of animal trajectory analysis:
+
+.. code-block:: python
+
+    from yupi.transformations import exp_convolutional_filter
+    traj = Trajectory(points=[[1,2], [3,3], [4,2]])
+    smoothed_traj = exp_convolutional_filter(traj, 1)
+
+
+
+Adding and subtracting
+======================
+
+If two trajectories have the same length and dimensions they can be added or
+subtracted by:
+
+
+.. code-block:: python
+
+    traj_a = Trajectory(points=[[1,2], [3,3], [4,2]])
+    traj_b = Trajectory(points=[[0,0], [1,4], [2,3]])
+    traj_c = traj_a + traj_b   # traj_c points: [[1,2], [4,7], [6,5]]
+
