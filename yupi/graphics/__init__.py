@@ -3,7 +3,8 @@ from yupi.graphics._stats_plots import (
     plot_kurtosis,
     plot_msd,
     plot_vacf,
-    plot_velocity_hist
+    plot_velocity_hist,
+    plot_psd
 )
 
 from yupi.graphics._trajs_plots import plot_2D
@@ -21,6 +22,7 @@ __all__ = [
     'plot_vacf',
     'plot_velocity_hist',
     'plot_2D',
+    'plot_psd',
     'LINE',
     'LINE_DOTTED',
     'DOTTED'
