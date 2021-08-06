@@ -70,21 +70,25 @@ def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
         plt.show()
 
 
-def plot_msd(msd, msd_std, dt, x_units: str = 's', y_units: str = 'm^2/s', lag=30, show=True):
-    """[summary]
+def plot_msd(msd, msd_std, dt, lag, x_units: str = 's', y_units: str = 'm^2/s', show=True):
+    """Plot Mean Square Displacement.
 
     Parameters
     ----------
-    msd : [type]
-        [description]
-    msd_std : [type]
-        [description]
-    dt : [type]
-        [description]
+    msd : np.ndarray
+        Mean square displacement array.
+    msd_std : np.ndarray
+        Standard deviation.
+    dt : float
+        Trajectories time step.
     lag : int, optional
-        [description], by default 30
+        Lag time.
+    x_units : str, optional
+        Units of the time axes.
+    y_units : str, optional
+        Units of the MSD axes.
     show : bool, optional
-        [description], by default True
+        If True, the plot is shown. By default True.
     """
 
     x_units = _validate_units(x_units)
