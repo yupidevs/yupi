@@ -50,7 +50,7 @@ def _check_same_r0(func):
 def _check_same_lenght(func):
     def wrapper(trajs: List[Trajectory], *args, **kwargs):
         if trajs:
-            length = len(trajs)
+            length = len(trajs[0])
             if any((abs(len(t) - length) > _threshold for t in trajs)):
                 raise ValueError("All trajectories must have the same length")
         return func(trajs, *args, **kwargs)
@@ -59,9 +59,9 @@ def _check_same_lenght(func):
 def _check_same_t(func):
     def wrapper(trajs: List[Trajectory], *args, **kwargs):
         if trajs:
-            length = len(trajs)
-            if any((abs(len(t) - length) > _threshold for t in trajs)):
-                raise ValueError("All trajectories must have the same length")
+            zipped_trajs = zip(trajs[:-1], trajs[1:])
+            if any((np.allclose(t0.t, t1.t, _threshold) for t0, t1 in zipped_trajs)):
+                raise ValueError("All trajectories must have the same 't' values")
         return func(trajs, *args, **kwargs)
     return wrapper
 
