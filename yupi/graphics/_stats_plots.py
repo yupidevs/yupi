@@ -144,19 +144,24 @@ def plot_kurtosis(kurtosis, dt=None, t_array=None, kurtosis_ref: float = None,
         plt.show()
 
 
-def plot_vacf(vacf, dt, lag=50, x_units: str = 's', y_units: str = '(m/s)^2', show=True):
-    """[summary]
+def plot_vacf(vacf, dt, lag, x_units: str = 's', y_units: str = '(m/s)^2', show=True):
+    """Plot Velocity Autocorrelation Function.
 
     Parameters
     ----------
-    vacf : [type]
-        [description]
-    dt : [type]
-        [description]
-    lag : int, optional
-        [description], by default 50
+    vacf : np.ndarray
+        Velocity autocorrelation function array.
+    dt : float
+        Trajectories time step.
+    lag : int
+        Number of steps that multiplied by ``dt`` defines the lag
+        time.
+    x_units : str, optional
+        Units of the time axes.
+    y_units : str, optional
+        Units of the VACF axes.
     show : bool, optional
-        [description], by default True
+        If True, the plot is shown. By default True.
     """
 
     x_units = _validate_units(x_units)
