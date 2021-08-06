@@ -28,11 +28,12 @@ class Undistorter(metaclass=abc.ABCMeta):
         Path to the camera calibration file ("camera_file.npz" in the
         above example).
     turn : bool
-        This parameter is used to rotate 90 degrees the frame, before 
-        undistorting it. It is useful when the input video is rotated respect
-        the orginal orientation used when the camera was calibrated (Not a very
-        frequent use case). The undistorted result will be rotated -90 degrees
-        before returning. By default is False.
+        This parameter is used to rotate 90 degrees the frame, before
+        undistorting it. It is useful when the input video is rotated
+        respect the orginal orientation used when the camera was
+        calibrated (Not a very frequent use case). The undistorted
+        result will be rotated -90 degrees before returning. By default
+        is False.
     """
 
     def __init__(self, camera_file, turn=False):
@@ -68,24 +69,24 @@ class Undistorter(metaclass=abc.ABCMeta):
         """
 
     # Turn the image if required
-    def _rotate(self, frame, input=True):
+    def _rotate(self, frame, _input=True):
         if self.turn:
             direction = cv2.ROTATE_90_COUNTERCLOCKWISE
-            if input:
+            if _input:
                 direction = cv2.ROTATE_90_CLOCKWISE
             frame = cv2.rotate(frame, direction)
         return frame
 
     # Method to be called to fix the distortion
     def fix(self, frame):
-        frame = self._rotate(frame, input=True)
+        frame = self._rotate(frame, _input=True)
         if self.mask is None:
-            self.create_mask(frame)
+            self._create_mask(frame)
         corrected = self.undistort(frame)
         return self.masked(corrected)
 
     # Create a mask with the distortion pattern
-    def create_mask(self, frame):
+    def _create_mask(self, frame):
         empty_frame = 255 * np.ones(frame.shape, dtype=np.uint8)
         corrected = self.undistort(empty_frame)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
@@ -95,8 +96,8 @@ class Undistorter(metaclass=abc.ABCMeta):
 
     # Apply the mask to a frame to adjust border colors
     def masked(self, frame):
-        frame = cv2.bitwise_or(frame, self.mask)        
-        return  self._rotate(frame, input=False)
+        frame = cv2.bitwise_or(frame, self.mask)
+        return  self._rotate(frame, _input=False)
 
 
 class ClassicUndistorter(Undistorter):
@@ -109,11 +110,12 @@ class ClassicUndistorter(Undistorter):
         Path to the camera calibration file ("camera_file.npz" in the
         above example).
     turn : bool
-        This parameter is used to rotate 90 degrees the frame, before 
-        undistorting it. It is useful when the input video is rotated respect
-        the orginal orientation used when the camera was calibrated (Not a very
-        frequent use case). The undistorted result will be rotated -90 degrees
-        before returning. By default is False.
+        This parameter is used to rotate 90 degrees the frame, before
+        undistorting it. It is useful when the input video is rotated
+        respect the orginal orientation used when the camera was
+        calibrated (Not a very frequent use case). The undistorted
+        result will be rotated -90 degrees before returning. By default
+        is False.
     """
 
     def undistort(self, frame):
@@ -146,11 +148,12 @@ class RemapUndistorter(Undistorter):
         Path to the camera calibration file ("camera_file.npz" in the
         above example).
     turn : bool
-        This parameter is used to rotate 90 degrees the frame, before 
-        undistorting it. It is useful when the input video is rotated respect
-        the orginal orientation used when the camera was calibrated (Not a very
-        frequent use case). The undistorted result will be rotated -90 degrees
-        before returning. By default is False.
+        This parameter is used to rotate 90 degrees the frame, before
+        undistorting it. It is useful when the input video is rotated
+        respect the orginal orientation used when the camera was
+        calibrated (Not a very frequent use case). The undistorted
+        result will be rotated -90 degrees before returning. By default
+        is False.
     """
 
     def undistort(self, frame):

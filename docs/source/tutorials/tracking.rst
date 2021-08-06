@@ -1,7 +1,7 @@
 Getting Trajectory objects from videos
 --------------------------------------
 
-There are several methods to discern the position of an object through consecutive frames of a video. 
+There are several methods to discern the position of an object through consecutive frames of a video.
 
 Color Matching
 ==============
@@ -11,7 +11,7 @@ If the input is a video where the color of the object you want to track is quite
 .. raw:: html
 
    <center>
-   <video width="400" controls>   
+   <video width="400" controls>  
       <source src="../_static/demo.mp4" type="video/mp4">
    </video>
    </center>

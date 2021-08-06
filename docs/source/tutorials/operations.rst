@@ -8,7 +8,7 @@ Let us consider a simple 2D trajectory:
     traj = Trajectory(points=[[1,2], [3,3], [4,2]])
 
 
-There are several ways a trajectory can be modified in yupi. 
+There are several ways a trajectory can be modified in yupi.
 
 Shifting
 ========
@@ -23,7 +23,7 @@ trajectory points:
     centered = traj - traj.r[0]   # centered points: [[0,0], [2,1], [3,0]]
 
 Both operations can be made in-place when using the operators: **+=** or
-**-=**. 
+**-=**.
 
 Scaling
 =======

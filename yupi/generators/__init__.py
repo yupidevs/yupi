@@ -6,7 +6,7 @@ All the resources of this module should be imported directly
 from ``yupi.generating``.
 """
 
-from yupi.generating.generators import (
+from yupi.generators._generators import (
     Generator,
     RandomWalkGenerator,
     LangevinGenerator

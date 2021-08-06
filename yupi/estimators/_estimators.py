@@ -1,6 +1,36 @@
 import numpy as np
-from yupi.trajectory import Trajectory
-from yupi.analyzing.transformations import wrap_theta
+from yupi import Trajectory
+
+
+def _wrap_ang(ang: np.ndarray, degrees=False, centered=False):
+    """
+    Wrap angles by removing more than one lap to the
+    trigonometic circle.
+
+    Parameters
+    ----------
+    ang : np.ndarray
+        Input array of angles.
+    degrees : bool, optional
+        If True, angles are given in degrees. Otherwise, the units
+        are radians. By default False.
+    centered : bool, optional
+        If True, angles are wrapped on the interval ``[-pi, pi]``.
+        Otherwise, the interval ``[0, 2*pi]`` is chosen. By default
+        False.
+
+    Returns
+    -------
+    np.ndarray
+        A wrapped copy of ``ang``.
+    """
+
+    discont = 360 if degrees else 2 * np.pi
+    if not centered:
+        return ang % discont
+
+    discont_half = discont / 2
+    return -((discont_half - ang) % discont - discont_half)
 
 
 def turning_angles(traj: Trajectory, accumulate=False, degrees=False,
@@ -46,5 +76,5 @@ def turning_angles(traj: Trajectory, accumulate=False, degrees=False,
         theta = np.rad2deg(theta)
 
     if wrap:
-        return wrap_theta(theta, degrees, centered)
+        return _wrap_ang(theta, degrees, centered)
     return theta

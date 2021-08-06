@@ -160,7 +160,7 @@ class Trajectory():
         self.__t0 = t0
         self.__t = data[0]
         self.ang = data[1]
-        self.id = traj_id
+        self.traj_id= traj_id
         self.lazy = lazy
 
         if self.__t is None:
@@ -454,7 +454,7 @@ class Trajectory():
 
         ang = None if self.ang is None else self.ang.T
         json_dict = {
-            'id': self.id,
+            'id': self.traj_id,
             'dt': self.dt,
             'r': convert_to_list(self.r.T),
             'ang': convert_to_list(ang),
@@ -467,7 +467,7 @@ class Trajectory():
         with open(str(path), 'w', newline='') as traj_file:
             writer = csv.writer(traj_file, delimiter=',')
             ang_shape = 0 if self.ang is None else self.ang.shape[1]
-            writer.writerow([self.id, self.dt, self.dim, ang_shape])
+            writer.writerow([self.traj_id, self.dt, self.dim, ang_shape])
             for tp in self:
                 row = np.hstack(np.array([tp.r, tp.ang, tp.t]))
                 writer.writerow(row)

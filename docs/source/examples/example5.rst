@@ -1,24 +1,24 @@
 Example 5
 =========
 
-Simultaneous tracking of an ant and the camera capturing its movement 
-with the reconstruction of the trajectory of the ant respect its 
-initial position. Code and multimedia resources are 
+Simultaneous tracking of an ant and the camera capturing its movement
+with the reconstruction of the trajectory of the ant respect its
+initial position. Code and multimedia resources are
 available `here <https://github.com/yupidevs/yupi_examples/>`_.
 
-The robot designed in [1] allowed to extend the study of the 
-motion of insects for longer times and wider regions. The robot, 
-keeping a proper distance from the insect, continuously moves to 
+The robot designed in [1] allowed to extend the study of the
+motion of insects for longer times and wider regions. The robot,
+keeping a proper distance from the insect, continuously moves to
 preserve the insect always in the scene recorded by its camera.
 
-However, the fact of having both, the insect and the camera, 
-moving at the same time, introduces additional complications 
-while reconstructing the trajectory from a video source. yupi 
-handles the motion of the camera naturally as part of the 
+However, the fact of having both, the insect and the camera,
+moving at the same time, introduces additional complications
+while reconstructing the trajectory from a video source. yupi
+handles the motion of the camera naturally as part of the
 TrackingScenario.
 
-In this example, it is shown how to reproduce the results of 
-the original paper using one of the videos originally used 
+In this example, it is shown how to reproduce the results of
+the original paper using one of the videos originally used
 by the authors.
 
 
@@ -74,7 +74,7 @@ And a tracker for the ant using ColorMatching algorithm:
    algorithm = ColorMatching((20,20,20), (65,65,65))
    ant = ObjectTracker('ant', algorithm, ROI((120, 120), scale=0.75))
 
-Next, we create a TrackingScenario with the ant tracker, the tracker for the camera and 
+Next, we create a TrackingScenario with the ant tracker, the tracker for the camera and
 the Undistorter:
 
 .. code-block:: python

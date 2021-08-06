@@ -3,10 +3,10 @@ from typing import Callable
 from pathlib import Path
 import cv2
 import numpy as np
-from yupi.tracking.algorithms import TrackingAlgorithm, resize_frame
-from yupi.affine_estimator import get_affine
+from yupi.tracking.algorithms import TrackingAlgorithm, _resize_frame
+from yupi.transformations._affine_estimator import _get_affine
 from yupi.trajectory import Trajectory
-from yupi.analyzing.transformations import add_dynamic_reference
+from yupi.transformations import add_moving_FoR
 from yupi.tracking.undistorters import Undistorter
 
 
@@ -220,7 +220,7 @@ class ROI():
 
         self.__global_height, self.__global_width = frame.shape[:2]
 
-        frame_ = resize_frame(frame, scale=self.scale)
+        frame_ = _resize_frame(frame, scale=self.scale)
         cv2.imshow(win1_name, frame_)
 
         # Callback handler to manually set the roi
@@ -368,6 +368,7 @@ class ObjectTracker():
         self.history = []
         self.algorithm = algorithm
         self.preprocessing = preprocessing
+        self.mask = None
 
     def _init_roi(self, frame: np.ndarray) -> bool:
         return self.roi._initialize(self.name, frame)
@@ -461,7 +462,7 @@ class CameraTracker():
         for x0, xf, y0, yf in ignored_regions:
             mask[y0:yf, x0:xf] = 0
 
-        p_good, aff_params, err = get_affine(
+        p_good, aff_params, err = _get_affine(
             img1=prev_frame,
             img2=frame,
             region=self.roi._get_bounds(),
@@ -622,7 +623,7 @@ class TrackingScenario():
                         cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2, (0, 255, 255), 1,
                         cv2.LINE_AA)
 
-        frame = resize_frame(frame, self.preview_scale)
+        frame = _resize_frame(frame, self.preview_scale)
         cv2.imshow('yupi processing window', frame)
         # Return frame
 
@@ -748,7 +749,7 @@ class TrackingScenario():
         for otrack in self.object_trackers:
             t = self._tracker2trajectory(otrack, pix_per_m)
             if self.camera_tracker:
-                t = add_dynamic_reference(t, reference)
+                t = add_moving_FoR(t, reference)
             t_list.append(t)
         return t_list
 

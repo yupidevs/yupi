@@ -18,7 +18,7 @@ lk_params = dict(
 )
 
 
-def rot_matrix(theta, inv=False):
+def _rot_matrix(theta, inv=False):
     R = np.array([[np.cos(theta), -np.sin(theta)],
                   [np.sin(theta), np.cos(theta)]])
     if inv:
@@ -26,34 +26,34 @@ def rot_matrix(theta, inv=False):
     return R
 
 
-def affine_matrix(theta, tx, ty, scale=1, R_inv=False):
-    R = rot_matrix(theta, R_inv)
+def _affine_matrix(theta, tx, ty, scale=1, R_inv=False):
+    R = _rot_matrix(theta, R_inv)
     R_s = (scale * np.identity(2)) @ R
     T = np.array([tx, ty])
     A = np.hstack([R_s, T[None, :].T])
     return A
 
 
-def estimate_params(p1, p2):
+def _estimate_params(p1, p2):
     trans = nudged.estimate(p1, p2)
     tx, ty = trans.get_translation()
     theta, scale = trans.get_rotation(), trans.get_scale()
     return theta, tx, ty, scale
 
 
-def get_p3(p1, theta, tx, ty, scale=1):
-    A = affine_matrix(theta, tx, ty, scale)
+def _get_p3(p1, theta, tx, ty, scale=1):
+    A = _affine_matrix(theta, tx, ty, scale)
     p3 = np.array([A @ [x1, y1, 1] for (x1, y1) in p1])
     return p3
 
 
-def get_r(p1, p2):
+def _get_r(p1, p2):
     x, y = (p1 - p2).T
     r = np.sqrt(x**2 + y**2)
     return r
 
 
-def get_mask_r(r, quantile=1.5):
+def _get_mask_r(r, quantile=1.5):
     # Median and standard deviation of distance population
     r_median, r_std = np.median(r), np.std(r)
     # Cutoff used to filter far features points
@@ -63,37 +63,36 @@ def get_mask_r(r, quantile=1.5):
     return mask
 
 
-def delete_far_points(p1, p2, p3=None, quantile=1.5):
+def _delete_far_points(p1, p2, p3=None, quantile=1.5):
     # Distance amoung p1 and p2, or p2 and p3
-    r = get_r(p1, p2) if p3 is None else get_r(p2, p3)
+    r = _get_r(p1, p2) if p3 is None else _get_r(p2, p3)
     # Mask that filters outliers for a given quantile value
-    mask = get_mask_r(r, quantile)
+    mask = _get_mask_r(r, quantile)
     # Delete far points
     p1, p2 = p1[mask], p2[mask]
     return p1, p2
 
 
-def estimate_matrix(p1, p2, quantile1=None, quantile2=None):
+def _estimate_matrix(p1, p2, quantile1=None, quantile2=None):
     # Validate tracked features deletting outliers
     if quantile1 is not None:
-        p1, p2 = delete_far_points(p1, p2, quantile=quantile1)
+        p1, p2 = _delete_far_points(p1, p2, quantile=quantile1)
 
     # Estimate matrix parameters and transformed features
-    affine_params = estimate_params(p1, p2)
-    p3 = get_p3(p1, *affine_params)
+    affine_params = _estimate_params(p1, p2)
+    p3 = _get_p3(p1, *affine_params)
 
     # Delete outliers considering transformed features
     if quantile2 is not None:
-        p1, p2 = delete_far_points(p1, p2, p3, quantile=quantile2)
-        affine_params = estimate_params(p1, p2)
-        p3 = get_p3(p1, *affine_params)
+        p1, p2 = _delete_far_points(p1, p2, p3, quantile=quantile2)
+        affine_params = _estimate_params(p1, p2)
+        p3 = _get_p3(p1, *affine_params)
 
     p = p1, p2, p3
-    theta, tx, ty, scale = affine_params
     return p, affine_params
 
 
-def get_mse(p2, p3):
+def _get_mse(p2, p3):
     x, y = (p2 - p3).T
     r_2 = np.mean(x**2 + y**2)
     mse_r = np.sqrt(r_2)
@@ -104,7 +103,7 @@ def get_mse(p2, p3):
     return mse_r, mse_x, mse_y
 
 
-def get_affine(img1, img2, region, mask=None):
+def _get_affine(img1, img2, region, mask=None):
     x0, xf, y0, yf = region
     err = None
 
@@ -138,11 +137,11 @@ def get_affine(img1, img2, region, mask=None):
         return 3*(0,), 3*(0,), err
 
     # Estimate points and matrix
-    p_good, affine_params = estimate_matrix(p1_good, p2_good,
+    p_good, affine_params = _estimate_matrix(p1_good, p2_good,
                                             quantile1=1.5, quantile2=1.5)
     p1_good, p2_good, p3_good = p_good
 
     # Mean square error
-    err, *_ = get_mse(p2_good, p3_good)
+    err, *_ = _get_mse(p2_good, p3_good)
 
     return p_good, affine_params, err

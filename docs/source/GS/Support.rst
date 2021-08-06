@@ -11,13 +11,13 @@ There are different options you can use for support:
 
  * You can email us directly:
 
-   * | Gustavo Viera López <gustavo.vieralopez@gssi.it> 
+   * | Gustavo Viera López <gustavo.vieralopez@gssi.it>
      | (Mainly for yupi.tracking submodule)
-   * | Alfredo Reyes <areyes@fisica.uh.cu> 
+   * | Alfredo Reyes <areyes@fisica.uh.cu>
      | (Mainly for yupi.generating and yupi.analyzing submodules)
-   * | Jorge Morgado <jorge.morgadov@gmail.com> 
+   * | Jorge Morgado <jorge.morgadov@gmail.com>
      | (Mainly for yupi documentation and package distribution)
-   * | Ernesto Altshuler <ealtshuler@fisica.uh.cu> 
+   * | Ernesto Altshuler <ealtshuler@fisica.uh.cu>
      | (Mainly for discussion of new applications and examples)
 
 

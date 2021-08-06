@@ -83,7 +83,7 @@ class RandomWalkGenerator(Generator):
     def __init__(self, T: float, dim: int = 1, N: int = 1, dt: float = 1,
                  actions_prob: np.ndarray = None,
                  step_length_func: Callable[[Tuple], np.ndarray] = np.ones,
-                 step_length_kwargs: dict = {}):
+                 **step_length_kwargs):
 
         super().__init__(T, dim, N, dt)
 
@@ -257,25 +257,3 @@ class LangevinGenerator(Generator):
             trajs.append(Trajectory(points=points, dt=self.dt, t=self.t,
                                     traj_id=f"LangevinSolution {i + 1}"))
         return trajs
-
-
-if __name__ == '__main__':
-
-    from yupi.analyzing import plot_trajectories
-        
-    # set parameter values
-    T = 500     # total time (number of time steps if dt==1)
-    dim = 2     # dimension of the walker trajectories
-    N = 3       # number of random walkers
-    dt = 1      # time step
-
-
-    # probability of every action to be taken
-    # according to every axis
-    prob = [[.5, .1, .4],  # x-axis
-            [.5, 0, .5]]   # y-axis
-
-    # get RandomWalk object and get position vectors
-    rw = RandomWalkGenerator(T, dim, N, dt, prob)
-    tr = rw.generate()
-    plot_trajectories(tr)

@@ -16,7 +16,7 @@ def test_save():
 
     # Saving csv
     t1.save('t1', file_type='csv')
-    
+   
 
 def test_load():
     # Wrong trajectory file extension at loading
