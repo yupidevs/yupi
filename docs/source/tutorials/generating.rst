@@ -13,7 +13,7 @@ We can import it from generating module as:
 
 .. code-block:: python
 
-   from yupi.generating import RandomWalkGenerator
+   from yupi.generators import RandomWalkGenerator
 
 As any other :py:class:`~generating.Generator` in yupi, you can specify the parameters that define the shape of the trajectories, as well as the number of trajectories to generate:
 
@@ -43,6 +43,18 @@ Then, we can construct a :py:class:`~yupi.RandomWalkGenerator` with the given va
 
 In the variable **tr** we will have a list of **N** :py:class:`~yupi.Trajectory` objects generated using the given configuration.
 
+The generated trajectories can be inspected using the plot_2D function:
+
+
+.. code-block:: python
+
+   from yupi.graphics import plot_2D
+   plot_2D(tr, legend=None)
+
+
+.. figure:: /images/tutorial007.png
+   :alt: Distribution in submodules
+   :align: center
 
 Langevin Generator
 ==================
@@ -73,9 +85,20 @@ Finally, the generator is created and the trajectories can be generated:
 
 .. code-block:: python
 
-    lg = LangevinGenerator(T, dim, N, dt, tau, noise_pdf, noise_scale)
-    trajectories = lg.generate()
+   from yupi.generators import LangevinGenerator
+   lg = LangevinGenerator(T, dim, N, dt, tau, noise_pdf, noise_scale)
+   trajectories = lg.generate()
 
+The generated trajectories can be inspected using the plot_2D function:
+
+.. code-block:: python
+
+   from yupi.graphics import plot_2D
+   plot_2D(tr, legend=None)
+
+.. figure:: /images/tutorial008.png
+   :alt: Distribution in submodules
+   :align: center
 
 Although not illustrated in this example, the initial
 velocities and positions can be specified in the :py:class:`~yupi.LangevinGenerator`
