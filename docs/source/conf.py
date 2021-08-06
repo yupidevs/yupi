@@ -14,9 +14,12 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
 sys.path.insert(0, os.path.abspath('../../yupi/'))
+sys.path.insert(0, os.path.abspath('../../yupi/estimators/'))
+sys.path.insert(0, os.path.abspath('../../yupi/generators/'))
+sys.path.insert(0, os.path.abspath('../../yupi/graphics/'))
+sys.path.insert(0, os.path.abspath('../../yupi/stats/'))
 sys.path.insert(0, os.path.abspath('../../yupi/tracking/'))
-sys.path.insert(0, os.path.abspath('../../yupi/analyzing/'))
-sys.path.insert(0, os.path.abspath('../../yupi/generating/'))
+sys.path.insert(0, os.path.abspath('../../yupi/transformations/'))
 
 
 # -- Project information -----------------------------------------------------

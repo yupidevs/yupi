@@ -16,7 +16,8 @@ from yupi._checkers import (
 @_check_uniform_time_spaced
 def turning_angles_ensemble(trajs: List[Trajectory], accumulate=False,
                    degrees=False, centered=False, wrap=True):
-    """Return a concatenation of all the turning angles that forms
+    """
+    Return a concatenation of all the turning angles that forms
     a set of trajectories.
 
     Parameters

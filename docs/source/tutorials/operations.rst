@@ -35,7 +35,7 @@ Spacial scaling of a trajectory can be also achieved by multiplying it by a cons
     scaled_traj = traj * 3   # scaled_traj points: [[3,6], [9,9], [12,6]]
 
 
-This operation can be made in-place when using the operator *=.
+This operation can be made in-place when using the operator ``*=``.
 
 
 Rotation

@@ -8,7 +8,10 @@ API Reference
    :caption: Quick access:
 
    yupi
-   analyzing/analyzing
+   estimators/estimators
+   generators/generators
+   graphics/graphics
+   stats/stats
    tracking/tracking
-   generating/generating
+   transformations/transformations
    
