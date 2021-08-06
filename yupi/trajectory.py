@@ -14,7 +14,20 @@ _threshold = 1e-14
 
 
 class TrajectoryPoint(NamedTuple):
-    """Represents a point of a trajectory."""
+    """
+    Represents a point of a trajectory.
+
+    Parameters
+    ----------
+    r : Vector
+        Positional data.
+    ang : Vector
+        Angular data.
+    v : Vector
+        Velocity data.
+    t : float
+        Time data.
+    """
 
     r: Vector
     ang: Vector

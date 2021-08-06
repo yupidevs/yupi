@@ -65,7 +65,7 @@ subtracted by:
 Indexing and slicing
 ====================
 
-Trajectories can also be indexing and obtein the i-th :ref:`~yupi.TrajectoryPoint`:
+:py:class:`~yupi.Trajectory` objects can also be indexing and obtein the *i-th* :py:class:`~yupi.TrajectoryPoint`:
 
 .. code-block:: python
 
