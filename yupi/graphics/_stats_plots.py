@@ -106,18 +106,23 @@ def plot_msd(msd, msd_std, dt, lag, x_units: str = 's', y_units: str = 'm^2/s', 
 
 def plot_kurtosis(kurtosis, dt=None, t_array=None, kurtosis_ref: float = None,
                   units: str = 's', show=True):
-    """[summary]
+    """Plot kurtosis.
 
     Parameters
     ----------
-    kurtosis : [type]
-        [description]
-    dt : [type], optional
-        [description], by default None
-    t_array : [type], optional
-        [description], by default None
-    plot : bool, optional
-        [description], by default True
+    kurtosis : np.adarray
+        Kurtosis array.
+    dt : float
+        Trajectories time step.
+    t_array : np.ndarray, optional
+        Array of time instants that match with every value in ``kurtosis``. 
+        By default None.
+    kurtosis_ref : float, optional
+        The value of kurtosis for a gaussian.
+    units : str, optional
+        Units of the time axes.
+    show : bool, optional
+        If True, the plot is shown. By default True.
     """
 
     units = _validate_units(units)
