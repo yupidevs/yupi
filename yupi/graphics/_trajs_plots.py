@@ -5,6 +5,8 @@ from typing import List, Union
 from yupi import Trajectory
 from yupi.graphics._style import YUPI_COLORS, LINE
 
+
+
 def plot_2D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
             title: str = None, legend: bool = True, show: bool = True,
             connected: bool = False, units: str = 'm', color = None, **kwargs):

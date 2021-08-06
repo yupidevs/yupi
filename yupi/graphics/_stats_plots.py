@@ -13,17 +13,17 @@ from yupi.graphics._style import (
 def _validate_units(units):
     return '' if units is None else f' [{units}]'
 
-def plot_velocity_hist(v, show=True, units='m/s', **kwargs):
+def plot_velocity_hist(v, show: bool = True, units: str = 'm/s', **kwargs):
     """Plot a histogram of the array of velocities ``v``.
 
     Parameters
     ----------
-    v : [type]
-        [description]
-    bins : int, optional
-        [description], by default 20
+    v : np.ndarray
+        Velocity array.
     show : bool, optional
-        [description], by default True
+        If True, the plot is shown. By default True.
+    units : string, optional
+        Velocity units.
     """
 
     if 'color' not in kwargs:
