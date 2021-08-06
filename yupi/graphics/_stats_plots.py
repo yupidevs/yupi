@@ -1,7 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from yupi.graphics._style import *
+from yupi.graphics._style import (
+    LIGHT_YELLOW,
+    LIGHT_BLUE,
+    LIGHT_ORANGE,
+    GREEN,
+    LIGHT_GREEN,
+    RED
+)
 
 def _validate_units(units):
     return '' if units is None else f' [{units}]'
