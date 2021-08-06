@@ -13,7 +13,7 @@ Your script isn't working, and you are sure the issue lies with yupi? Make sure 
 Requesting new features
 -----------------------
 
-You can use the options provided in *Getting Support* to suggest new features you want to see in new releases of yupi.
+You can use the options provided in :ref:`Getting Support` to suggest new features you want to see in new releases of yupi.
 
 
 Extending yupi source code

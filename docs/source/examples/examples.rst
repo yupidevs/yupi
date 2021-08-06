@@ -7,10 +7,12 @@ hosting code examples and additional multimedia resources required to use them.
 You may want to clone that repository first in order to easily reproduce the
 results shown in this section.
 
-Examples are designed to illustrate a complex integration of yupi tools in 
-order to reproduce the results of an existing (or yet to come) scientific paper. 
+Examples are designed to illustrate a complex integration of 
+yupi tools by reproducing the results of published research 
+(with the exception of the first example where we have included 
+an original equation-based simulation). The selected articles are related
+to the analysis of trajectories and its extraction from video sources.
 Before start with the examples make sure you have already reviewed the tutorials.
-
 
 In this table you can easily find the examples that better suits you.
 

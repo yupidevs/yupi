@@ -1,19 +1,20 @@
 Example 1
 =========
 
-A simulation of the statistical properties for the motion of 
-a lysozyme molecule in water is presented using `yupi` API. 
-The simulation shows cualitatively the classical scaling laws of 
-the Langevin theory to explain Brownian Motion (those for Mean 
-Square Displacement or Velocity Autocorrelation Function). 
+We use a Langevin Generator tuned to generate the trajectories 
+of a lysozyme molecule in water. After generating a significant
+amount of trajectories, we analyze the statistics of them and
+observe the classical scaling laws of the Langevin theory to 
+explain Brownian Motion. 
 
 The example is structured as follows:
- #. Setup dependencies
- #. Definition of parameters
- #. Generating trajectories
- #. Data analysis and plotting
- #. References
+  | :ref:`Setup dependencies 1`
+  | :ref:`Definition of parameters 1`
+  | :ref:`Generating trajectories 1`
+  | :ref:`Data analysis and plots 1`
+  | :ref:`References 1`
 
+.. _Setup dependencies 1:
 
 1. Setup dependencies
 ---------------------
@@ -34,19 +35,22 @@ Fix the random generator seed to make results reproducible:
    np.random.seed(0)
 
 
+.. _Definition of parameters 1:
+
 2. Definition of parameters
 ---------------------------
 
-Simulation parameters
+First, we establish the generic parameters of the generator first:
 
 .. code-block:: python
 
    tt_adim = 30     # dimensionless total time
    dim = 2          # trajectory dimension
    N = 1000         # number of trajectories
-   dt_adim = 1e-1   # dimensionaless time step
+   dt_adim = 1e-1   # dimensionless time step
 
-Deterministic model parameters
+Let us define some deterministic parameters of the simulation 
+(i.e., particle and fluid properties and physical constants):
 
 .. code-block:: python
 
@@ -58,13 +62,18 @@ Deterministic model parameters
    d1 = 90e-10      # semi-major axis [m] [2]
    d2 = 18e-10      # semi-minor axis [m] [2]
 
+
+We can indirectly measure quantities that are related with the generator 
+parameters required
+
+.. code-block:: python
+
    m = M / N0                   # mass of one molecule
    a = np.sqrt(d1/2 * d2/2)     # radius of the molecule
    alpha = 6 * np.pi * eta * a  # Stoke's coefficient
-   tau = (alpha / m)**-1        # relaxation time
    v_eq = np.sqrt(k * T / m)    # equilibrium thermal velocity
 
-Intrinsic reference quantities
+Then, we can estimate intrinsic reference quantities:
 
 .. code-block:: python
 
@@ -72,18 +81,25 @@ Intrinsic reference quantities
    tr = tau        # intrinsic reference time
    lr = vr * tr    # intrinsic reference length
 
-Statistical model parameters
+And finally, the actual statistical model parameters for the 
+Langevin Generator:
 
 .. code-block:: python
 
+   tau = (alpha / m)**-1                    # relaxation time
    dt = dt_adim * tr                        # real time step
    noise_pdf = 'normal'                     # noise pdf
    noise_scale_adim = np.sqrt(2 * dt_adim)  # scale parameter of noise pdf
-   v0_adim = np.random.randn(dim, N)        # initial dimensionaless speeds
+   v0_adim = np.random.randn(dim, N)        # initial dimensionless speeds
 
+
+.. _Generating trajectories 1:
 
 3. Generating trajectories
 --------------------------
+
+Once we have all the parameters required to tune the Langevin Generator,
+we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
@@ -91,11 +107,17 @@ Statistical model parameters
    lg.set_scale(v_scale=vr, r_scale=lr, t_scale=tr)
    trajs = lg.generate()
 
+The set_scale method allows to scale the values of Velocity, Position 
+and Time after solving the statistical differential equation. It is also
+possible to multiply them directly to the input v0, r0, dt and T, but it
+makes the Generator slower.
+
+.. _Data analysis and plots 1:
 
 4. Data analysis and plots
 --------------------------
 
-Initialize empty figure for plot all the results:
+Let us initialize an empty figure for plot all the results:
 
 .. code-block:: python
 
@@ -161,6 +183,7 @@ Generate plot
    :alt: Output of example1
    :align: center
 
+.. _References 1:
 
 5. References
 -------------
