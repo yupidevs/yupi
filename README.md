@@ -14,8 +14,8 @@ pip install yupi
 ## Getting Started
 
 In the [official documentation](https://yupi.readthedocs.io/en/latest/) there 
-are some resources to start using the library. A [Getting Started section](https://yupi.readthedocs.io/en/latest/getting_started/getting_started.html) provides an introduction for
-newcomers and the [API reference section](https://yupi.readthedocs.io/en/latest/api_reference/api_reference.html) contains a detailed description of the API.
+are some resources to start using the library: Tutorials, Examples  and a 
+detailed description of the API.
 
 
 ## Examples
