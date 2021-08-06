@@ -1,5 +1,4 @@
 from typing import List
-import scipy.stats
 import numpy as np
 from yupi.trajectory import Trajectory, _threshold
 from yupi.analyzing import turning_angles, subsample_trajectory
