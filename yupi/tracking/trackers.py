@@ -749,7 +749,7 @@ class TrackingScenario():
         for otrack in self.object_trackers:
             t = self._tracker2trajectory(otrack, pix_per_m)
             if self.camera_tracker:
-                t = add_moving_FoR(t, reference)
+                t = add_moving_FoR(t, reference, new_traj_id=t.traj_id)
             t_list.append(t)
         return t_list
 
