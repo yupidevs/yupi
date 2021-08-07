@@ -1,7 +1,6 @@
 yupi.tracking
 =============
 
-
 .. automodule:: tracking
 
 .. toctree::

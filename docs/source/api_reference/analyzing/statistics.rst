@@ -1,5 +1,0 @@
-Statistics
-==========
-
-.. automodule:: statistics
-  :members:

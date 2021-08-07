@@ -1,3 +1,5 @@
+.. _Example 2:
+
 Example 2
 =========
 
@@ -34,7 +36,7 @@ Import all the dependencies:
    from yupi.tracking import ColorMatching, FrameDifferencing
    from yupi.tracking import BackgroundEstimator, BackgroundSubtraction
    from yupi.tracking import TemplateMatching, OpticalFlow
-   from yupi.analyzing import plot_trajectories
+   from yupi.graphics import plot_2D
 
 Set up the path to multimedia resources:
 
@@ -136,12 +138,12 @@ ROI instances of the trackers.
 
 
 After the tracking process finishes we will have a list of Trajectory objects
-in the var **tl**. We can plot them together to evaluate the consistency of all
-methods.
+in the variable ``tl``. We can plot them together to evaluate the consistency
+of all methods.
 
 .. code-block:: python
 
-   plot_trajectories(tl)
+   plot_2D(tl)
 
 .. figure:: /images/example2.png
    :alt: Output of example2

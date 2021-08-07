@@ -1,5 +1,0 @@
-Processing
-==========
-
-.. automodule:: processing
-  :members:

@@ -22,8 +22,8 @@ trajectory points:
     transf_traj = traj + (1, 4)   # transf_traj points: [[2,6], [4,7], [5,6]]
     centered = traj - traj.r[0]   # centered points: [[0,0], [2,1], [3,0]]
 
-Both operations can be made in-place when using the operators: **+=** or
-**-=**.
+Both operations can be made in-place when using the operators: ``+=`` or
+``-=``.
 
 Scaling
 =======
@@ -35,13 +35,13 @@ Spacial scaling of a trajectory can be also achieved by multiplying it by a cons
     scaled_traj = traj * 3   # scaled_traj points: [[3,6], [9,9], [12,6]]
 
 
-This operation can be made in-place when using the operator *=.
+This operation can be made in-place when using the operator ``*=``.
 
 
 Rotation
 ========
 
-Rotation can be made using the **rotate** method:
+Rotation can be made using the :py:func:`~yupi.Trajectory.rotate` method:
 
 .. code-block:: python
 

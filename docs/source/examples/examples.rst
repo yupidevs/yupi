@@ -27,27 +27,27 @@ In this table you can easily find the examples that better suits you.
        | of a lysozyme molecule in water. Several molecule
        | trajectories are generated and later analyzed.
      - * Generation:
-          * :py:class:`~generating.LangevinGenerator`
+          * :py:class:`~generators.LangevinGenerator`
        * Statistics:
-          * :py:func:`~statistics.velocity_samples`
-          * :py:func:`~statistics.turning_angles`
-          * :py:func:`~statistics.msd`
-          * :py:func:`~statistics.kurtosis`
-          * :py:func:`~statistics.vacf`
+          * :py:func:`~stats.speed_ensemble`
+          * :py:func:`~stats.turning_angles_ensemble`
+          * :py:func:`~stats.msd`
+          * :py:func:`~stats.kurtosis`
+          * :py:func:`~stats.vacf`
        * Visualization:
-          * :py:func:`~visualization.plot_trajectories`
-          * :py:func:`~visualization.plot_velocity_hist`
-          * :py:func:`~visualization.plot_angle_distribution`
-          * :py:func:`~visualization.plot_msd`
-          * :py:func:`~visualization.plot_kurtosis`
-          * :py:func:`~visualization.plot_vacf`
+          * :py:func:`~graphics.plot_2D`
+          * :py:func:`~graphics.plot_velocity_hist`
+          * :py:func:`~graphics.plot_angle_distribution`
+          * :py:func:`~graphics.plot_msd`
+          * :py:func:`~graphics.plot_kurtosis`
+          * :py:func:`~graphics.plot_vacf`
    * - | :doc:`Example 2<example2>`
        |
        | A comparison of different tracking methods over the
        | same input video where the camera is fixed at a constant
        | distance from the plane where an ant moves.
      - * Visualization:
-          * :py:func:`~visualization.plot_trajectories`
+          * :py:func:`~graphics.plot_2D`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
           * :py:func:`~tracking.trackers.ObjectTracker`
@@ -64,7 +64,7 @@ In this table you can easily find the examples that better suits you.
        | The position is subsequently compared to the ideal
        | position assuming it does not slip or sink.
      - * Visualization:
-          * :py:func:`~visualization.plot_trajectories`
+          * :py:func:`~graphics.plot_2D`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
           * :py:func:`~tracking.trackers.ObjectTracker`
@@ -76,7 +76,7 @@ In this table you can easily find the examples that better suits you.
        | Tracking an intruder while penetrating a granular
        | material in a quasi 2D enviroment.
      - * Visualization:
-          * :py:func:`~visualization.plot_trajectories`
+          * :py:func:`~graphics.plot_2D`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
           * :py:func:`~tracking.trackers.ObjectTracker`
@@ -89,7 +89,7 @@ In this table you can easily find the examples that better suits you.
        | capturing its movement with the reconstruction of the
        | trajectory of the ant respect its initial position.
      - * Visualization:
-          * :py:func:`~visualization.plot_trajectories`
+          * :py:func:`~graphics.plot_2D`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
           * :py:func:`~tracking.trackers.ObjectTracker`
