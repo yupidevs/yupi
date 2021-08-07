@@ -18,7 +18,7 @@ When the data belongs to trajectories of dimensions within 1 and 3, it is possib
 
    track = Trajectory(x=x, y=y, traj_id="Spiral")
 
-For the three-dimensional case, you can pass a variable **z** to the constructor. If the trajectory has more than 4 dimensions, check the next way of creating the object.
+For the three-dimensional case, you can pass a variable ``z`` to the constructor. If the trajectory has more than 4 dimensions, check the next way of creating the object.
 
 
 Creating trajectories with independent axis information
@@ -59,4 +59,4 @@ Note that the dimension of each point must be equal, and it will define the dime
 A brief comment on time
 =======================
 
-By default, the data will be assumed to be uniformly sampled in time, at a sampling time of 1. If you have the corresponding sequence of time data, you can pass it to the constructor using **t** parameter. Alternatively, if the data is uniformly sampled, you can only pass the value of **dt**.
+By default, the data will be assumed to be uniformly sampled in time, at a sampling time of 1. If you have the corresponding sequence of time data, you can pass it to the constructor using ``t`` parameter. Alternatively, if the data is uniformly sampled, you can only pass the value of ``dt``.
