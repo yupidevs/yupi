@@ -443,6 +443,61 @@ class Trajectory():
     def __rmul__(self, other):
         return self * other
 
+    def turning_angles(self, accumulate=False, degrees=False,
+                       centered=False, wrap=True):
+        """
+        Return the sequence of turning angles that forms the trajectory.
+
+        Parameters
+        ----------
+        traj : Trajectory
+            Input trajectory.
+        accumulate : bool, optional
+            If True, turning angles are measured with respect to an axis
+            defined by the initial velocity (i.e., angles between initial
+            and current velocity). Otherwise, relative turning angles
+            are computed (i.e., angles between succesive velocity
+            vectors). By default False.
+        degrees : bool, optional
+            If True, angles are given in degrees. Otherwise, the units
+            are radians. By default False.
+        centered : bool, optional
+            If True, angles are wrapped on the interval ``[-pi, pi]``.
+            Otherwise, the interval ``[0, 2*pi]`` is chosen. By default
+            False.
+        wrap : bool, optional
+            If True, angles are wrapped in a certain interval (depending
+            on ``centered`` param). By default True.
+
+        Returns
+        -------
+        np.ndarray
+            Turning angles where each position in the array correspond
+            to a given time instant.
+        """
+
+        dx = self.delta_r.x
+        dy = self.delta_r.y
+        theta = np.arctan2(dy, dx)
+
+        if not accumulate:
+            theta = np.ediff1d(theta)  # Relative turning angles
+        else:
+            theta -= theta[0]          # Accumulative turning angles
+
+        if degrees:
+            theta = np.rad2deg(theta)
+
+        if not wrap:
+            return theta
+
+        discont = 360 if degrees else 2 * np.pi
+        if not centered:
+            return theta % discont
+
+        discont_half = discont / 2
+        return -((discont_half - theta) % discont - discont_half)
+
     def _save_json(self, path: str):
         def convert_to_list(vec: Vector):
             if vec is None:
