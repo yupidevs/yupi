@@ -18,8 +18,9 @@ objects. To illustrate the capabilities of yupi, let us consider a list of
    noise_pdf = 'normal'  # Noise probabilistic distribution function
    noise_scale = 0.1     # Scale of the noise pdf
 
-   lg = LangevinGenerator(T, dim, N, dt, tau, noise_pdf, noise_scale)
-   trajs = lg.generate()
+    from yupi.generators import LangevinGenerator
+    lg = LangevinGenerator(T, dim, N, dt, tau, noise_pdf, noise_scale)
+    trajs = lg.generate()
 
 
 Two-dimensional spacial projections
@@ -32,8 +33,8 @@ from a generator, you can  plot them with:
 
 .. code-block:: python
 
-   from yupi.graphics import plot_2D
-   plot_2D(trajs[:10])
+    from yupi.graphics import plot_2D
+    plot_2D(trajs[:10])
   
 
 .. figure:: /images/tutorial001.png
@@ -51,10 +52,11 @@ ensemble of trajectories is also posible using:
 
 .. code-block:: python
 
-   from yupi.stats import speed_ensemble
-   from yupi.graphics import plot_velocity_hist
-   v = speed_ensemble(trajs, step=1)
-   plot_velocity_hist(v, bins=20)
+    from yupi.stats import speed_ensemble
+    from yupi.graphics import plot_velocity_hist
+
+    v = speed_ensemble(trajs, step=1)
+    plot_velocity_hist(v, bins=20)
   
 
 .. figure:: /images/tutorial002.png
@@ -71,10 +73,11 @@ It can be observec with yupi by using:
 
 .. code-block:: python
 
-   from yupi.stats import turning_angles_ensemble, plot_angle_distribution
-   from yupi.graphics import plot_angle_distribution
-   angles = turning_angles_ensemble(trajs)
-   plot_angle_distribution(angles)
+    from yupi.stats import turning_angles_ensemble
+    from yupi.graphics import plot_angles_hist
+
+    theta = turning_angles_ensemble(trajs)
+    plot_angles_hist(theta)
   
 
 .. figure:: /images/tutorial003.png
@@ -92,10 +95,11 @@ a linear function of time. To estimate the MSD of a list of
 
 .. code-block:: python
 
-   from yupi.stats import msd
-   from yupi.graphics import plot_msd
-   trajs_msd, msd_std = msd(trajs, time_avg=True, lag=30)
-   plot_msd(trajs_msd, msd_std, dt, lag=30)
+    from yupi.stats import msd
+    from yupi.graphics import plot_msd
+
+    msd, msd_std = msd(trajs, time_avg=True, lag=30)
+    plot_msd(msd, msd_std, dt, lag=30)
   
 
 .. figure:: /images/tutorial004.png
@@ -112,10 +116,12 @@ normality. It can be estimated using:
 
 .. code-block:: python
 
-   from yupi.stats import kurtosis
-   from yupi.graphics import plot_kurtosis
-   trajs_kurtosis = kurtosis(trajs, time_avg=False, lag=30)
-   plot_kurtosis(trajs_kurtosis, dt=dt)
+    from yupi.stats import kurtosis, kurtosis_reference
+    from yupi.graphics import plot_kurtosis
+
+    ref = yupi.stats.kurtosis_reference(trajs)
+    kurtosis = yupi.stats.kurtosis(trajs, time_avg=False, lag=30)
+    yupi.graphics.plot_kurtosis(kurtosis, kurtosis_ref=ref, dt=dt)
   
 
 .. figure:: /images/tutorial005.png
@@ -132,10 +138,11 @@ the results, you can use:
 
 .. code-block:: python
 
-   from yupi.stats import vacf
-   from yupi.graphics import plot_vacf
-   trajs_vacf, _ = ypa.vacf(trajs, time_avg=True, lag=50)
-   ypa.plot_vacf(trajs_vacf, dt, 50)
+    from yupi.stats import vacf
+    from yupi.graphics import plot_vacf
+
+    vacf, _ = vacf(trajs, time_avg=True, lag=50)
+    plot_vacf(vacf, dt, 50)
   
 
 .. figure:: /images/tutorial006.png
@@ -153,11 +160,12 @@ enables the characterization of the motion in terms of the frequency components.
 
 .. code-block:: python
 
-   from yupi.stats import psd
-   from yupi.graphics import plot_psd
-   trajs_psd, _, _ = ypa.psd(trajs, lag=30)
-   plot_psd(trajs_psd)
+    from yupi.stats import psd
+    from yupi.graphics import plot_psd
 
-.. figure:: /images/tutorial007.png
+    psd_mean, psd_std, omega = psd(trajs, lag=150, omega=True)
+    plot_psd(psd_mean, omega, psd_std)
+
+.. figure:: /images/tutorial009.png
    :alt: PSD IMAGE
    :align: center
