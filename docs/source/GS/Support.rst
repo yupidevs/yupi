@@ -14,7 +14,7 @@ There are different options you can use for support:
    * | Gustavo Viera López <gustavo.vieralopez@gssi.it>
      | (Mainly for yupi.tracking submodule)
    * | Alfredo Reyes <areyes@fisica.uh.cu>
-     | (Mainly for yupi.generating and yupi.analyzing submodules)
+     | (Mainly for yupi.generators, yupi.transformations and yupi.stats submodules)
    * | Jorge Morgado <jorge.morgadov@gmail.com>
      | (Mainly for yupi documentation and package distribution)
    * | Ernesto Altshuler <ealtshuler@fisica.uh.cu>

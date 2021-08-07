@@ -14,7 +14,6 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
 sys.path.insert(0, os.path.abspath('../../yupi/'))
-sys.path.insert(0, os.path.abspath('../../yupi/estimators/'))
 sys.path.insert(0, os.path.abspath('../../yupi/generators/'))
 sys.path.insert(0, os.path.abspath('../../yupi/graphics/'))
 sys.path.insert(0, os.path.abspath('../../yupi/stats/'))
