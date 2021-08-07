@@ -25,8 +25,23 @@ Import all the dependencies:
 
    import numpy as np
    import matplotlib.pyplot as plt
-   from yupi.generating import LangevinGenerator
-   import yupi.analyzing as ypa
+   from yupi.generators import LangevinGenerator
+   from yupi.stats import (
+      msd,
+      speed_ensemble,
+      vacf,
+      turning_angles_ensemble,
+      kurtosis,
+      kurtosis_reference
+   )
+   from yupi.graphics import (
+      plot_2D,
+      plot_angles_hist,
+      plot_kurtosis,
+      plot_msd,
+      plot_vacf,
+      plot_velocity_hist
+   )
 
 Fix the random generator seed to make results reproducible:
 
@@ -128,49 +143,50 @@ Plot spacial trajectories
 .. code-block:: python
 
    ax1 = plt.subplot(231)
-   ypa.plot_trajectories(trajs[:5], legend=False, show=False)
+   plot_2D(trajs[:5], legend=False, show=False)
 
 Plot velocity histogram
 
 .. code-block:: python
 
-   v = ypa.velocity_samples(trajs, step=1)
+   v = speed_ensemble(trajs, step=1)
    ax2 = plt.subplot(232)
-   ypa.plot_velocity_hist(v, bins=20, show=False)
+   plot_velocity_hist(v, bins=20, show=False)
 
 Plot turning angles
 
 .. code-block:: python
 
-   theta = ypa.turning_angles(trajs)
+   theta = turning_angles_ensemble(trajs)
    ax3 = plt.subplot(233, projection='polar')
-   ypa.plot_angle_distribution(theta, show=False)
+   plot_angles_hist(theta, show=False)
 
 Plot Mean Square Displacement
 
 .. code-block:: python
 
    lag_msd = 30
-   msd, msd_std = ypa.msd(trajs, time_avg=True, lag=lag_msd)
+   msd, msd_std = msd(trajs, time_avg=True, lag=lag_msd)
    ax4 = plt.subplot(234)
-   ypa.plot_msd(msd, msd_std, dt, lag=lag_msd, show=False)
+   plot_msd(msd, msd_std, dt, lag=lag_msd, show=False)
 
 Plot Kurtosis
 
 .. code-block:: python
 
-   kurtosis = ypa.kurtosis(trajs, time_avg=False, lag=30)
+   kurtosis = kurtosis(trajs, time_avg=False, lag=30)
+   kurt_ref = kurtosis_reference(trajs)
    ax5 = plt.subplot(235)
-   ypa.plot_kurtosis(kurtosis, dt=dt, show=False)
+   plot_kurtosis(kurtosis, kurtosis_ref=kurt_ref, dt=dt, show=False)
 
 Plot Velocity autocorrelation function
 
 .. code-block:: python
 
    lag_vacf = 50
-   vacf, _ = ypa.vacf(trajs, time_avg=True, lag=lag_vacf)
+   vacf, _ = vacf(trajs, time_avg=True, lag=lag_vacf)
    ax6 = plt.subplot(236)
-   ypa.plot_vacf(vacf, dt, lag_vacf, show=False)
+   plot_vacf(vacf, dt, lag_vacf, show=False)
 
 Generate plot
 

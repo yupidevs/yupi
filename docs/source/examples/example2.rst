@@ -34,7 +34,7 @@ Import all the dependencies:
    from yupi.tracking import ColorMatching, FrameDifferencing
    from yupi.tracking import BackgroundEstimator, BackgroundSubtraction
    from yupi.tracking import TemplateMatching, OpticalFlow
-   from yupi.analyzing import plot_trajectories
+   from yupi.graphics import plot_2D
 
 Set up the path to multimedia resources:
 
@@ -141,7 +141,7 @@ methods.
 
 .. code-block:: python
 
-   plot_trajectories(tl)
+   plot_2D(tl)
 
 .. figure:: /images/example2.png
    :alt: Output of example2

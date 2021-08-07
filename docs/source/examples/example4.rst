@@ -36,11 +36,11 @@ Import all the dependencies:
 
 .. code-block:: python
 
+   from numpy import pi
    from yupi.tracking.trackers import ROI, ObjectTracker, TrackingScenario
    from yupi.tracking.undistorters import RemapUndistorter
    from yupi.tracking.algorithms import ColorMatching
-   from yupi.analyzing.visualization import plot_trajectories
-   from numpy import pi
+   from yupi.graphics import plot_2D
 
 Set up the path to multimedia resources:
 
@@ -135,7 +135,7 @@ Now, we can produce a plot quite similar to the one of the original paper [1]:
 
 .. code-block:: python
 
-   plot_trajectories(tl, line_style='-o', connected=True, color=['blue', 'red'])
+   plot_2D(tl, line_style='-o', connected=True, color=['blue', 'red'])
 
 
 .. figure:: /images/example4-2.png

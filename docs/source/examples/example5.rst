@@ -40,7 +40,7 @@ Import all the dependencies:
    from yupi.tracking import ROI, ObjectTracker, CameraTracker, TrackingScenario
    from yupi.tracking import RemapUndistorter
    from yupi.tracking import ColorMatching
-   from yupi.analyzing import plot_trajectories
+   from yupi.graphics import plot_2D
 
 Set up the path to multimedia resources:
 
@@ -96,7 +96,7 @@ Now, we can produce a plot quite similar to the one of the original paper [1]:
 
 .. code-block:: python
 
-   plot_trajectories(tl)
+   plot_2D(tl)
 
 .. figure:: /images/example5.png
    :alt: Output of example5
