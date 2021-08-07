@@ -13,17 +13,17 @@ from yupi.graphics._style import (
 def _validate_units(units):
     return '' if units is None else f' [{units}]'
 
-def plot_velocity_hist(v, show=True, units='m/s', **kwargs):
+def plot_velocity_hist(v, show: bool = True, units: str = 'm/s', **kwargs):
     """Plot a histogram of the array of velocities ``v``.
 
     Parameters
     ----------
-    v : [type]
-        [description]
-    bins : int, optional
-        [description], by default 20
+    v : np.ndarray
+        Velocity array.
     show : bool, optional
-        [description], by default True
+        If True, the plot is shown. By default True.
+    units : string, optional
+        Velocity units. By default 'm/s'.
     """
 
     if 'color' not in kwargs:
@@ -44,19 +44,19 @@ def plot_velocity_hist(v, show=True, units='m/s', **kwargs):
         plt.show()
 
 
-def plot_angles_hist(ang, bins=50, ax=None, show=True):
-    """[summary]
+def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
+    """Plot a histogram of the array of angles ``ang``.
 
     Parameters
     ----------
-    ang : [type]
-        [description]
-    bins : int, optional
-        [description], by default 50
-    ax : [type], optional
-        [description], by default None
-    plot : bool, optional
-        [description], by default True
+    ang : np.ndarray
+        Array of angles.
+    bins: int
+        Number of histogram bins.
+    show : bool, optional
+        If True, the plot is shown. By default True.
+    ax : matplotlib.axes._subplots.AxesSubplot, optional
+        Axes to plot. By default None.
     """
 
     if ax is None:
@@ -70,21 +70,25 @@ def plot_angles_hist(ang, bins=50, ax=None, show=True):
         plt.show()
 
 
-def plot_msd(msd, msd_std, dt, x_units: str = 's', y_units: str = 'm^2/s', lag=30, show=True):
-    """[summary]
+def plot_msd(msd, msd_std, dt, lag, x_units: str = 's', y_units: str = 'm^2/s', show=True):
+    """Plot Mean Square Displacement.
 
     Parameters
     ----------
-    msd : [type]
-        [description]
-    msd_std : [type]
-        [description]
-    dt : [type]
-        [description]
+    msd : np.ndarray
+        Mean square displacement array.
+    msd_std : np.ndarray
+        Standard deviation.
+    dt : float
+        Trajectories time step.
     lag : int, optional
-        [description], by default 30
+        Lag time.
+    x_units : str, optional
+        Units of the time axes.
+    y_units : str, optional
+        Units of the MSD axes.
     show : bool, optional
-        [description], by default True
+        If True, the plot is shown. By default True.
     """
 
     x_units = _validate_units(x_units)
@@ -102,18 +106,23 @@ def plot_msd(msd, msd_std, dt, x_units: str = 's', y_units: str = 'm^2/s', lag=3
 
 def plot_kurtosis(kurtosis, dt=None, t_array=None, kurtosis_ref: float = None,
                   units: str = 's', show=True):
-    """[summary]
+    """Plot kurtosis.
 
     Parameters
     ----------
-    kurtosis : [type]
-        [description]
-    dt : [type], optional
-        [description], by default None
-    t_array : [type], optional
-        [description], by default None
-    plot : bool, optional
-        [description], by default True
+    kurtosis : np.adarray
+        Kurtosis array.
+    dt : float
+        Trajectories time step.
+    t_array : np.ndarray, optional
+        Array of time instants that match with every value in ``kurtosis``. 
+        By default None.
+    kurtosis_ref : float, optional
+        The value of kurtosis for a gaussian.
+    units : str, optional
+        Units of the time axes.
+    show : bool, optional
+        If True, the plot is shown. By default True.
     """
 
     units = _validate_units(units)
@@ -135,19 +144,24 @@ def plot_kurtosis(kurtosis, dt=None, t_array=None, kurtosis_ref: float = None,
         plt.show()
 
 
-def plot_vacf(vacf, dt, lag=50, x_units: str = 's', y_units: str = '(m/s)^2', show=True):
-    """[summary]
+def plot_vacf(vacf, dt, lag, x_units: str = 's', y_units: str = '(m/s)^2', show=True):
+    """Plot Velocity Autocorrelation Function.
 
     Parameters
     ----------
-    vacf : [type]
-        [description]
-    dt : [type]
-        [description]
-    lag : int, optional
-        [description], by default 50
+    vacf : np.ndarray
+        Velocity autocorrelation function array.
+    dt : float
+        Trajectories time step.
+    lag : int
+        Number of steps that multiplied by ``dt`` defines the lag
+        time.
+    x_units : str, optional
+        Units of the time axes.
+    y_units : str, optional
+        Units of the VACF axes.
     show : bool, optional
-        [description], by default True
+        If True, the plot is shown. By default True.
     """
 
     x_units = _validate_units(x_units)
@@ -174,18 +188,19 @@ def plot_vacf(vacf, dt, lag=50, x_units: str = 's', y_units: str = '(m/s)^2', sh
 
 
 def plot_psd(psd_mean, omega, psd_std=None, show=True):
-    """[summary]
+    """Plot the Power Spectral Density.
 
     Parameters
     ----------
-    psd_mean : [type]
-        [description]
-    omega : [type]
-        [description]
-    psd_std : int, optional
-        [description], by default 50
+    psd_mean : np.ndarray
+        Power spectral density array.
+    omega : np.ndarray
+        Array of angular frequencies.
+    psd_std : np.ndarray, optional
+        Standard deviation of the power spectrum. 
+        By default None.
     show : bool, optional
-        [description], by default True
+        If True, the plot is shown. By default True.
     """
 
     plt.plot(omega, psd_mean, label='psd')

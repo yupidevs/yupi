@@ -494,17 +494,19 @@ def kurtosis(trajs: List[Trajectory], time_avg: bool = True,
 
 @_check_same_dim
 def kurtosis_reference(trajs: List[Trajectory]):
-    """[summary]
+    """Get the sampled kurtosis for the case of 
+    ``len(trajs)`` trajectories whose position 
+    vectors are normaly distributed.
 
     Parameters
     ----------
     trajs : List[Trajectory]
-        [description]
+        Input trajectories.
 
     Returns
     -------
-    [type]
-        [description]
+    float
+        Value of kurtosis.
     """
 
     d = trajs[0].dim
