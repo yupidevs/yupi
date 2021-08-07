@@ -1,3 +1,5 @@
+.. _Example 4:
+
 Example 4
 =========
 
@@ -36,11 +38,11 @@ Import all the dependencies:
 
 .. code-block:: python
 
+   from numpy import pi
    from yupi.tracking.trackers import ROI, ObjectTracker, TrackingScenario
    from yupi.tracking.undistorters import RemapUndistorter
    from yupi.tracking.algorithms import ColorMatching
-   from yupi.analyzing.visualization import plot_trajectories
-   from numpy import pi
+   from yupi.graphics import plot_2D
 
 Set up the path to multimedia resources:
 
@@ -94,7 +96,7 @@ scaling factor (pix_per_m) and the frame to start the processing:
 .. code-block:: python
 
    retval, tl = scenario.track(video_path, pix_per_m=2826, start_frame=200)
-   plot_trajectories(tl)
+   plot_2D(tl)
 
 .. figure:: /images/example4-1.png
    :alt: Output of example4
@@ -135,7 +137,7 @@ Now, we can produce a plot quite similar to the one of the original paper [1]:
 
 .. code-block:: python
 
-   plot_trajectories(tl, line_style='-o', connected=True, color=['blue', 'red'])
+   plot_2D(tl, line_style='-o', connected=True, color=['blue', 'red'])
 
 
 .. figure:: /images/example4-2.png

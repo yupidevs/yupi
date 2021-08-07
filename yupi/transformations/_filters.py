@@ -27,5 +27,6 @@ def exp_convolutional_filter(traj: Trajectory, gamma: float,
     R = np.zeros_like(r)
     for i in range(len(traj) - 1):
         R[i + 1] = R[i] - gamma * (R[i] - r[i]) * dt[i]
+
     smooth_traj = Trajectory(points=R, t=traj.t, traj_id=new_traj_id)
     return smooth_traj

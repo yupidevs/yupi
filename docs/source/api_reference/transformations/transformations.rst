@@ -1,5 +1,5 @@
-Transformations
-===============
+yupi.transformations
+====================
 
 .. automodule:: transformations
   :members:

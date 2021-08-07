@@ -1,3 +1,5 @@
+.. _Example 3:
+
 Example 3
 =========
 
@@ -52,7 +54,7 @@ Import all the dependencies:
    import cv2
    from yupi.tracking import ROI, ObjectTracker, TrackingScenario
    from yupi.tracking import ColorMatching, TemplateMatching
-   from yupi.analyzing import plot_trajectories
+   from yupi.graphics import plot_2D
 
 Set up the path to multimedia resources:
 
@@ -115,8 +117,8 @@ pivot:
 
    wheel_centered = led_centered.copy()
    wheel_centered.add_polar_offset(0.039, 0)
-   wheel_centered.traj_id= 'wheel'
-   plot_trajectories([wheel_centered, led_centered])
+   wheel_centered.traj_id = 'wheel'
+   plot_2D([wheel_centered, led_centered])
 
 
 .. figure:: /images/polar_offset.png

@@ -9,19 +9,12 @@ def traj():
     points = [[0,0], [1,0], [1,1], [2,1]]
     return Trajectory(points=points)
 
-@pytest.fixture
-def non_uniform_traj():
-    points = [[0,0], [1,0], [1,1], [2,1]]
-    t = [0, 0.1, 0.3, 0.35]
-    return Trajectory(points=points, t=t)
-
-def test_turning_angles(traj, non_uniform_traj):
+def test_turning_angles(traj):
+    tae = turning_angles_ensemble([traj])
+    assert tae == pytest.approx([np.pi/2, 3*np.pi/2])
    
-    ta = turning_angles_ensemble([traj])
-    assert ta == pytest.approx([np.pi/2, 3*np.pi/2])
-   
-    ta = turning_angles_ensemble([traj], degrees=True, wrap=False)
-    assert ta == pytest.approx([90, -90])
+    tae = turning_angles_ensemble([traj], degrees=True, wrap=False)
+    assert tae == pytest.approx([90, -90])
 
 def test_speed_ensemble():
     pass

@@ -5,8 +5,8 @@ from yupi.transformations._affine_estimator import _affine_matrix
 
 
 def add_moving_FoR(traj: Trajectory,
-                          reference: Tuple[np.ndarray, np.ndarray, np.ndarray],
-                          start_at_origin=True):
+                   reference: Tuple[np.ndarray, np.ndarray, np.ndarray],
+                   start_at_origin: bool = True, new_traj_id: str = None):
     """
     This function fuses the information of a trajectory with an
     external reference of the motion of the Frame of Reference
@@ -68,4 +68,11 @@ def add_moving_FoR(traj: Trajectory,
     traj.x = x_al
     traj.y = y_al
 
-    return Trajectory(x=x_al, y=y_al, ang=traj.ang, t=traj.t, traj_id=traj.traj_id)
+    moved_traj = Trajectory(
+        x=x_al,
+        y=y_al,
+        ang=traj.ang,
+        t=traj.t,
+        traj_id=new_traj_id
+    )
+    return moved_traj
