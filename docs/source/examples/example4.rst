@@ -94,7 +94,7 @@ scaling factor (pix_per_m) and the frame to start the processing:
 .. code-block:: python
 
    retval, tl = scenario.track(video_path, pix_per_m=2826, start_frame=200)
-   plot_trajectories(tl)
+   plot_2D(tl)
 
 .. figure:: /images/example4-1.png
    :alt: Output of example4
