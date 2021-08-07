@@ -1,3 +1,5 @@
+.. _Example 2:
+
 Example 2
 =========
 
@@ -136,8 +138,8 @@ ROI instances of the trackers.
 
 
 After the tracking process finishes we will have a list of Trajectory objects
-in the var **tl**. We can plot them together to evaluate the consistency of all
-methods.
+in the variable ``tl``. We can plot them together to evaluate the consistency
+of all methods.
 
 .. code-block:: python
 
