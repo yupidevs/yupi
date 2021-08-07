@@ -4,7 +4,6 @@ The API of yupi is divided into seven modules:
   * yupi.tracking: Tools to extract trajectories from image sequences
   * yupi.generators: Models to generate trajectories with given statistical constrains.
   * yupi.transformations: Tools to transform trajectories (resamplers, filters, etc.).
-  * yupi.estimators: Tools to exctract information from trajectories
   * yupi.stats: Tools to extract statistical data from a set of trajectories.
   * yupi.graphics: Tools for visualizing trajectories and statistical data.
     based on the color or the motion of the object being tracked.

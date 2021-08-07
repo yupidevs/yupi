@@ -8,7 +8,6 @@ API Reference
    :caption: Quick access:
 
    yupi
-   estimators/estimators
    generators/generators
    graphics/graphics
    stats/stats
