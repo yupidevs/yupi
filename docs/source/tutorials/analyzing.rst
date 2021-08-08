@@ -4,7 +4,7 @@ Analysis of Trajectory objects
 There are several tools you can use to analyze :py:class:`~yupi.Trajectory`
 objects. To illustrate the capabilities of yupi, let us consider a list of
 :py:class:`~yupi.Trajectory` objects  generated with a Langevin Generator
-(See tutorial https://yupi.readthedocs.io/en/latest/tutorials/generating.html#langevin-generator):
+(See tutorial dedicated tutorial of :ref:`Langevin Generator`)
 
 
 .. code-block:: python

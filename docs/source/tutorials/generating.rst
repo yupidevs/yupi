@@ -54,6 +54,8 @@ The generated trajectories can be inspected using the :py:func:`~graphics.plot_2
    :alt: Distribution in submodules
    :align: center
 
+.. _Langevin Generator:
+
 Langevin Generator
 ==================
 
