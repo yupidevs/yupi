@@ -75,10 +75,10 @@ Then, we initialize two trackers, one for each marker of the intruder:
 .. code-block:: python
 
    algorithm1 = ColorMatching((70,40,20), (160,80,20)) # BGR
-   cyan = ObjectTracker('cyan marker', algorithm1, ROI((50, 50)))
+   cyan = ObjectTracker('center marker', algorithm1, ROI((50, 50)))
 
    algorithm2 = ColorMatching((30,20, 50), (95, 45,120))        
-   magenta = ObjectTracker('magenta marker', algorithm2,  ROI((30, 50)))
+   magenta = ObjectTracker('border marker', algorithm2,  ROI((30, 50)))
 
 
 Now, we will create the TrackingScenario with the trackers and
@@ -135,7 +135,7 @@ Now, we can produce a plot quite similar to the one of the original paper [1]:
 
 .. code-block:: python
 
-   plot_2D(tl, line_style='-o', connected=True, color=['blue', 'red'])
+   plot_2D(tl, line_style='-o', connected=True)
 
 
 .. figure:: /images/example4-2.png
