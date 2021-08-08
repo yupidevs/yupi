@@ -1,3 +1,11 @@
+"""
+This module contains a set of functions for statistical information
+extraction from a trajectory collection.
+
+All the resources of this module should be imported directly
+from ``yupi.stats``.
+"""
+
 from yupi.stats._stats import (
     turning_angles_ensemble,
     speed_ensemble,

@@ -26,15 +26,15 @@ In this table you can easily find the examples that better suits you.
        | A simulation of the statistical properties for the motion
        | of a lysozyme molecule in water. Several molecule
        | trajectories are generated and later analyzed.
-     - * Generation:
+     - * Generators:
           * :py:class:`~generators.LangevinGenerator`
-       * Statistics:
+       * Stats:
           * :py:func:`~stats.speed_ensemble`
           * :py:func:`~stats.turning_angles_ensemble`
           * :py:func:`~stats.msd`
           * :py:func:`~stats.kurtosis`
           * :py:func:`~stats.vacf`
-       * Visualization:
+       * Graphics:
           * :py:func:`~graphics.plot_2D`
           * :py:func:`~graphics.plot_velocity_hist`
           * :py:func:`~graphics.plot_angle_distribution`
@@ -46,7 +46,7 @@ In this table you can easily find the examples that better suits you.
        | A comparison of different tracking methods over the
        | same input video where the camera is fixed at a constant
        | distance from the plane where an ant moves.
-     - * Visualization:
+     - * Graphics:
           * :py:func:`~graphics.plot_2D`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
@@ -63,7 +63,7 @@ In this table you can easily find the examples that better suits you.
        | Tracking a scaled-size rover wheel moving over the sand.
        | The position is subsequently compared to the ideal
        | position assuming it does not slip or sink.
-     - * Visualization:
+     - * Graphics:
           * :py:func:`~graphics.plot_2D`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
@@ -75,7 +75,7 @@ In this table you can easily find the examples that better suits you.
        |
        | Tracking an intruder while penetrating a granular
        | material in a quasi 2D enviroment.
-     - * Visualization:
+     - * Graphics:
           * :py:func:`~graphics.plot_2D`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
@@ -88,7 +88,7 @@ In this table you can easily find the examples that better suits you.
        | Simultaneous tracking of an ant and the camera
        | capturing its movement with the reconstruction of the
        | trajectory of the ant respect its initial position.
-     - * Visualization:
+     - * Graphics:
           * :py:func:`~graphics.plot_2D`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`

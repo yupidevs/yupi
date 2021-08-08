@@ -1,3 +1,11 @@
+"""
+This module constains a set of functions dadicated to plot
+trajectories and extracted statistical data from ``yupi.stats``
+
+All the resources of this module should be imported directly
+from ``yupi.graphics``.
+"""
+
 from yupi.graphics._stats_plots import (
     plot_angles_hist,
     plot_kurtosis,
