@@ -88,6 +88,7 @@ parameters required
    m = M / N0                   # mass of one molecule
    a = np.sqrt(d1/2 * d2/2)     # radius of the molecule
    alpha = 6 * np.pi * eta * a  # Stoke's coefficient
+   tau = (alpha / m)**-1        # relaxation time
    v_eq = np.sqrt(k * T / m)    # equilibrium thermal velocity
 
 Then, we can estimate intrinsic reference quantities:
@@ -103,12 +104,10 @@ Langevin Generator:
 
 .. code-block:: python
 
-   tau = (alpha / m)**-1                    # relaxation time
    dt = dt_adim * tr                        # real time step
    noise_pdf = 'normal'                     # noise pdf
    noise_scale_adim = np.sqrt(2 * dt_adim)  # scale parameter of noise pdf
-   v0_adim = np.random.randn(dim, N)        # initial dimensionless speeds
-
+   v0_adim = np.random.randn(dim, N)        # initial dimensionaless speeds
 
 .. _Generating trajectories 1:
 
