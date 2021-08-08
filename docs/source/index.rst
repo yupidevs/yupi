@@ -34,8 +34,8 @@ Standing for Yet Underused Path Instruments, **yupi** is a set of tools designed
    :caption: Advanced Resources
 
    examples/examples
-   integration/integration
    api_reference/api_reference
+   integration/integration
 
 Indices
 -------

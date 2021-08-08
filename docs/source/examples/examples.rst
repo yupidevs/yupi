@@ -74,7 +74,7 @@ In this table you can easily find the examples that better suits you.
    * - | :doc:`Example 4<example4>`
        |
        | Tracking an intruder while penetrating a granular
-       | material in a quasi 2D enviroment.
+       | material in a quasi 2D environment.
      - * Graphics:
           * :py:func:`~graphics.plot_2D`
        * Tracking:

@@ -4,7 +4,7 @@ Analysis of Trajectory objects
 There are several tools you can use to analyze :py:class:`~yupi.Trajectory`
 objects. To illustrate the capabilities of yupi, let us consider a list of
 :py:class:`~yupi.Trajectory` objects  generated with a Langevin Generator
-(See tutorial https://yupi.readthedocs.io/en/latest/tutorials/generating.html#langevin-generator):
+(See tutorial dedicated tutorial of :ref:`Langevin Generator`)
 
 
 .. code-block:: python
@@ -23,7 +23,7 @@ objects. To illustrate the capabilities of yupi, let us consider a list of
     trajs = lg.generate()
 
 
-Two-dimensional spacial projections
+Two-dimensional spatial projections
 ===================================
 
 The most basic analysis tool is the plot of the trajectories in the space. If
@@ -48,7 +48,7 @@ Histogram of Velocity
 =====================
 
 The analysis of the distribution of velocities among all the samples of an
-ensemble of trajectories is also posible using:
+ensemble of trajectories is also possible using:
 
 .. code-block:: python
 
@@ -67,9 +67,9 @@ ensemble of trajectories is also posible using:
 Histogram of Turning Angles
 ===========================
 
-The analysis of the distribution of turning angles alows to understand how
+The analysis of the distribution of turning angles allows to understand how
 likely is the moving object to turn to specific directions during its motion.
-It can be observec with yupi by using:
+It can be observe with yupi by using:
 
 .. code-block:: python
 

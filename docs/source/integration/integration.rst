@@ -1,5 +1,5 @@
-Integration with 3rd-party software
------------------------------------
+Third-party integration
+-----------------------
 
 The structure of yupi aims to standardize the usage and storage of general purpose trajectories independently of its dimensions. We believe it is useful to be able to convert, when possible, yupi trajectories to the data structures used by other libraries to
 empower our users with the tools offered by third parties. With the same spirit, we offer the possibility of converting data from other libraries to yupi trajectories.
@@ -95,12 +95,12 @@ We can convert these tracks to tracktable trajectories simply by:
 
 .. code-block:: python
 
-  tracktable_track_1 = yupi2tracktable(track_1, is_terrestial=True)
+  tracktable_track_1 = yupi2tracktable(track_1, is_terrestrial=True)
   tracktable_track_2 = yupi2tracktable(track_2)
   tracktable_track_3 = yupi2tracktable(track_3)
  
 
-⚠️ If a 3D yupi :py:class:`~yupi.Trajectory` is converted to a tracktable trajectory with ``is_terrestial=True`` then the ``z`` axis values are stored as a property called ``'altitude'`` for each point.
+⚠️ If a 3D yupi :py:class:`~yupi.Trajectory` is converted to a tracktable trajectory with ``is_terrestrial=True`` then the ``z`` axis values are stored as a property called ``'altitude'`` for each point.
 
 ⚠️ Only yupi :py:class:`~yupi.Trajectory` objects with two or three dimensions can be converted to tracktable trajectories due to tracktable limitations.
 

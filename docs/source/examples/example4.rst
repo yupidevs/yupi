@@ -126,8 +126,6 @@ the center of the intruder:
    tl[1] -= off
    tl[0] -= off
 
-
-
 .. _Results 4:
 
 4. Results
@@ -143,7 +141,6 @@ Now, we can produce a plot quite similar to the one of the original paper [1]:
 .. figure:: /images/example4-2.png
    :alt: Output of example42
    :align: center
-
 
 
 .. _References 4:

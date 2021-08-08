@@ -28,7 +28,7 @@ Both operations can be made in-place when using the operators: ``+=`` or
 Scaling
 =======
 
-Spacial scaling of a trajectory can be also achieved by multiplying it by a constant:
+Spatial scaling of a trajectory can be also achieved by multiplying it by a constant:
 
 .. code-block:: python
 
@@ -52,14 +52,14 @@ Rotation can be made using the :py:func:`~yupi.Trajectory.rotate` method:
 Indexing and slicing
 ====================
 
-:py:class:`~yupi.Trajectory` objects can also be indexing and obtein the *i-th* :py:class:`~yupi.TrajectoryPoint`:
+:py:class:`~yupi.Trajectory` objects can also be indexing and obtain the *i-th* :py:class:`~yupi.TrajectoryPoint`:
 
 .. code-block:: python
 
     traj = Trajectory(points=[[1,2], [3,3], [4,2]])
     p2 = traj[2]   # p2.r = [4,2]
 
-Slicing is possible too and it is used to obtain a subtrajectory. All variance of sciling in python are possible:
+Slicing is possible too and it is used to obtain a subtrajectory. All variance of slicing in python are possible:
 
 .. code-block:: python
 

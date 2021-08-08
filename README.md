@@ -1,7 +1,9 @@
-# yupi
+![yupi](logo.png)
 
-Standing for *Yet Underused Path Instruments*, yupi is a set of tools designed
-for collecting, generating and processing trajectory data. 
+***
+
+Standing for *Yet Underused Path Instruments*, **yupi** is a set of tools designed
+for collecting, generating and processing trajectory data.
 
 ## Installation
 
@@ -16,7 +18,6 @@ pip install yupi
 In the [official documentation](https://yupi.readthedocs.io/en/latest/) there
 are some resources to start using the library: Tutorials, Examples  and a
 detailed description of the API.
-
 
 ## Examples
 

@@ -1,7 +1,7 @@
 Converting your data into Trajectory objects
 --------------------------------------------
 
-Yupi stores data using an efficient internal representation based on Numpy arrays. If you already have some trajectory data, convert it is possible to convert it into a yupi :py:class:`~yupi.Trajectory`. Next, we show how to create the same trajectory in different ways.
+Yupi stores data using an efficient internal representation based on numpy arrays. If you already have some trajectory data, convert it is possible to convert it into a yupi :py:class:`~yupi.Trajectory`. Next, we show how to create the same trajectory in different ways.
 
 
 Creating trajectories with x, y and z information
