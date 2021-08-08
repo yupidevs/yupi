@@ -1,6 +1,4 @@
-![yupi](logo.png)
-
-***
+<p style="text-align:center;"><img src="logo.png" alt="Logo"></p>
 
 Standing for *Yet Underused Path Instruments*, **yupi** is a set of tools designed
 for collecting, generating and processing trajectory data.

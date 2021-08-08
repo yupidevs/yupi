@@ -11,4 +11,16 @@ The API of yupi is divided into seven modules:
     based on the color or the motion of the object being tracked.
 
 .. automodule:: yupi
-   
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Quick access:
+   :hidden:
+  
+   yupi
+   tracking/tracking
+   generators/generators
+   transformations/transformations
+   stats/stats
+   graphics/graphics

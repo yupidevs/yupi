@@ -16,6 +16,9 @@ The example is structured as follows:
   | :ref:`Data analysis and plots 1`
   | :ref:`References 1`
 
+.. note::
+   You can access `the script of this example <https://github.com/yupidevs/yupi_examples/blob/master/example_001.py>`_ on the `yupi examples repository <https://github.com/yupidevs/yupi_examples>`_.
+
 .. _Setup dependencies 1:
 
 1. Setup dependencies
