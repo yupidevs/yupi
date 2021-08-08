@@ -16,6 +16,9 @@ The example is structured as follows:
   | :ref:`Data analysis and plots 1`
   | :ref:`References 1`
 
+.. note::
+   You can access `the script of this example <https://github.com/yupidevs/yupi_examples/blob/master/example_001.py>`_ on the `yupi examples repository <https://github.com/yupidevs/yupi_examples>`_.
+
 .. _Setup dependencies 1:
 
 1. Setup dependencies
@@ -88,6 +91,7 @@ parameters required
    m = M / N0                   # mass of one molecule
    a = np.sqrt(d1/2 * d2/2)     # radius of the molecule
    alpha = 6 * np.pi * eta * a  # Stoke's coefficient
+   tau = (alpha / m)**-1        # relaxation time
    v_eq = np.sqrt(k * T / m)    # equilibrium thermal velocity
 
 Then, we can estimate intrinsic reference quantities:
@@ -103,12 +107,10 @@ Langevin Generator:
 
 .. code-block:: python
 
-   tau = (alpha / m)**-1                    # relaxation time
    dt = dt_adim * tr                        # real time step
    noise_pdf = 'normal'                     # noise pdf
    noise_scale_adim = np.sqrt(2 * dt_adim)  # scale parameter of noise pdf
-   v0_adim = np.random.randn(dim, N)        # initial dimensionless speeds
-
+   v0_adim = np.random.randn(dim, N)        # initial dimensionaless speeds
 
 .. _Generating trajectories 1:
 

@@ -37,7 +37,7 @@ In this table you can easily find the examples that better suits you.
        * Graphics:
           * :py:func:`~graphics.plot_2D`
           * :py:func:`~graphics.plot_velocity_hist`
-          * :py:func:`~graphics.plot_angle_distribution`
+          * :py:func:`~graphics.plot_angles_hist`
           * :py:func:`~graphics.plot_msd`
           * :py:func:`~graphics.plot_kurtosis`
           * :py:func:`~graphics.plot_vacf`
