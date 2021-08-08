@@ -3,8 +3,8 @@ Storage of Trajectory objects
 
 Regardless the source of the :py:class:`~yupi.Trajectory` object, you can store it on disk and later load it for further processing or analysis.
 
-Writting Trajectory objects
-===========================
+Writing Trajectory objects
+==========================
 
 To store your :py:class:`~yupi.Trajectory` object, (e.g. any of the ones created in the previous tutorials) you only need to call the :py:func:`~yupi.Trajectory.save` method as in:
 
