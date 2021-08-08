@@ -192,6 +192,8 @@ def msd(trajs: List[Trajectory], time_avg: bool = True,
 
     if not time_avg:
         _msd = msd_ensemble(trajs)   # Ensemble average
+    elif lag is None:
+        raise ValueError("You must set 'lag' param if 'time_avg' is True")
     else:
         _msd = msd_time(trajs, lag)  # Time average
 
@@ -320,6 +322,8 @@ def vacf(trajs: List[Trajectory], time_avg: bool = True,
 
     if not time_avg:
         _vacf = vacf_ensemble(trajs)   # Ensemble average
+    elif lag is None:
+        raise ValueError("You must set 'lag' param if 'time_avg' is True")
     else:
         _vacf = vacf_time(trajs, lag)  # Time average
 
@@ -484,6 +488,8 @@ def kurtosis(trajs: List[Trajectory], time_avg: bool = True,
 
     if not time_avg:
         return kurtosis_ensemble(trajs), None
+    elif lag is None:
+        raise ValueError("You must set 'lag' param if 'time_avg' is True")
 
     kurt = kurtosis_time(trajs, lag)
     kurt_mean = np.mean(kurt, axis=1)
@@ -493,8 +499,8 @@ def kurtosis(trajs: List[Trajectory], time_avg: bool = True,
 
 @_check_same_dim
 def kurtosis_reference(trajs: List[Trajectory]):
-    """Get the sampled kurtosis for the case of 
-    ``len(trajs)`` trajectories whose position 
+    """Get the sampled kurtosis for the case of
+    ``len(trajs)`` trajectories whose position
     vectors are normaly distributed.
 
     Parameters
