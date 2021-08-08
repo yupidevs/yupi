@@ -483,8 +483,7 @@ def kurtosis(trajs: List[Trajectory], time_avg: bool = True,
     """
 
     if not time_avg:
-        kurt = kurtosis_ensemble(trajs)
-        return kurt
+        return kurtosis_ensemble(trajs), None
 
     kurt = kurtosis_time(trajs, lag)
     kurt_mean = np.mean(kurt, axis=1)
