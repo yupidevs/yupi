@@ -44,7 +44,7 @@ def plot_velocity_hist(v, show: bool = True, units: str = 'm/s', **kwargs):
         plt.show()
 
 
-def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
+def plot_angles_hist(ang, bins, show: bool = True, ax=None):
     """Plot a histogram of the array of angles ``ang``.
 
     Parameters
@@ -70,7 +70,8 @@ def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
         plt.show()
 
 
-def plot_msd(msd, msd_std, dt, lag, x_units: str = 's', y_units: str = 'm^2/s', show=True):
+def plot_msd(msd, msd_std, dt, lag, x_units: str = 's', y_units: str = 'm^2/s',
+             show=True):
     """Plot Mean Square Displacement.
 
     Parameters
@@ -96,7 +97,9 @@ def plot_msd(msd, msd_std, dt, lag, x_units: str = 's', y_units: str = 'm^2/s', 
 
     lag_t_msd = dt * np.arange(lag)
     plt.plot(lag_t_msd, msd, color='.2')
-    plt.fill_between(lag_t_msd, msd + msd_std, msd - msd_std, color=LIGHT_ORANGE)
+    upper_bound = msd + msd_std
+    lower_bound = msd - msd_std
+    plt.fill_between(lag_t_msd, upper_bound, lower_bound, color=LIGHT_ORANGE)
     plt.xlabel(f'lag time{x_units}')
     plt.ylabel(r'$\mathrm{msd \;' + y_units + '}$')
     plt.grid()
@@ -115,8 +118,8 @@ def plot_kurtosis(kurtosis, dt=None, t_array=None, kurtosis_ref: float = None,
     dt : float
         Trajectories time step.
     t_array : np.ndarray, optional
-        Array of time instants that match with every value in ``kurtosis``. 
-        By default None.
+        Array of time instants that match with every value in
+        ``kurtosis``. By default None.
     kurtosis_ref : float, optional
         The value of kurtosis for a gaussian.
     units : str, optional
@@ -133,7 +136,9 @@ def plot_kurtosis(kurtosis, dt=None, t_array=None, kurtosis_ref: float = None,
         plt.plot(t_array, kurtosis, color=GREEN)
 
         if kurtosis_ref is not None:
-            plt.fill_between(t_array, kurtosis, [kurtosis_ref]*len(t_array), color=LIGHT_GREEN)
+            bound_1 = kurtosis
+            bound_2 = [kurtosis_ref]*len(t_array)
+            plt.fill_between(t_array, bound_1, bound_2, color=LIGHT_GREEN)
         plt.xlabel(f'time{units}')
     else:
         plt.plot(kurtosis)
@@ -144,7 +149,8 @@ def plot_kurtosis(kurtosis, dt=None, t_array=None, kurtosis_ref: float = None,
         plt.show()
 
 
-def plot_vacf(vacf, dt, lag, x_units: str = 's', y_units: str = '(m/s)^2', show=True):
+def plot_vacf(vacf, dt, lag, x_units: str = 's', y_units: str = '(m/s)^2',
+              show=True):
     """Plot Velocity Autocorrelation Function.
 
     Parameters
@@ -197,7 +203,7 @@ def plot_psd(psd_mean, omega, psd_std=None, show=True):
     omega : np.ndarray
         Array of angular frequencies.
     psd_std : np.ndarray, optional
-        Standard deviation of the power spectrum. 
+        Standard deviation of the power spectrum.
         By default None.
     show : bool, optional
         If True, the plot is shown. By default True.

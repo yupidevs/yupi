@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import numpy as np
 from yupi.trajectory import Trajectory
 from yupi.transformations import subsample
@@ -15,7 +15,8 @@ from yupi._checkers import (
 @_check_exact_dim(2)
 @_check_uniform_time_spaced
 def turning_angles_ensemble(trajs: List[Trajectory], accumulate=False,
-                   degrees=False, centered=False, wrap=True):
+                            degrees=False, centered=False,
+                            wrap=True) -> np.ndarray:
     """
     Return a concatenation of all the turning angles that forms
     a set of trajectories.
@@ -50,7 +51,7 @@ def turning_angles_ensemble(trajs: List[Trajectory], accumulate=False,
 
 
 @_check_same_dim
-def speed_ensemble(trajs: List[Trajectory], step: int = 1):
+def speed_ensemble(trajs: List[Trajectory], step: int = 1) -> np.ndarray:
     """
     Estimate speeds of the list of trajectories, ``trajs``,
     by computing displacements according to a certain sample
@@ -74,7 +75,7 @@ def speed_ensemble(trajs: List[Trajectory], step: int = 1):
 
 
 @_check_same_t
-def msd_ensemble(trajs: List[Trajectory]):
+def msd_ensemble(trajs: List[Trajectory]) -> np.ndarray:
     """
     Compute the square displacements for every Trajectory object
     stored in ``trajs`` as the square of the current position vector
@@ -112,7 +113,7 @@ def msd_ensemble(trajs: List[Trajectory]):
 
 @_check_same_dt
 @_check_uniform_time_spaced
-def msd_time(trajs: List[Trajectory], lag: int):
+def msd_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the mean square displacement for every Trajectory
     object stored in ``trajs`` as the average of the square of
@@ -161,7 +162,7 @@ def msd_time(trajs: List[Trajectory], lag: int):
 
 @_check_same_dim
 def msd(trajs: List[Trajectory], time_avg: bool = True,
-                 lag: int = None):
+        lag: int = None) -> Tuple[np.ndarray, np.ndarray]:
     """
     Estimate the mean square displacement of the list of Trajectory
     objects, ``trajs``, providing the options of averaging over the
@@ -184,14 +185,15 @@ def msd(trajs: List[Trajectory], time_avg: bool = True,
 
     Returns
     -------
-    np.ndarray
-        Array of mean square displacements.
-    np.ndarray
-        Array of standard deviations.
+    Tuple[np.ndarray, np.ndarray]
+        Tuple containing the array of mean square displacements and
+        the array of standard deviations.
     """
 
     if not time_avg:
         _msd = msd_ensemble(trajs)   # Ensemble average
+    elif lag is None:
+        raise ValueError("You must set 'lag' param if 'time_avg' is True")
     else:
         _msd = msd_time(trajs, lag)  # Time average
 
@@ -201,7 +203,7 @@ def msd(trajs: List[Trajectory], time_avg: bool = True,
 
 
 @_check_same_t
-def vacf_ensemble(trajs: List[Trajectory]):
+def vacf_ensemble(trajs: List[Trajectory]) -> np.ndarray:
     """
     Compute the pair-wise dot product between initial and current
     velocity vectors for every Trajectory object stored in ``trajs``.
@@ -237,7 +239,7 @@ def vacf_ensemble(trajs: List[Trajectory]):
 
 @_check_same_dt
 @_check_uniform_time_spaced
-def vacf_time(trajs: List[Trajectory], lag: int):
+def vacf_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the velocity autocorrelation function for every
     Trajectory object stored in ``trajs`` as the average of the
@@ -289,7 +291,7 @@ def vacf_time(trajs: List[Trajectory], lag: int):
 
 @_check_same_dim
 def vacf(trajs: List[Trajectory], time_avg: bool = True,
-                  lag: int = None):
+        lag: int = None) -> Tuple[np.ndarray, np.ndarray]:
     """
     Estimate the velocity autocorrelation function of the list of
     Trajectory objects, ``trajs``, providing the options of averaging
@@ -312,14 +314,15 @@ def vacf(trajs: List[Trajectory], time_avg: bool = True,
 
     Returns
     -------
-    np.ndarray
-        Array of velocity autocorrelation function.
-    np.ndarray
-        Array of standard deviations.
+    Tuple[np.ndarray, np.ndarray]
+        Tuple containing the array of velocity autocorrelation function
+        and the array of standard deviations.
     """
 
     if not time_avg:
         _vacf = vacf_ensemble(trajs)   # Ensemble average
+    elif lag is None:
+        raise ValueError("You must set 'lag' param if 'time_avg' is True")
     else:
         _vacf = vacf_time(trajs, lag)  # Time average
 
@@ -386,7 +389,7 @@ def _kurtosis(arr):
     return kurt
 
 @_check_same_t
-def kurtosis_ensemble(trajs: List[Trajectory]):
+def kurtosis_ensemble(trajs: List[Trajectory]) -> np.ndarray:
     """Estimate kurtosis as a function of time of the
     list of Trajectory objects, ``trajs``. The average
     is perform over the ensemble of realizations.
@@ -417,7 +420,7 @@ def kurtosis_ensemble(trajs: List[Trajectory]):
 
 @_check_same_dt
 @_check_uniform_time_spaced
-def kurtosis_time(trajs: List[Trajectory], lag: int):
+def kurtosis_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the kurtosis for every Trajectory object stored
     in ``trajs``.
@@ -454,7 +457,7 @@ def kurtosis_time(trajs: List[Trajectory], lag: int):
 
 @_check_same_dim
 def kurtosis(trajs: List[Trajectory], time_avg: bool = True,
-                      lag: int = None):
+             lag: int = None) -> Tuple[np.ndarray, np.ndarray]:
     """
     Estimate the kurtosis of the list of Trajectory objects, ``trajs``,
     providing the options of averaging over the ensemble of realizations
@@ -476,15 +479,14 @@ def kurtosis(trajs: List[Trajectory], time_avg: bool = True,
 
     Returns
     -------
-    np.ndarray
-        Kurtosis.
-    np.ndarray
-        Standard deviations.
+    Tuple[np.ndarray, np.ndarray]
+        Tuple containgin the kurtosis and the standar deviations.
     """
 
     if not time_avg:
-        kurt = kurtosis_ensemble(trajs)
-        return kurt
+        return kurtosis_ensemble(trajs), None
+    elif lag is None:
+        raise ValueError("You must set 'lag' param if 'time_avg' is True")
 
     kurt = kurtosis_time(trajs, lag)
     kurt_mean = np.mean(kurt, axis=1)
@@ -493,9 +495,9 @@ def kurtosis(trajs: List[Trajectory], time_avg: bool = True,
 
 
 @_check_same_dim
-def kurtosis_reference(trajs: List[Trajectory]):
-    """Get the sampled kurtosis for the case of 
-    ``len(trajs)`` trajectories whose position 
+def kurtosis_reference(trajs: List[Trajectory]) -> float:
+    """Get the sampled kurtosis for the case of
+    ``len(trajs)`` trajectories whose position
     vectors are normaly distributed.
 
     Parameters
@@ -519,7 +521,7 @@ def kurtosis_reference(trajs: List[Trajectory]):
 
 @_check_same_dt
 @_check_uniform_time_spaced
-def psd(trajs: List[Trajectory], lag: int, omega: bool = False):
+def psd(trajs: List[Trajectory], lag: int, omega: bool = False) -> np.ndarray:
     """
     Estimate the power spectral density of a list of Trajectory object
     as the Fourier transform of its velocity autocorrelation function.
