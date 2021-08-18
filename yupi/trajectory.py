@@ -249,6 +249,12 @@ class Trajectory():
         return self.r.delta
 
     @property
+    def delta_v(self) -> Vector:
+        """Vector: Difference between each couple of consecutive sample
+        in the velocity vector of the Trajectory."""
+        return self.v.delta
+
+    @property
     def delta_ang(self) -> Union[Vector, None]:
         """Union[Vector, None] : Difference between each couple of
         consecutive samples in the ``ang`` vector of the Trajectory."""
