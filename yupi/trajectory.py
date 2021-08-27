@@ -10,7 +10,7 @@ from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 
 
-_threshold = 1e-14
+_threshold = 1e-12
 
 
 class TrajectoryPoint(NamedTuple):
