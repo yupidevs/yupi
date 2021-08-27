@@ -16,7 +16,7 @@ There are different options you can use for support:
    * | Alfredo Reyes <areyes@fisica.uh.cu>
      | (Mainly for :doc:`../api_reference/generators/generators`, :doc:`../api_reference/transformations/transformations` and :doc:`../api_reference/stats/stats` modules)
    * | Jorge Morgado <jorge.morgadov@gmail.com>
-     | (Mainly for yupi documentation and package distribution)
+     | (Mainly for yupi documentation, package distribution and :doc:`../api_reference/graphics/graphics` module)
    * | Ernesto Altshuler <ealtshuler@fisica.uh.cu>
      | (Mainly for discussion of new applications and examples)
 
