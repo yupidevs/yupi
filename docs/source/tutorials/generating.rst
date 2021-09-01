@@ -101,7 +101,49 @@ Although not illustrated in this example, the initial
 velocities and positions can be specified in the :py:class:`~generators.LangevinGenerator`
 creation using the ``v0`` and ``r0`` parameters respectively.
 
-A more complex application of this :py:class:`~generators.Generator` can be seen in the Example 1.
+A more complex application of this :py:class:`~generators.Generator` can be seen in the :ref:`Example 1`.
+
+
+Diffusing Diffusivity Generator
+===============================
+
+The :py:class:`~generators.DiffDiffGenerator` simulates trajectories governed by a 
+diffusion process with fluctuating diffusivity. It allows to produce 
+:py:class:`~yupi.Trajectory` objects that quantitatively emulate different systems.
+
+To use it, we first need to define the general parameters for a generator:
+
+.. code-block:: python
+
+   T = 1000   # Total time of the simulation
+   N = 5      # Number of trajectories
+   dt = .1    # Time step
+   dim = 2    # Dimension of the Trajectories
+
+
+The generator is created and the trajectories can be generated:
+
+.. code-block:: python
+
+   from yupi.generators import DiffDiffGenerator
+   dd = DiffDiffGenerator(T, N=N, dt=dt, dim=dim)
+   trajs = dd.generate()
+
+The generated trajectories can be inspected using the plot_2D function:
+
+.. code-block:: python
+
+   from yupi.graphics import plot_2D
+   plot_2D(trajs, legend=None)
+
+.. figure:: /images/tutorial010.png
+   :alt: Diff diff generator
+   :align: center
+
+Although not illustrated in this example, the initial positions can be 
+specified in the :py:class:`~generators.DiffDiffGenerator`
+creation using the  ``r0`` parameter.
+
 
 Defining a Custom Generator
 ===========================
