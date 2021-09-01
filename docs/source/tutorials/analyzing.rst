@@ -4,22 +4,14 @@ Analysis of Trajectory objects
 There are several tools you can use to analyze :py:class:`~yupi.Trajectory`
 objects. To illustrate the capabilities of yupi, let us consider a list of
 :py:class:`~yupi.Trajectory` objects  generated with a Langevin Generator
-(See tutorial dedicated tutorial of :ref:`Langevin Generator`)
+(See tutorial dedicated tutorial of :ref:`Langevin Generator` for a more
+detailed explanation of the parameters.)
 
 
 .. code-block:: python
 
-   T = 500     # Total time (number of time steps if dt==1)
-   dim = 2     # Dimension of the walker trajectories
-   N = 500     # Number of random walkers
-   dt = 0.5    # Time step
-
-   tau = 2               # Relaxation time
-   noise_pdf = 'normal'  # Noise probabilistic distribution function
-   noise_scale = 0.1     # Scale of the noise pdf
-
     from yupi.generators import LangevinGenerator
-    lg = LangevinGenerator(T, dim, N, dt, tau, noise_pdf, noise_scale)
+    lg = LangevinGenerator(500, 2, 500, 0.5, 2,  0.1)
     trajs = lg.generate()
 
 
