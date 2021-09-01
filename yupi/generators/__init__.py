@@ -9,11 +9,13 @@ from ``yupi.generators``.
 from yupi.generators._generators import (
     Generator,
     RandomWalkGenerator,
-    LangevinGenerator
+    LangevinGenerator,
+    DiffDiffGenerator
 )
 
 __all__ = [
     'Generator',
     'RandomWalkGenerator',
-    'LangevinGenerator'
+    'LangevinGenerator',
+    'DiffDiffGenerator'
 ]
