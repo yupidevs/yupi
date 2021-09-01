@@ -90,7 +90,7 @@ moving object.
 
 .. code-block:: python
 
-   background = BackgroundEstimator.from_video(video_path, 20, 120)
+   background = BackgroundEstimator.from_video(video_path, 20)
    algorithm = BackgroundSubtraction(background, background_threshold=5)
    trackers.append( ObjectTracker('bkgnd_sub', algorithm, ROI((50, 50))) )
 
@@ -129,14 +129,14 @@ Once all the trackers are collected in a list, we can create a TrackingScenario:
 
 and track the video using the configured scenario. The track method will process
 the video pointed by video_path, using the additional settings we provide. In this
-case we are forcing to start at frame 120 and use a scale factor of 1020 pixels per
-meter. We should must initialize the ROI
+case we are using a scale factor of 1020 pixels per
+meter. We must initialize the ROI
 of each tracker manually, unless we stated it differently while creating each of the
 ROI instances of the trackers.
 
 .. code-block:: python
 
-   retval, tl = scenario.track(video_path, pix_per_m=1024, start_frame=120)
+   retval, tl = scenario.track(video_path, pix_per_m=1024)
 
 
 After the tracking process finishes we will have a list of Trajectory objects
