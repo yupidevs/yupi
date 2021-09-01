@@ -97,7 +97,13 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~tracking.trackers.TrackingScenario`
           * :py:func:`~tracking.algorithms.ColorMatching`
           * :py:func:`~tracking.algorithms.RemapUndistorter`
-
+   * - | :doc:`Example 6<example6>`
+       |
+       | A model framework of a diffusion process with fluctuating 
+       | diffusivity is presented.
+     - * Generators:
+          * :py:class:`~generators.DiffDiffGenerator`
+       
 .. toctree::
    :maxdepth: 2
    :caption: Advanced Resources
@@ -108,3 +114,4 @@ In this table you can easily find the examples that better suits you.
    example3
    example4
    example5 
+   example6 

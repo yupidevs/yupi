@@ -60,17 +60,8 @@ Fix the random generator seed to make results reproducible:
 2. Definition of parameters
 ---------------------------
 
-First, we establish the generic parameters of the generator first:
+First, we define some physical constants:
 
-.. code-block:: python
-
-   tt_adim = 30     # dimensionless total time
-   dim = 2          # trajectory dimension
-   N = 1000         # number of trajectories
-   dt_adim = 1e-1   # dimensionless time step
-
-Let us define some deterministic parameters of the simulation
-(i.e., particle and fluid properties and physical constants):
 
 .. code-block:: python
 
@@ -83,34 +74,34 @@ Let us define some deterministic parameters of the simulation
    d2 = 18e-10      # semi-minor axis [m] [2]
 
 
-We can indirectly measure quantities that are related with the generator
-parameters required
+Then, we can indirectly measure quantities that are 
+related with the physical model:
 
 .. code-block:: python
 
    m = M / N0                   # mass of one molecule
    a = np.sqrt(d1/2 * d2/2)     # radius of the molecule
    alpha = 6 * np.pi * eta * a  # Stoke's coefficient
-   tau = (alpha / m)**-1        # relaxation time
    v_eq = np.sqrt(k * T / m)    # equilibrium thermal velocity
 
-Then, we can estimate intrinsic reference quantities:
 
-.. code-block:: python
-
-   vr = v_eq       # intrinsic reference velocity
-   tr = tau        # intrinsic reference time
-   lr = vr * tr    # intrinsic reference length
-
-And finally, the actual statistical model parameters for the
+Next, we compute actual statistical model parameters for the
 Langevin Generator:
 
 .. code-block:: python
 
-   dt = dt_adim * tr                        # real time step
-   noise_pdf = 'normal'                     # noise pdf
-   noise_scale_adim = np.sqrt(2 * dt_adim)  # scale parameter of noise pdf
-   v0_adim = np.random.randn(dim, N)        # initial dimensionaless speeds
+   tau = (alpha / m)**-1                   # relaxation time
+   noise_scale = np.sqrt(2 / tau) * v_eq   # scale parameter of noise pdf
+
+
+Finally, we define general simulation parameters:
+
+.. code-block:: python
+
+   dim = 2                # trajectory dimension
+   N = 1000               # number of trajectories
+   dt = 1e-1 * tau        # time step
+   tt = 50 * tau          # total time
 
 .. _Generating trajectories 1:
 
@@ -122,14 +113,9 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   lg = LangevinGenerator(tt_adim, dim, N, dt_adim, v0=v0_adim)
-   lg.set_scale(v_scale=vr, r_scale=lr, t_scale=tr)
+   lg = LangevinGenerator(tt, dim, N, dt, tau, noise_scale)
    trajs = lg.generate()
 
-The set_scale method allows to scale the values of Velocity, Position
-and Time after solving the statistical differential equation. It is also
-possible to multiply them directly to the input v0, r0, dt and T, but it
-makes the Generator slower.
 
 .. _Data analysis and plots 1:
 
@@ -153,9 +139,9 @@ Plot velocity histogram
 
 .. code-block:: python
 
-   v = speed_ensemble(trajs, step=1)
-   ax2 = plt.subplot(232)
-   plot_velocity_hist(v, bins=20, show=False)
+   v_norm = speed_ensemble(trajs)
+   plt.subplot(232)
+   plot_velocity_hist(v_norm, bins=20, show=False)
 
 Plot turning angles
 
@@ -163,7 +149,18 @@ Plot turning angles
 
    theta = turning_angles_ensemble(trajs)
    ax3 = plt.subplot(233, projection='polar')
-   plot_angles_hist(theta, show=False)
+   plot_angles_hist(theta, bins=60, show=False)
+
+
+Plot Velocity autocorrelation function
+
+.. code-block:: python
+
+   lag_vacf = 50
+   vacf, _ = vacf(trajs, time_avg=True, lag=lag_vacf)
+   ax6 = plt.subplot(234)
+   plot_vacf(vacf, dt, lag_vacf, show=False)
+
 
 Plot Mean Square Displacement
 
@@ -171,7 +168,7 @@ Plot Mean Square Displacement
 
    lag_msd = 30
    msd, msd_std = msd(trajs, time_avg=True, lag=lag_msd)
-   ax4 = plt.subplot(234)
+   ax4 = plt.subplot(235)
    plot_msd(msd, msd_std, dt, lag=lag_msd, show=False)
 
 Plot Kurtosis
@@ -180,17 +177,9 @@ Plot Kurtosis
 
    kurtosis = kurtosis(trajs, time_avg=False, lag=30)
    kurt_ref = kurtosis_reference(trajs)
-   ax5 = plt.subplot(235)
+   ax5 = plt.subplot(236)
    plot_kurtosis(kurtosis, kurtosis_ref=kurt_ref, dt=dt, show=False)
 
-Plot Velocity autocorrelation function
-
-.. code-block:: python
-
-   lag_vacf = 50
-   vacf, _ = vacf(trajs, time_avg=True, lag=lag_vacf)
-   ax6 = plt.subplot(236)
-   plot_vacf(vacf, dt, lag_vacf, show=False)
 
 Generate plot
 
