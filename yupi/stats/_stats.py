@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Callable, List, Tuple, Union
 import numpy as np
 from yupi.trajectory import Trajectory
 from yupi.transformations import subsample
@@ -9,6 +9,58 @@ from yupi._checkers import (
     _check_exact_dim,
     _check_same_t
 )
+
+
+def _parse_collect_key(value: str) -> Callable:
+    original_value = value
+    is_delta = value.startswith('d')
+    value = value[1:] if is_delta else value
+    if len(value) == 0 or value[0] not in ['r', 'v']:
+        raise ValueError(f"Unkown key '{original_value}'")
+
+    vector_name = value[0]
+    component = value[1:]
+    is_norm = component == 'n'
+    if not is_norm:
+        if component.isnumeric():
+            component = int(component)
+        else:
+            raise ValueError(f"Unkown key '{original_value}'")
+
+    def key(traj: Trajectory):
+        data = traj.x if vector_name == 'r' else traj.v
+        if is_delta:
+            data = data.delta
+        if is_norm:
+            return data.norm
+        return data.component(component)
+
+    return key
+
+
+def collect_from_ensemble(trajs: List[Trajectory], key : Union[str, Callable],
+                         t: Union[float, int], time_in_samples: bool):
+    if time_in_samples and not isinstance(t, int):
+        raise ValueError("'t' must be of type 'int' if 'time_in_samples' is "
+                         "equal True")
+    step = t if time_in_samples else t // trajs[0].dt
+    if isinstance(key, str):
+        key = _parse_collect_key(key)
+    data = [key(traj)[step] for traj in trajs]
+    return data
+
+
+def collect_from_lag(trajs: List[Trajectory], key : Union[str, Callable],
+                    tau: Union[float, int], time_in_samples: bool):
+    if time_in_samples and not isinstance(tau, int):
+        raise ValueError("'tau' must be of type 'int' if 'time_in_samples' is "
+                         "equal True")
+    step = tau if time_in_samples else tau // trajs[0].dt
+    trajs = [subsample(traj, step) for traj in trajs]
+    if isinstance(key, str):
+        key = _parse_collect_key(key)
+    data = [key(traj) for traj in trajs]
+    return np.concatenate(data)
 
 
 @_check_same_dt
