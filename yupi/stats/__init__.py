@@ -7,8 +7,8 @@ from ``yupi.stats``.
 """
 
 from yupi.stats._stats import (
-    collect_from_ensemble,
-    collect_from_lag,
+    collect_at,
+    collect,
     turning_angles_ensemble,
     speed_ensemble,
     msd_ensemble,
@@ -24,8 +24,8 @@ from yupi.stats._stats import (
 
 __all__ = [
     'turning_angles_ensemble',
-    'collect_from_ensemble',
-    'collect_from_lag',
+    'collect_at',
+    'collect',
     'speed_ensemble',
     'msd_ensemble',
     'msd_time',

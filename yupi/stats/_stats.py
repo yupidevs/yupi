@@ -11,11 +11,13 @@ from yupi._checkers import (
 )
 
 
+_COMPONENT_NUM = { 'x':0, 'y':1, 'z':2 }
+
 def _parse_collect_key(value: str) -> Callable:
     original_value = value
     is_delta = value.startswith('d')
     value = value[1:] if is_delta else value
-    if len(value) == 0 or value[0] not in ['r', 'v']:
+    if len(value) == 0 or value[0] not in ['r', 'v', 'a']:
         raise ValueError(f"Unkown key '{original_value}'")
 
     vector_name = value[0]
@@ -24,43 +26,63 @@ def _parse_collect_key(value: str) -> Callable:
     if not is_norm:
         if component.isnumeric():
             component = int(component)
+        elif component in ['x','y','z']:
+            component = _COMPONENT_NUM[component]
+        elif component == '':
+            component = -1
         else:
             raise ValueError(f"Unkown key '{original_value}'")
 
-    def key(traj: Trajectory):
-        data = traj.x if vector_name == 'r' else traj.v
-        if is_delta:
+    def _key(traj: Trajectory, delta=True, norm=True):
+        data = None
+        if vector_name == 'r':
+            data = traj.r
+        elif vector_name == 'v':
+            data = traj.v
+        else:
+            data = traj.a
+
+        if is_delta and delta:
             data = data.delta
-        if is_norm:
+        if is_norm and norm:
             return data.norm
+
+        if component == -1:
+            return data
         return data.component(component)
 
-    return key
+    return _key, is_delta, is_norm, component
 
 
-def collect_from_ensemble(trajs: List[Trajectory], key : Union[str, Callable],
-                         t: Union[float, int], time_in_samples: bool):
-    if time_in_samples and not isinstance(t, int):
-        raise ValueError("'t' must be of type 'int' if 'time_in_samples' is "
+def collect_at(trajs: List[Trajectory], key: str, t: Union[float, int] = 0,
+               time_as_samples: bool = True):
+    if time_as_samples and not isinstance(t, int):
+        raise ValueError("'t' must be of type 'int' if 'time_as_samples' is "
                          "equal True")
-    step = t if time_in_samples else t // trajs[0].dt
-    if isinstance(key, str):
-        key = _parse_collect_key(key)
+    step = t if time_as_samples else t // trajs[0].dt
+    key = _parse_collect_key(key)[0]
     data = [key(traj)[step] for traj in trajs]
     return data
 
 
-def collect_from_lag(trajs: List[Trajectory], key : Union[str, Callable],
-                    tau: Union[float, int], time_in_samples: bool):
-    if time_in_samples and not isinstance(tau, int):
-        raise ValueError("'tau' must be of type 'int' if 'time_in_samples' is "
+def collect(trajs: List[Trajectory], key: str, lag: Union[float, int] = 1,
+            time_as_samples: bool = True):
+    if time_as_samples and not isinstance(lag, int):
+        raise ValueError("'lag' must be of type 'int' if 'time_as_samples' is "
                          "equal True")
-    step = tau if time_in_samples else tau // trajs[0].dt
-    trajs = [subsample(traj, step) for traj in trajs]
-    if isinstance(key, str):
-        key = _parse_collect_key(key)
-    data = [key(traj) for traj in trajs]
-    return np.concatenate(data)
+    step = lag if time_as_samples else lag // trajs[0].dt
+    key, is_delta, is_norm, _ = _parse_collect_key(key)
+
+    if not is_delta:
+        data = [key(traj) for traj in trajs]
+        return np.concatenate(data)
+
+    vectors = [key(traj, delta=False, norm=False) for traj in trajs]
+    data = [[vec[i::step] for i in range(step)] for vec in vectors]
+    data = np.concatenate(data)
+    if is_norm:
+        data = [vec.norm for vec in data]
+    return data
 
 
 @_check_same_dt
