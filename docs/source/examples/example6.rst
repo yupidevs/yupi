@@ -33,7 +33,8 @@ Import all the dependencies:
 .. code-block:: python
 
    import numpy as np
-   import matplotlib.pyplot as plt
+   from yupi.stats import collect_at
+   from yupi.graphics import plot_hists
    from yupi.generators import DiffDiffGenerator
 
 Fix the random generator seed to make results reproducible:
@@ -58,12 +59,11 @@ Simulation parameters:
    dt = .1    # Time step
 
 
-Definition of key time instants:
+Definition of time instants:
 
 .. code-block:: python
 
-   delta_t = np.array([1, 10, 100])   # Time instants
-   steps = np.int32(delta_t / dt)     # Same but in steps of the simulation
+   time_instants = np.array([1, 10, 100])   # Time instants
 
 
 .. _Generating trajectories 6:
@@ -90,24 +90,24 @@ time instants:
 
 .. code-block:: python
 
-   r = [[traj.r.x[step] for traj in trajs] for step in steps]
+   r = [collect_at(trajs, 'rx', t, step_as_time=True) for t in time_instants]
 
 
 Then, we can plot the results:
 
 .. code-block:: python
 
-   for r_, delta_t_ in zip(r, delta_t):
-      plt.hist(r_, bins=30, density=True, histtype='step',
-               label=f't = {delta_t_}')
-   plt.legend()
-   plt.grid(True)
-   plt.ylim(1e-3, 1)
-   plt.xlim(-20, 20)
-   plt.yscale('log')
-   plt.xlabel('x')
-   plt.ylabel('PDF')
-   plt.show()
+   plot_hists(r, bins=30, density=True,
+      labels=[f't = {dt}' for dt in time_instants],
+      xlabel='x',
+      ylabel='PDF',
+      legend=True,
+      grid=True,
+      yscale='log',
+      ylim=(1e-3, 1),
+      xlim=(-20, 20),
+      filled=True
+   )
 
 .. figure:: /images/example6.png
    :alt: Output of example6
