@@ -1,3 +1,5 @@
+import itertools
+from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -7,11 +9,85 @@ from yupi.graphics._style import (
     LIGHT_ORANGE,
     GREEN,
     LIGHT_GREEN,
-    RED
+    RED,
+    YUPI_COLORS,
+    YUPI_LIGHT_COLORS,
+    _plot_basic_properties
 )
 
 def _validate_units(units):
     return '' if units is None else f' [{units}]'
+
+@_plot_basic_properties
+def plot_hist(values: np.ndarray, **kwargs):
+    """
+    Plot a histogram of the given
+
+    Parameters
+    ----------
+    values : np.ndarray
+        Input values
+    """
+
+    if 'color' not in kwargs:
+        kwargs['color'] = YUPI_LIGHT_COLORS[0]
+    if 'ec' not in kwargs:
+        kwargs['ec'] = (0,0,0,0.6)
+    plt.hist(values, **kwargs)
+
+@_plot_basic_properties
+def plot_hists(values_list: List[np.ndarray], kwargs_list: List[dict] = None,
+               labels: List[str] = None, filled: bool = False,
+               **general_kwargs):
+    """
+    Plot several histograms given a collection of values.
+
+    Parameters
+    ----------
+    values_list : List[np.ndarray]
+        Collection of values.
+    kwargs_list : List[dict], optional
+        kwargs of each plot, by default []
+
+        If given, the length must be the same as the length of
+        ``values``.
+    """
+
+    if kwargs_list and len(kwargs_list) != len(values_list):
+        raise ValueError("The length of 'kwargs_list' must be equals the "
+                         "length of 'values_list'")
+
+    kwargs_list = [{}] * len(values_list)
+
+    cycle = itertools.cycle(YUPI_COLORS)
+    colors = [cycle.__next__() for _ in values_list]
+
+    for i, vals in enumerate(values_list):
+        color = colors[i]
+        alpha = 0.3 if filled else 1
+        kwargs = kwargs_list[i]
+        kwargs = kwargs if len(kwargs) != 0 else general_kwargs
+        lw = 1.5
+        if labels is not None:
+            kwargs['label'] = labels[i]
+        if 'histtype' in kwargs:
+            kwargs.pop('histtype')
+        if 'color' in kwargs:
+            color = kwargs['color']
+        if 'lw' in kwargs:
+            lw = kwargs['lw']
+        if 'alpha' not in kwargs:
+            kwargs['alpha'] = alpha
+        alpha = kwargs.pop('alpha', alpha)
+
+        plt.hist(vals, histtype='step', color=color, lw=lw, **kwargs)
+
+        if filled:
+            kwargs.pop('label', None)
+            plt.hist(vals, histtype='stepfilled', color=color, alpha=alpha,
+                     **kwargs)
+
+
 
 def plot_velocity_hist(v, show: bool = True, units: str = 'm/s', **kwargs):
     """Plot a histogram of the array of velocities ``v``.

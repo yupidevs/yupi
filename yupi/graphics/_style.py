@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 
 LINE = '-'
 DOTTED = 'o'
@@ -38,3 +39,29 @@ YUPI_LIGHT_COLORS = [
     LIGHT_GREEN,
     LIGHT_ORANGE
 ]
+
+def _plot_basic_properties(func):
+    def wrapper(*args, title: str = '', xlabel: str = '', ylabel: str = '',
+                grid: bool = False, show: bool = True, legend: bool = False,
+                xscale: str = None, yscale: str = None, xlim: tuple = None,
+                ylim: tuple = None, **kwargs):
+        func(*args, **kwargs)
+        plt.grid(grid)
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        if legend:
+            plt.legend()
+        if xlim is not None:
+            plt.xlim(xlim)
+        if ylim is not None:
+            plt.ylim(ylim)
+        if xscale is not None:
+            plt.xscale(xscale)
+        if yscale is not None:
+            plt.yscale(yscale)
+        if show:
+            plt.show()
+
+    wrapper.__doc__ = func.__doc__
+    return wrapper
