@@ -89,14 +89,14 @@ time instants:
 
 .. code-block:: python
 
-   r = [collect_at(trajs, 'rx', t, step_as_time=True) for t in time_instants]
+   r = [collect_at(trajs, 'rx', time=t) for t in time_instants]
 
 Then, we can plot the results:
 
 .. code-block:: python
 
    plot_hists(r, bins=30, density=True,
-      labels=[f't = {dt}' for dt in time_instants],
+      labels=[f't = {t}' for t in time_instants],
       xlabel='x',
       ylabel='PDF',
       legend=True,
