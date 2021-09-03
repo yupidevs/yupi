@@ -1,5 +1,6 @@
 from typing import Callable, List, Tuple, Union
 import numpy as np
+from numpy.linalg.linalg import norm as nrm
 from yupi.trajectory import Trajectory
 from yupi.transformations import subsample
 from yupi._checkers import (
@@ -32,6 +33,8 @@ def _parse_collect_key(value: str) -> Callable:
             component = -1
         else:
             raise ValueError(f"Unkown key '{original_value}'")
+    else:
+        component = -1
 
     def _key(traj: Trajectory, delta=True, norm=True):
         data = None
@@ -40,13 +43,12 @@ def _parse_collect_key(value: str) -> Callable:
         elif vector_name == 'v':
             data = traj.v
         else:
-            data = traj.a
+            data = traj.ang
 
         if is_delta and delta:
             data = data.delta
         if is_norm and norm:
             return data.norm
-
         if component == -1:
             return data
         return data.component(component)
@@ -56,13 +58,13 @@ def _parse_collect_key(value: str) -> Callable:
 
 def collect_at(trajs: List[Trajectory], key: str, t: Union[float, int] = 0,
                time_as_samples: bool = True):
-    if time_as_samples and not isinstance(t, int):
+    if time_as_samples and not isinstance(t, (int, np.int_)):
         raise ValueError("'t' must be of type 'int' if 'time_as_samples' is "
                          "equal True")
     step = t if time_as_samples else t // trajs[0].dt
     key = _parse_collect_key(key)[0]
     data = [key(traj)[step] for traj in trajs]
-    return data
+    return np.array(data)
 
 
 def collect(trajs: List[Trajectory], key: str, lag: Union[float, int] = 1,
@@ -77,11 +79,11 @@ def collect(trajs: List[Trajectory], key: str, lag: Union[float, int] = 1,
         data = [key(traj) for traj in trajs]
         return np.concatenate(data)
 
-    vectors = [key(traj, delta=False, norm=False) for traj in trajs]
-    data = [[vec[i::step] for i in range(step)] for vec in vectors]
+    vectors = [key(traj, delta=True, norm=False) for traj in trajs]
+    data = [vec[i::step] for i in range(step) for vec in vectors]
     data = np.concatenate(data)
     if is_norm:
-        data = [vec.norm for vec in data]
+        data = np.array([nrm(vec) for vec in data])
     return data
 
 
