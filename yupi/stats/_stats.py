@@ -51,7 +51,7 @@ def _parse_collect_key(value: str) -> Callable:
             return data
         return data.component(component)
 
-    return _key, is_delta, is_norm, component
+    return _key, is_delta, is_norm
 
 
 def collect_at(trajs: List[Trajectory], key: str, t: Union[float, int] = 0,
@@ -71,7 +71,7 @@ def collect(trajs: List[Trajectory], key: str, lag: Union[float, int] = 1,
         raise ValueError("'lag' must be of type 'int' if 'time_as_samples' is "
                          "equal True")
     step = lag if time_as_samples else lag // trajs[0].dt
-    key, is_delta, is_norm, _ = _parse_collect_key(key)
+    key, is_delta, is_norm = _parse_collect_key(key)
 
     if not is_delta:
         data = [key(traj) for traj in trajs]
