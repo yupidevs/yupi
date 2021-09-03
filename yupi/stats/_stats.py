@@ -56,23 +56,23 @@ def _parse_collect_key(value: str) -> Callable:
     return _key, is_delta, is_norm
 
 
-def collect_at(trajs: List[Trajectory], key: str, t: Union[float, int] = 0,
-               time_as_samples: bool = True):
-    if time_as_samples and not isinstance(t, (int, np.int_)):
+def collect_at(trajs: List[Trajectory], key: str, step: Union[float, int] = 0,
+               step_as_time: bool = False):
+    if not step_as_time and not isinstance(step, (int, np.int_)):
         raise ValueError("'t' must be of type 'int' if 'time_as_samples' is "
                          "equal True")
-    step = t if time_as_samples else t // trajs[0].dt
+    step = int(step // trajs[0].dt) if step_as_time else step
     key = _parse_collect_key(key)[0]
     data = [key(traj)[step] for traj in trajs]
     return np.array(data)
 
 
 def collect(trajs: List[Trajectory], key: str, lag: Union[float, int] = 1,
-            time_as_samples: bool = True):
-    if time_as_samples and not isinstance(lag, int):
+            lag_as_time: bool = False):
+    if not lag_as_time and not isinstance(lag, int):
         raise ValueError("'lag' must be of type 'int' if 'time_as_samples' is "
                          "equal True")
-    step = lag if time_as_samples else lag // trajs[0].dt
+    step = int(lag / trajs[0].dt) if lag_as_time else lag
     key, is_delta, is_norm = _parse_collect_key(key)
 
     if not is_delta:
