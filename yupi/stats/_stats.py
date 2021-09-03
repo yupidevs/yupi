@@ -1,5 +1,6 @@
-from typing import List, Tuple
+from typing import Callable, List, Tuple, Union
 import numpy as np
+from numpy.linalg.linalg import norm as nrm
 from yupi.trajectory import Trajectory
 from yupi.transformations import subsample
 from yupi._checkers import (
@@ -9,6 +10,81 @@ from yupi._checkers import (
     _check_exact_dim,
     _check_same_t
 )
+
+
+_COMPONENT_NUM = { 'x':0, 'y':1, 'z':2 }
+
+def _parse_collect_key(value: str) -> Callable:
+    original_value = value
+    is_delta = value.startswith('d')
+    value = value[1:] if is_delta else value
+    if len(value) == 0 or value[0] not in ['r', 'v', 'a']:
+        raise ValueError(f"Unkown key '{original_value}'")
+
+    vector_name = value[0]
+    component = value[1:]
+    is_norm = component == 'n'
+    if not is_norm:
+        if component.isnumeric():
+            component = int(component)
+        elif component in ['x','y','z']:
+            component = _COMPONENT_NUM[component]
+        elif component == '':
+            component = -1
+        else:
+            raise ValueError(f"Unkown key '{original_value}'")
+    else:
+        component = -1
+
+    def _key(traj: Trajectory, delta=True, norm=True):
+        data = None
+        if vector_name == 'r':
+            data = traj.r
+        elif vector_name == 'v':
+            data = traj.v
+        else:
+            data = traj.ang
+
+        if is_delta and delta:
+            data = data.delta
+        if is_norm and norm:
+            return data.norm
+        if component == -1:
+            return data
+        return data.component(component)
+
+    return _key, is_delta, is_norm
+
+
+def collect_at(trajs: List[Trajectory], key: str, step: Union[float, int] = 0,
+               step_as_time: bool = False):
+    if not step_as_time and not isinstance(step, (int, np.int_)):
+        raise ValueError("'t' must be of type 'int' if 'time_as_samples' is "
+                         "equal True")
+    step = int(step // trajs[0].dt) if step_as_time else step
+    key = _parse_collect_key(key)[0]
+    data = [key(traj)[step] for traj in trajs]
+    return np.array(data)
+
+
+def collect(trajs: List[Trajectory], key: str, lag: Union[float, int] = 1,
+            lag_as_time: bool = False):
+    if not lag_as_time and not isinstance(lag, int):
+        raise ValueError("'lag' must be of type 'int' if 'time_as_samples' is "
+                         "equal True")
+    step = int(lag / trajs[0].dt) if lag_as_time else lag
+    key, is_delta, is_norm = _parse_collect_key(key)
+
+    if not is_delta:
+        data = [key(traj) for traj in trajs]
+        return np.concatenate(data)
+
+    vectors = [key(traj, delta=True, norm=False) for traj in trajs]
+    data = [vec[i::step] for i in range(step) for vec in vectors]
+    data = np.concatenate(data)
+    if is_norm:
+        data = np.array([nrm(vec) for vec in data])
+    return data
 
 
 @_check_same_dt
