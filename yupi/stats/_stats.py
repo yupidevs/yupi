@@ -56,23 +56,38 @@ def _parse_collect_key(value: str) -> Callable:
     return _key, is_delta, is_norm
 
 
-def collect_at(trajs: List[Trajectory], key: str, step: Union[float, int] = 0,
-               step_as_time: bool = False):
-    if not step_as_time and not isinstance(step, (int, np.int_)):
-        raise ValueError("'t' must be of type 'int' if 'time_as_samples' is "
-                         "equal True")
-    step = int(step // trajs[0].dt) if step_as_time else step
+def collect_at(trajs: List[Trajectory], key: str, step: int = None,
+               time: float = None):
+    is_step = step is not None
+    is_time = time is not None
+    if is_step + is_time == 0:
+        raise ValueError("You must give at least 'step' or 'time' parameter")
+    if is_step + is_time == 2:
+        raise ValueError("You can not set 'step' and 'time' parameter at the "
+                        "same time")
+
     key = _parse_collect_key(key)[0]
-    data = [key(traj)[step] for traj in trajs]
-    return np.array(data)
+    data = np.zeros(len(trajs))
+    for i, traj in enumerate(trajs):
+        step = int(time / traj.dt) if is_time else step
+        if step >= len(traj):
+            raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
+                             f"shorten than {step} samples")
+        data[i] = key(traj)[step]
+    return data
 
 
-def collect(trajs: List[Trajectory], key: str, lag: Union[float, int] = 1,
-            lag_as_time: bool = False):
-    if not lag_as_time and not isinstance(lag, int):
-        raise ValueError("'lag' must be of type 'int' if 'time_as_samples' is "
-                         "equal True")
-    step = int(lag / trajs[0].dt) if lag_as_time else lag
+def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
+            lag_time: float = None):
+    is_step = lag_step is not None
+    is_time = lag_time is not None
+    if is_step + is_time == 0:
+        raise ValueError("You must give at least 'lag_step' or 'lag_time' "
+                         "parameter")
+    if is_step + is_time == 2:
+        raise ValueError("You can not set 'lag_step' and 'lag_time' parameter "
+                         "at the same time")
+
     key, is_delta, is_norm = _parse_collect_key(key)
 
     if not is_delta:
@@ -80,7 +95,16 @@ def collect(trajs: List[Trajectory], key: str, lag: Union[float, int] = 1,
         return np.concatenate(data)
 
     vectors = [key(traj, delta=True, norm=False) for traj in trajs]
-    data = [vec[i::step] for i in range(step) for vec in vectors]
+    data = []
+
+    for i, vec in enumerate(vectors):
+        traj = trajs[i]
+        step = int(lag_time / traj.dt) if is_time else lag_step
+        if step >= len(traj):
+            raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
+                             f"shorten than {step} samples")
+        data.extend(vec[i::step] for i in range(step))
+
     data = np.concatenate(data)
     if is_norm:
         data = np.array([nrm(vec) for vec in data])
