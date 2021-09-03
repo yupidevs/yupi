@@ -11,7 +11,7 @@ as the square of an Ornstein-Uhlenbeck process.
 
 The example is focused in computing the probability density function for 
 displacements at different time instants for the case of a one-dimensional 
-process, as shown analitically by Chechkin et al. in [1].
+process, as shown analitically by Chechkin et al. in [1] and discussed in [2].
 
 The example is structured as follows:
   | :ref:`Setup dependencies 6`
@@ -59,13 +59,6 @@ Simulation parameters:
    dt = .1    # Time step
 
 
-Definition of time instants:
-
-.. code-block:: python
-
-   time_instants = np.array([1, 10, 100])   # Time instants
-
-
 .. _Generating trajectories 6:
 
 3. Generating trajectories
@@ -85,13 +78,18 @@ we just need to instantiate the class and generate the Trajectories:
 4. Data analysis and plots
 --------------------------
 
+Definition of time instants:
+
+.. code-block:: python
+
+   time_instants = np.array([1, 10, 100])
+
 Let us obtain the position of all the trajectories in the key
 time instants:
 
 .. code-block:: python
 
    r = [collect_at(trajs, 'rx', t, step_as_time=True) for t in time_instants]
-
 
 Then, we can plot the results:
 
