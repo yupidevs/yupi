@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple
 import numpy as np
 from numpy.linalg.linalg import norm as nrm
 from yupi.trajectory import Trajectory
@@ -19,7 +19,7 @@ def _parse_collect_key(value: str) -> Callable:
     is_delta = value.startswith('d')
     value = value[1:] if is_delta else value
     if len(value) == 0 or value[0] not in ['r', 'v', 'a']:
-        raise ValueError(f"Unkown key '{original_value}'")
+        raise ValueError(f"Unknown key '{original_value}'")
 
     vector_name = value[0]
     component = value[1:]
@@ -32,7 +32,7 @@ def _parse_collect_key(value: str) -> Callable:
         elif component == '':
             component = -1
         else:
-            raise ValueError(f"Unkown key '{original_value}'")
+            raise ValueError(f"Unknown key '{original_value}'")
     else:
         component = -1
 
