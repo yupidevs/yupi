@@ -78,7 +78,7 @@ def collect_at(trajs: List[Trajectory], key: str, step: int = None,
 
 
 def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
-            lag_time: float = None):
+            lag_time: float = None, concat: bool = True):
     is_step = lag_step is not None
     is_time = lag_time is not None
     if is_step + is_time == 0:
@@ -90,25 +90,40 @@ def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
 
     key, is_delta, is_norm = _parse_collect_key(key)
 
-    if not is_delta:
-        data = [key(traj) for traj in trajs]
-        return np.concatenate(data)
-
-    vectors = [key(traj, delta=True, norm=False) for traj in trajs]
     data = []
+
+    if not is_delta:
+        for i, traj in enumerate(trajs):
+            step = int(lag_time / traj.dt) if is_time else int(lag_step)
+            if step >= len(traj):
+                raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
+                                f"shorten than {step} samples")
+            current_data = key(traj)[::step]
+
+            if concat:
+                data.extend(current_data)
+            else:
+                data.append(current_data)
+        return np.array(data)
+
+    vectors = [key(traj, delta=False, norm=False) for traj in trajs]
 
     for i, vec in enumerate(vectors):
         traj = trajs[i]
-        step = int(lag_time / traj.dt) if is_time else lag_step
+        step = int(lag_time / traj.dt) if is_time else int(lag_step)
         if step >= len(traj):
             raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
                              f"shorten than {step} samples")
-        data.extend(vec[i::step] for i in range(step))
+        current_data = vec[step:] - vec[:-step]
 
-    data = np.concatenate(data)
-    if is_norm:
-        data = np.array([nrm(vec) for vec in data])
-    return data
+        if is_norm:
+            current_data = np.linalg.norm(current_data, axis=1)
+
+        if concat:
+            data.extend(current_data)
+        else:
+            data.append(current_data)
+    return np.array(data)
 
 
 @_check_same_dt
