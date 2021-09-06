@@ -57,11 +57,12 @@ def _parse_collect_key(value: str) -> Callable:
 
 
 def collect_at(trajs: List[Trajectory], key: str, step: int = None,
-               time: float = None):
+               time: float = None) -> np.ndarray:
     is_step = step is not None
     is_time = time is not None
     if is_step + is_time == 0:
-        raise ValueError("You must give at least 'step' or 'time' parameter")
+        is_step = True
+        step = 1
     if is_step + is_time == 2:
         raise ValueError("You can not set 'step' and 'time' parameter at the "
                         "same time")
@@ -78,12 +79,49 @@ def collect_at(trajs: List[Trajectory], key: str, step: int = None,
 
 
 def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
-            lag_time: float = None, concat: bool = True):
+            lag_time: float = None, concat: bool = True) -> np.ndarray:
+    """
+    Collects certain information given by a key from a group of
+    trajectories.
+
+    If the key contains the ``delta`` signature (e.g. 'drx') then
+    the extracted data will be subsampled first according ``lag_step``
+    or ``lag_time`` parameters. If none of this parameters is given
+    then it is assumed ``lag_step = 1``.
+
+    Parameters
+    ----------
+    trajs : List[Trajectory]
+        Group of trajectories.
+    key : str
+        Describes what information will be extracted from the
+        trajectories.
+    lag_step : int, optional
+        Index distance between samples, by default Nonee.
+    lag_time : float, optional
+        Time distance between samples, by default None.
+    concat : bool, optional
+        If true each trajectory stracted data will be concatenated in a
+        single array, by default True.
+
+    Returns
+    -------
+    np.ndarray
+        Collected data.
+
+    Raises
+    ------
+    ValueError
+        If ``lag_step`` and ``lag_time`` are given at the same time.
+    ValueError
+        If the given lag is grater than one of the trajectories length.
+    """
+
     is_step = lag_step is not None
     is_time = lag_time is not None
     if is_step + is_time == 0:
-        raise ValueError("You must give at least 'lag_step' or 'lag_time' "
-                         "parameter")
+        is_step = True
+        lag_step = 1
     if is_step + is_time == 2:
         raise ValueError("You can not set 'lag_step' and 'lag_time' parameter "
                          "at the same time")
