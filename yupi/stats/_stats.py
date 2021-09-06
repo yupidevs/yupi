@@ -1,5 +1,6 @@
 from typing import Callable, List, Tuple
 import numpy as np
+import logging
 from numpy.linalg.linalg import norm as nrm
 from yupi.trajectory import Trajectory
 from yupi.transformations import subsample
@@ -57,7 +58,7 @@ def _parse_collect_key(value: str) -> Callable:
 
 
 def collect_at(trajs: List[Trajectory], key: str, step: int = None,
-               time: float = None) -> np.ndarray:
+               time: float = None, warnings: bool = True) -> np.ndarray:
     is_step = step is not None
     is_time = time is not None
     if is_step + is_time == 0:
@@ -71,18 +72,21 @@ def collect_at(trajs: List[Trajectory], key: str, step: int = None,
     data = np.zeros(len(trajs))
     for i, traj in enumerate(trajs):
         step = int(time / traj.dt) if is_time else step
-        if step >= len(traj):
-            raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
-                             f"shorten than {step} samples")
+        if warnings and step >= len(traj):
+            logging.warning(f"Trajectory {i} with id={traj.traj_id} is "
+                            f"shorten than {step} samples")
+            continue
+
         data[i] = key(traj)[step]
     return data
 
 
 def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
-            lag_time: float = None, concat: bool = True) -> np.ndarray:
+            lag_time: float = None, concat: bool = True,
+            warnings: bool = True) -> np.ndarray:
     """
-    Collects certain information given by a key from a group of
-    trajectories.
+    Collects the information requested by the key parameter from an
+    ensemble of trajectories.
 
     If the key contains the ``delta`` signature (e.g. 'drx') then
     the extracted data will be subsampled first according ``lag_step``
@@ -101,8 +105,8 @@ def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
     lag_time : float, optional
         Time distance between samples, by default None.
     concat : bool, optional
-        If true each trajectory stracted data will be concatenated in a
-        single array, by default True.
+        If true each trajectory stracted data will be concatenated in
+        a single array, by default True.
 
     Returns
     -------
@@ -133,9 +137,12 @@ def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
     if not is_delta:
         for i, traj in enumerate(trajs):
             step = int(lag_time / traj.dt) if is_time else int(lag_step)
-            if step >= len(traj):
-                raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
+
+            if warnings and step >= len(traj):
+                logging.warning(f"Trajectory {i} with id={traj.traj_id} is "
                                 f"shorten than {step} samples")
+                continue
+
             current_data = key(traj)[::step]
 
             if concat:
@@ -149,9 +156,12 @@ def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
     for i, vec in enumerate(vectors):
         traj = trajs[i]
         step = int(lag_time / traj.dt) if is_time else int(lag_step)
-        if step >= len(traj):
-            raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
-                             f"shorten than {step} samples")
+
+        if warnings and step >= len(traj):
+            logging.warning(f"Trajectory {i} with id={traj.traj_id} is "
+                            f"shorten than {step} samples")
+            continue
+
         current_data = vec[step:] - vec[:-step]
 
         if is_norm:
