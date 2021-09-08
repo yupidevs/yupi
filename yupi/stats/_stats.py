@@ -1,5 +1,6 @@
 from typing import Callable, List, Tuple
 import numpy as np
+import logging
 from numpy.linalg.linalg import norm as nrm
 from yupi.trajectory import Trajectory
 from yupi.transformations import subsample
@@ -57,11 +58,12 @@ def _parse_collect_key(value: str) -> Callable:
 
 
 def collect_at(trajs: List[Trajectory], key: str, step: int = None,
-               time: float = None):
+               time: float = None, warnings: bool = True) -> np.ndarray:
     is_step = step is not None
     is_time = time is not None
     if is_step + is_time == 0:
-        raise ValueError("You must give at least 'step' or 'time' parameter")
+        is_step = True
+        step = 1
     if is_step + is_time == 2:
         raise ValueError("You can not set 'step' and 'time' parameter at the "
                         "same time")
@@ -70,45 +72,106 @@ def collect_at(trajs: List[Trajectory], key: str, step: int = None,
     data = np.zeros(len(trajs))
     for i, traj in enumerate(trajs):
         step = int(time / traj.dt) if is_time else step
-        if step >= len(traj):
-            raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
-                             f"shorten than {step} samples")
+        if warnings and step >= len(traj):
+            logging.warning(f"Trajectory {i} with id={traj.traj_id} is "
+                            f"shorten than {step} samples")
+            continue
+
         data[i] = key(traj)[step]
     return data
 
 
 def collect(trajs: List[Trajectory], key: str, lag_step: int = None,
-            lag_time: float = None):
+            lag_time: float = None, concat: bool = True,
+            warnings: bool = True) -> np.ndarray:
+    """
+    Collects the information requested by the key parameter from an
+    ensemble of trajectories.
+
+    If the key contains the ``delta`` signature (e.g. 'drx') then
+    the extracted data will be subsampled first according ``lag_step``
+    or ``lag_time`` parameters. If none of this parameters is given
+    then it is assumed ``lag_step = 1``.
+
+    Parameters
+    ----------
+    trajs : List[Trajectory]
+        Group of trajectories.
+    key : str
+        Describes what information will be extracted from the
+        trajectories.
+    lag_step : int, optional
+        Index distance between samples, by default Nonee.
+    lag_time : float, optional
+        Time distance between samples, by default None.
+    concat : bool, optional
+        If true each trajectory stracted data will be concatenated in
+        a single array, by default True.
+
+    Returns
+    -------
+    np.ndarray
+        Collected data.
+
+    Raises
+    ------
+    ValueError
+        If ``lag_step`` and ``lag_time`` are given at the same time.
+    ValueError
+        If the given lag is grater than one of the trajectories length.
+    """
+
     is_step = lag_step is not None
     is_time = lag_time is not None
     if is_step + is_time == 0:
-        raise ValueError("You must give at least 'lag_step' or 'lag_time' "
-                         "parameter")
+        is_step = True
+        lag_step = 1
     if is_step + is_time == 2:
         raise ValueError("You can not set 'lag_step' and 'lag_time' parameter "
                          "at the same time")
 
     key, is_delta, is_norm = _parse_collect_key(key)
 
-    if not is_delta:
-        data = [key(traj) for traj in trajs]
-        return np.concatenate(data)
-
-    vectors = [key(traj, delta=True, norm=False) for traj in trajs]
     data = []
+
+    if not is_delta:
+        for i, traj in enumerate(trajs):
+            step = int(lag_time / traj.dt) if is_time else int(lag_step)
+
+            if warnings and step >= len(traj):
+                logging.warning(f"Trajectory {i} with id={traj.traj_id} is "
+                                f"shorten than {step} samples")
+                continue
+
+            current_data = key(traj)[::step]
+
+            if concat:
+                data.extend(current_data)
+            else:
+                data.append(current_data)
+        return np.array(data)
+
+    vectors = [key(traj, delta=False, norm=False) for traj in trajs]
 
     for i, vec in enumerate(vectors):
         traj = trajs[i]
-        step = int(lag_time / traj.dt) if is_time else lag_step
-        if step >= len(traj):
-            raise ValueError(f"Trajectory {i} with id={traj.traj_id} is "
-                             f"shorten than {step} samples")
-        data.extend(vec[i::step] for i in range(step))
+        step = int(lag_time / traj.dt) if is_time else int(lag_step)
 
-    data = np.concatenate(data)
-    if is_norm:
-        data = np.array([nrm(vec) for vec in data])
-    return data
+        if warnings and step >= len(traj):
+            logging.warning(f"Trajectory {i} with id={traj.traj_id} is "
+                            f"shorten than {step} samples")
+            continue
+
+        current_data = vec[step:] - vec[:-step]
+
+        if is_norm:
+            current_data = np.linalg.norm(current_data, axis=1)
+
+        if concat:
+            data.extend(current_data)
+        else:
+            data.append(current_data)
+    return np.array(data)
 
 
 @_check_same_dt
