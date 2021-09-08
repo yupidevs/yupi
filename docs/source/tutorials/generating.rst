@@ -91,7 +91,7 @@ The generated trajectories can be inspected using the plot_2D function:
 .. code-block:: python
 
    from yupi.graphics import plot_2D
-   plot_2D(tr, legend=None)
+   plot_2D(trajectories, legend=None)
 
 .. figure:: /images/tutorial008.png
    :alt: Distribution in submodules
