@@ -179,6 +179,9 @@ class LangevinGenerator(Generator):
 
         super().__init__(T, dim, N, dt)
 
+        # Main id of generated trajectories
+        self.traj_id = 'Langevin'
+
         # Model parameters
         self.tau = tau                  # Relaxation time
         self.noise_scale = noise_scale  # Noise scale parameter
@@ -199,19 +202,28 @@ class LangevinGenerator(Generator):
         self.noise = None                     # Noise array (filled in _get_noise method)
 
         # Initial conditions
-        if r0 is None:
-            self.r[0] = np.zeros((dim, N))                    # Default intial positions
-        elif np.shape(r0) == (dim, N) or np.shape(r0) == ():
-            self.r[0] = r0                                    # User intial positions
+        self.r0 = r0           # Initial position
+        self.v0 = v0           # Initial velocity
+        self._set_init_cond()  # Check and set initial conditions
+
+
+    # Set initial conditions
+    def _set_init_cond(self):
+        if self.r0 is None:
+            self.r[0] = np.zeros((self.dim, self.N))  # Default initial positions
+        elif np.shape(self.r0) == (self.dim, self.N) or np.shape(self.r0) == ():
+            self.r[0] = self.r0                       # User initial positions
         else:
-            raise ValueError(f'r0 is expected to be a float or an array of shape {(self.dim, self.N)}.')
+            raise ValueError('r0 is expected to be a float or an '
+                            f'array of shape {(self.dim, self.N)}.')
         
-        if v0 is None:
-            self.v[0] = np.random.normal(size=(dim, N))       # Default intial velocities
-        elif np.shape(v0) == (dim, N) or np.shape(v0) == ():
-            self.v[0] = v0                                    # User intial velocities
+        if self.v0 is None:
+            self.v[0] = np.random.normal(size=(self.dim, self.N))  # Default initial velocities
+        elif np.shape(self.v0) == (self.dim, self.N) or np.shape(self.v0) == ():
+            self.v[0] = self.v0                                    # User initial velocities
         else:
-            raise ValueError(f'v0 is expected to be a float or an array of shape {(self.dim, self.N)}.')
+            raise ValueError('v0 is expected to be a float or an '
+                            f'array of shape {(self.dim, self.N)}.')
 
 
     # Fill noise array with custom noise properties
@@ -219,7 +231,8 @@ class LangevinGenerator(Generator):
         self.noise = np.random.normal(size=self.shape)
 
 
-    # Solve dimensionless Langevin Equation using the numerical method of Euler-Maruyama
+    # Solve dimensionless Langevin Equation using 
+    # the numerical method of Euler-Maruyama
     def _solve(self):
         for i in range(self.n - 1):
             # Solving for position
@@ -255,7 +268,7 @@ class LangevinGenerator(Generator):
         for i in range(self.N):
             points = self.r[:, :, i]
             trajs.append(Trajectory(points=points, dt=self.dt,
-                                    traj_id=f"Langevin {i + 1}"))
+                                    traj_id=f"{self.traj_id} {i + 1}"))
         return trajs
 
 
