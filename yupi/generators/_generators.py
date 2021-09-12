@@ -387,3 +387,109 @@ class DiffDiffGenerator(Generator):
             trajs.append(Trajectory(points=points, dt=self.dt,
                                     traj_id=f"DiffDiff {i + 1}"))
         return trajs
+
+
+
+class BoundedLangevinGenerator(LangevinGenerator):
+
+    def __init__(self, 
+                 T: float, 
+                 dim: int = 1, 
+                 N: int = 1, 
+                 dt: float = 1., 
+                 tau: float = 1., 
+                 noise_scale: float = 1.,  
+                 bounds: np.ndarray = None, 
+                 bounds_extent: np.ndarray = None, 
+                 bounds_strength: np.ndarray = None, 
+                 v0: np.ndarray = None, 
+                 r0: np.ndarray = None):
+
+        super().__init__(T, dim, N, dt, tau, noise_scale, v0, r0)
+
+        # Main id of generated trajectories
+        self.traj_id = 'BoundedLangevin'
+
+        # Bounds
+        self.bounds = np.float32(bounds) / self.r_scale                            # bounds limit
+        self.bounds_ext = np.float32(bounds_extent) / self.r_scale                 # bounds characteristic length
+        self.bounds_stg = np.float32(bounds_strength) * self.t_scale/self.v_scale  # bounds intensities
+        
+        self._check_r0()
+
+
+    # Check if all initial positions are inside boundaries
+    def _check_r0(self):
+        # Unpack lower and upper bounds
+        lb, ub = self.bounds
+
+        # Find axes without boundaries
+        idx_lb = np.where(np.isnan(lb))
+        idx_ub = np.where(np.isnan(ub))
+
+        # Ignore position components when no boundaries are specified
+        r_lb = np.delete(self.r[0], idx_lb, axis=0)
+        r_ub = np.delete(self.r[0], idx_ub, axis=0)
+
+        # Ignore for bounds
+        lb = np.delete(lb, idx_lb)
+        ub = np.delete(ub, idx_ub)
+
+        # Check if all positions are within both boundaries
+        is_above_lb = np.all(lb[:,None] <= r_lb)
+        is_bellow_ub = np.all(ub[:,None] >= r_ub)
+
+        if not is_above_lb:
+            raise ValueError('Initial positions must be above lower bounds.')
+        
+        if not is_bellow_ub:
+            raise ValueError('Initial positions must be bellow upper bounds.')
+
+
+    # Get net force from the boundaries
+    def _bound_force(self, r, tolerance=7):
+        # Set r to have shape = (N, dim)
+        r = r.T
+
+        # Lower and upper bound limits, extent and strengths
+        lb, ub = self.bounds
+        ext_lb, ext_ub = self.bounds_ext
+        stg_lb, stg_ub = self.bounds_stg
+
+        # Get distance from the bounds and scale
+        # by the bound extent parameter
+        dr_lb = (r - lb) / ext_lb
+        dr_ub = (r - ub) / ext_ub
+
+        # An exponential models the force from the wall. 
+        # Get zero force if there is no bound or the particle 
+        # is far enough. 
+        force_lb = np.where(
+                        np.isnan(lb) | (dr_lb > tolerance), 
+                        0., 
+                        stg_lb * np.exp(-dr_lb))
+
+        force_ub = np.where(
+                        np.isnan(ub) | (-dr_ub > tolerance), 
+                        0., 
+                        -stg_ub * np.exp(dr_ub))
+
+        # Adding boundary effects and transpose to recover 
+        # shape as (dim, N)
+        bound_force = (force_lb + force_ub).T
+        return bound_force
+
+
+    # Solve dimensionless Langevin Equation using 
+    # the numerical method of Euler-Maruyama
+    def _solve(self):
+        for i in range(self.n - 1):
+            # Solving for position
+            self.r[i + 1] = self.r[i] + \
+                            self.v[i] * self.dt
+
+            # Solving for velocity
+            self.v[i + 1] = self.v[i] + \
+                            -self.v[i] * self.dt + \
+                            np.sqrt(self.dt) * self.noise[i] + \
+                            self._bound_force(self.r[i]) * self.dt
