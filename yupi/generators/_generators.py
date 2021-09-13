@@ -4,6 +4,7 @@ import numpy as np
 from yupi import Trajectory
 
 
+
 class Generator(metaclass=abc.ABCMeta):
     """
     Abstract class to model a Trajectory Generator. Classes inheriting
@@ -35,7 +36,7 @@ class Generator(metaclass=abc.ABCMeta):
     """
 
     def __init__(self, T: float, dim: int = 1, N: int = 1, dt: float = 1.0):
-        # Siulation parameters
+        # Simulation parameters
         self.T = T            # Total time
         self.dim = dim        # Trajectory dimension
         self.N = N            # Number of trajectories
@@ -72,7 +73,7 @@ class RandomWalkGenerator(Generator):
         action, by default None.
     step_length_func : Callable[[Tuple], np.ndarray], optional
         Function that returns the distribution of step lengths that
-        will be taken by the walker on each timestep, dimension and
+        will be taken by the walker on each time step, dimension and
         instance of a trajectory. Expected shape of the return value is
         (int(T/dt)-1, dim, N), by default np.ones.
     step_length_kwargs : dict, optional
@@ -86,6 +87,9 @@ class RandomWalkGenerator(Generator):
                  **step_length_kwargs):
 
         super().__init__(T, dim, N, dt)
+
+        # Main id of generated trajectories
+        self.traj_id = 'RandomWalk'
 
         # Dynamic variables
         self.t = np.arange(self.n) * dt      # Time array
@@ -111,6 +115,7 @@ class RandomWalkGenerator(Generator):
         self.actions_prob = actions_prob
         self.step_length = step_length
 
+
     # Compute vector position as a function of time for
     # All the walkers of the ensemble
     def _get_r(self):
@@ -129,6 +134,7 @@ class RandomWalkGenerator(Generator):
         self.r[1:] = np.cumsum(dr, axis=0)
         return self.r
 
+
     # Get position vectors and generate RandomWalk object
     def generate(self):
         # Get position vectors
@@ -139,33 +145,11 @@ class RandomWalkGenerator(Generator):
         for i in range(self.N):
             points = r[:, :, i]
             trajs.append(Trajectory(points=points, dt=self.dt, t=self.t,
-                                    traj_id=f"Random Walker {i + 1}"))
+                                    traj_id=f"{self.traj_id} {i + 1}"))
         return trajs
 
 
-class LangevinGenerator(Generator):
-    """
-    Random Walk class from a multidimensional Langevin Equation.
-
-    Parameters
-    ----------
-    T : float
-        Total duration of each Trajectory.
-    dim : int, optional
-        Dimension of each Trajectory, by default 1.
-    N : int, optional
-        Number of trajectories, by default 1.
-    dt : float, optional
-        Time step of the Trajectory, by default 1.0.
-    tau : float, optional
-        Relaxation characteristic time, by default 1.
-    noise_scale : float, optional
-        Scale parameter of the noise, by default 1.
-    v0 : np.ndarray, optional
-        Initial velocities, by default None.
-    r0 : np.ndarray, optional
-        Initial positions, by default None.
-    """
+class _LangevinGenerator(Generator):
 
     def __init__(self, 
                  T: float, 
@@ -199,7 +183,7 @@ class LangevinGenerator(Generator):
         self.t = np.arange(self.n) * self.dt  # Time array
         self.r = np.empty(self.shape)         # Position array
         self.v = np.empty(self.shape)         # Velocity array
-        self.noise = None                     # Noise array (filled in _get_noise method)
+        self.noise = None                     # Noise array (filled in _set_noise method)
 
         # Initial conditions
         self.r0 = r0           # Initial position
@@ -227,7 +211,7 @@ class LangevinGenerator(Generator):
 
 
     # Fill noise array with custom noise properties
-    def _get_noise(self):
+    def _set_noise(self):
         self.noise = np.random.normal(size=self.shape)
 
 
@@ -255,7 +239,7 @@ class LangevinGenerator(Generator):
 
     # Simulate the process
     def _simulate(self):
-        self._get_noise()  # Set the attribute self.noise
+        self._set_noise()  # Set the attribute self.noise
         self._solve()      # Solve the Langevin equation
         self._set_scale()  # Scaling
 
@@ -272,125 +256,38 @@ class LangevinGenerator(Generator):
         return trajs
 
 
-class DiffDiffGenerator(Generator):
+class LangevinGenerator(_LangevinGenerator):
     """
-        Random Walk class for the Diffusing Diffusivity model.
+    Random Walk class from a multidimensional Langevin Equation. 
+    Boundary conditions to model confined or semi-infinite processes 
+    are supported.
 
     Parameters
     ----------
     T : float
-        Total duration of each Trajectory.
+        Total duration of trajectories.
     dim : int, optional
-        Dimension of each Trajectory, by default 1.
+        Trajectories dimension, by default 1.
     N : int, optional
-        Number of trajectories, by default 1.
+        Number of simulated trajectories, by default 1.
     dt : float, optional
-        Time step of the Trajectory, by default 1.0.
+        Time step, by default 1.0.
     tau : float, optional
-        Relaxation characteristic time of the auxiliar variable, by default 1.
+        Persistence time, by default 1.
     noise_scale : float, optional
-        Scale parameter of the auxiliar variable noise, by default 1.
-    dim_aux: int, optional
-        Dimension of the auxiliar process, which is the square of the diffusivity, by default 1.
+        Noise intensity (i.e., scale parameter of noise pdf), by default 1.
+    bounds: np.ndarray, optional
+        Lower and upper reflecting boundaries that confine the trajectories. If None 
+        is passed, trajectories are simulated in a free space. By default None.
+    bounds_extent: np.ndarray, optional
+        Decay length of boundary forces, by default None.
+    bounds_strength: np.ndarray, optional
+        Boundaries strength, by default None.
+    v0 : np.ndarray, optional
+        Initial velocities, by default None.
     r0 : np.ndarray, optional
         Initial positions, by default None.
     """
-
-    def __init__(self, 
-                 T: float, 
-                 dim: int = 1, 
-                 N: int = 1, 
-                 dt: float = 1., 
-                 tau: float = 1., 
-                 noise_scale: float = 1., 
-                 dim_aux: int = 1, 
-                 r0: np.ndarray = None):
-
-        super().__init__(T, dim, N, dt)
-
-        # Model parameters
-        self.tau = tau                  # Relaxation time
-        self.noise_scale = noise_scale  # Noise scale parameter of auxiliar variable
-
-        # Intrinsic reference parameters
-        self.t_scale = tau                         # Time scale
-        self.r_scale = noise_scale * self.t_scale  # Length scale
-
-        # Simulation parameters
-        self.dt = dt / self.t_scale    # Dimensionless time step
-        self.shape = (self.n, dim, N)  # Shape of dynamic variables
-        self.dim_aux = dim_aux         # Dimension of the aux variable
-
-        # Dynamic variables
-        self.t = np.arange(self.n, dtype=np.float32)  # Time array
-        self.r = np.empty(self.shape)                 # Position array
-        self.Y = np.empty((dim_aux, N))               # Aux variable: square of diffusivity
-        self.noise_r = None                           # Noise array for position (filled in _get_noise method)
-        self.noise_Y = None                           # Noise array for aux variable (filled in _get_noise method)
-
-        # Initial conditions
-        self.Y = np.random.normal(size=(dim_aux, N))  # Initial aux variable configuration
-        self.D = np.sum(self.Y**2, axis=0)            # Initial diffusivity configuration
-
-        if r0 is None:
-            self.r[0] = np.zeros((dim, N))                    # Default intial positions
-        elif np.shape(r0) == (dim, N) or np.shape(r0) == ():
-            self.r[0] = r0                                    # User intial positions
-        else:
-            raise ValueError(f'r0 is expected to be a float or an array of shape {(self.dim, self.N)}.')
-
-
-    # Fill noise arrays
-    def _get_noise(self):
-        dist = np.random.normal
-        self.noise_r = dist(size=self.shape)
-        self.noise_Y = dist(size=(self.n, self.dim_aux, self.N))
-    
-
-    # Solve coupled Langevin equations
-    def _solve(self):
-        for i in range(self.n - 1):
-            # Solving for position
-            self.r[i + 1] = self.r[i] + \
-                            np.sqrt(2 * self.D * self.dt) * self.noise_r[i]
-
-            # Solving for auxiliar variable
-            self.Y = self.Y + \
-                     -self.Y * self.dt + \
-                     np.sqrt(self.dt) * self.noise_Y[i]
-            
-            # Updating the diffusivities
-            self.D = np.sum(self.Y**2, axis=0)
-
-
-    # Scale by intrinsic reference quantities
-    def _set_scale(self):
-        self.r *= self.r_scale
-        self.t *= self.t_scale
-        self.dt *= self.t_scale
-
-
-    # Simulate the process
-    def _simulate(self):
-        self._get_noise()  # Set the attribute self.noise
-        self._solve()      # Solve the Langevin equation
-        self._set_scale()  # Scaling
-
-
-    # Generate yupi Trajectory objects
-    def generate(self):
-        self._simulate()
-
-        trajs = []
-        for i in range(self.N):
-            points = self.r[:, :, i]
-            trajs.append(Trajectory(points=points, dt=self.dt,
-                                    traj_id=f"DiffDiff {i + 1}"))
-        return trajs
-
-
-
-class BoundedLangevinGenerator(LangevinGenerator):
 
     def __init__(self, 
                  T: float, 
@@ -407,15 +304,19 @@ class BoundedLangevinGenerator(LangevinGenerator):
 
         super().__init__(T, dim, N, dt, tau, noise_scale, v0, r0)
 
-        # Main id of generated trajectories
-        self.traj_id = 'BoundedLangevin'
+        # Verify if there is any boundary
+        self.bounds = np.float32(bounds)                     # Convert None into np.nan
+        self.has_bounds = not np.all(np.isnan(self.bounds))  # Check for all bounds
 
-        # Bounds
-        self.bounds = np.float32(bounds) / self.r_scale                            # bounds limit
-        self.bounds_ext = np.float32(bounds_extent) / self.r_scale                 # bounds characteristic length
-        self.bounds_stg = np.float32(bounds_strength) * self.t_scale/self.v_scale  # bounds intensities
-        
-        self._check_r0()
+        if self.has_bounds:
+            # Broadcast and scale bounds properties
+            ones = np.ones((2, self.dim))
+            self.bounds = self.bounds * ones / self.r_scale
+            self.bounds_ext = np.float32(bounds_extent) * ones / self.r_scale
+            self.bounds_stg = np.float32(bounds_strength) * ones * (self.t_scale/self.v_scale)
+            
+            # Check is initial positions are within bounds
+            self._check_r0()
 
 
     # Check if all initial positions are inside boundaries
@@ -431,11 +332,11 @@ class BoundedLangevinGenerator(LangevinGenerator):
         r_lb = np.delete(self.r[0], idx_lb, axis=0)
         r_ub = np.delete(self.r[0], idx_ub, axis=0)
 
-        # Ignore for bounds
+        # Same for bounds
         lb = np.delete(lb, idx_lb)
         ub = np.delete(ub, idx_ub)
 
-        # Check if all positions are within both boundaries
+        # Check if all positions are within both type of boundaries
         is_above_lb = np.all(lb[:,None] <= r_lb)
         is_bellow_ub = np.all(ub[:,None] >= r_ub)
 
@@ -447,11 +348,15 @@ class BoundedLangevinGenerator(LangevinGenerator):
 
 
     # Get net force from the boundaries
-    def _bound_force(self, r, tolerance=7):
+    def _bound_force(self, r, tolerance=10):
+        # Return zero force if there is no bounds
+        if not self.has_bounds:
+            return 0.
+
         # Set r to have shape = (N, dim)
         r = r.T
 
-        # Lower and upper bound limits, extent and strengths
+        # Lower and upper bound limits, extents and strengths
         lb, ub = self.bounds
         ext_lb, ext_ub = self.bounds_ext
         stg_lb, stg_ub = self.bounds_stg
@@ -463,7 +368,7 @@ class BoundedLangevinGenerator(LangevinGenerator):
 
         # An exponential models the force from the wall. 
         # Get zero force if there is no bound or the particle 
-        # is far enough. 
+        # is far enough.
         force_lb = np.where(
                         np.isnan(lb) | (dr_lb > tolerance), 
                         0., 
@@ -493,3 +398,120 @@ class BoundedLangevinGenerator(LangevinGenerator):
                             -self.v[i] * self.dt + \
                             np.sqrt(self.dt) * self.noise[i] + \
                             self._bound_force(self.r[i]) * self.dt
+
+
+class DiffDiffGenerator(Generator):
+    """
+        Random Walk class for the Diffusing Diffusivity model.
+
+    Parameters
+    ----------
+    T : float
+        Total duration of each Trajectory.
+    dim : int, optional
+        Dimension of each Trajectory, by default 1.
+    N : int, optional
+        Number of trajectories, by default 1.
+    dt : float, optional
+        Time step of the Trajectory, by default 1.0.
+    tau : float, optional
+        Relaxation characteristic time of the auxiliary variable, by default 1.
+    noise_scale : float, optional
+        Scale parameter of the auxiliary variable noise, by default 1.
+    dim_aux: int, optional
+        Dimension of the auxiliary process, which is the square of the diffusivity, by default 1.
+    r0 : np.ndarray, optional
+        Initial positions, by default None.
+    """
+
+    def __init__(self, 
+                 T: float, 
+                 dim: int = 1, 
+                 N: int = 1, 
+                 dt: float = 1., 
+                 tau: float = 1., 
+                 noise_scale: float = 1., 
+                 dim_aux: int = 1, 
+                 r0: np.ndarray = None):
+
+        super().__init__(T, dim, N, dt)
+
+        # Model parameters
+        self.tau = tau                  # Relaxation time
+        self.noise_scale = noise_scale  # Noise scale parameter of auxiliary variable
+
+        # Intrinsic reference parameters
+        self.t_scale = tau                         # Time scale
+        self.r_scale = noise_scale * self.t_scale  # Length scale
+
+        # Simulation parameters
+        self.dt = dt / self.t_scale    # Dimensionless time step
+        self.shape = (self.n, dim, N)  # Shape of dynamic variables
+        self.dim_aux = dim_aux         # Dimension of the aux variable
+
+        # Dynamic variables
+        self.t = np.arange(self.n, dtype=np.float32)  # Time array
+        self.r = np.empty(self.shape)                 # Position array
+        self.Y = np.empty((dim_aux, N))               # Aux variable: square of diffusivity
+        self.noise_r = None                           # Noise array for position (filled in _set_noise method)
+        self.noise_Y = None                           # Noise array for aux variable (filled in _set_noise method)
+
+        # Initial conditions
+        self.Y = np.random.normal(size=(dim_aux, N))  # Initial aux variable configuration
+        self.D = np.sum(self.Y**2, axis=0)            # Initial diffusivity configuration
+
+        if r0 is None:
+            self.r[0] = np.zeros((dim, N))                    # Default initial positions
+        elif np.shape(r0) == (dim, N) or np.shape(r0) == ():
+            self.r[0] = r0                                    # User initial positions
+        else:
+            raise ValueError(f'r0 is expected to be a float or an array of shape {(self.dim, self.N)}.')
+
+
+    # Fill noise arrays
+    def _set_noise(self):
+        dist = np.random.normal
+        self.noise_r = dist(size=self.shape)
+        self.noise_Y = dist(size=(self.n, self.dim_aux, self.N))
+    
+
+    # Solve coupled Langevin equations
+    def _solve(self):
+        for i in range(self.n - 1):
+            # Solving for position
+            self.r[i + 1] = self.r[i] + \
+                            np.sqrt(2 * self.D * self.dt) * self.noise_r[i]
+
+            # Solving for auxliliary variable
+            self.Y = self.Y + \
+                     -self.Y * self.dt + \
+                     np.sqrt(self.dt) * self.noise_Y[i]
+            
+            # Updating the diffusivities
+            self.D = np.sum(self.Y**2, axis=0)
+
+
+    # Scale by intrinsic reference quantities
+    def _set_scale(self):
+        self.r *= self.r_scale
+        self.t *= self.t_scale
+        self.dt *= self.t_scale
+
+
+    # Simulate the process
+    def _simulate(self):
+        self._set_noise()  # Set the attribute self.noise
+        self._solve()      # Solve the Langevin equation
+        self._set_scale()  # Scaling
+
+
+    # Generate yupi Trajectory objects
+    def generate(self):
+        self._simulate()
+
+        trajs = []
+        for i in range(self.N):
+            points = self.r[:, :, i]
+            trajs.append(Trajectory(points=points, dt=self.dt,
+                                    traj_id=f"DiffDiff {i + 1}"))
+        return trajs
