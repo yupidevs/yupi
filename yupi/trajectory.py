@@ -8,6 +8,7 @@ import numpy as np
 
 from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
+from yupi.features import Features
 
 
 _threshold = 1e-12
@@ -182,6 +183,8 @@ class Trajectory():
             if abs(self.__t[0] - t0) > _threshold:
                 raise ValueError("You are giving 'dt' and 't' but 't0' is not "
                                  "the same as the first value of 't'.")
+
+        self.features = Features(self)
 
     @property
     def uniformly_spaced(self) -> bool:
