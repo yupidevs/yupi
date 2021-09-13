@@ -3,7 +3,7 @@ import json
 import csv
 import os
 from pathlib import Path
-from typing import List, NamedTuple, Union
+from typing import List, NamedTuple, Tuple, Union
 import numpy as np
 
 from yupi.vector import Vector
@@ -239,6 +239,17 @@ class Trajectory():
     def __iter__(self):
         for i in range(len(self)):
             yield self[i]
+
+    @property
+    def bounds(self) -> List[Tuple[float]]:
+        """List[Tuple[float]] : List of tuples indicanting the min and
+        max values of each dimension"""
+        _bounds = []
+        for d in range(self.dim):
+            min_bound = min(self.r.component(d))
+            max_bound = max(self.r.component(d))
+            _bounds.append((min_bound, max_bound))
+        return _bounds
 
     @property
     def dim(self) -> int:

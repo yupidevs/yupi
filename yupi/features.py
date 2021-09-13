@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 import numpy as np
 
 
@@ -14,18 +14,6 @@ class Features():
 
     def __init__(self, traj):
         self.traj = traj
-
-    @property
-    def bounds(self) -> List[Tuple[float]]:
-        """List[Tuple[float]] : List of tuples indicanting the min and
-        max values of each dimension"""
-        _bounds = []
-        traj = self.traj
-        for d in range(traj.dim):
-            min_bound = min(traj.r.component(d))
-            max_bound = max(traj.r.component(d))
-            _bounds.append((min_bound, max_bound))
-        return _bounds
 
     @property
     def mean_vel(self) -> float:
