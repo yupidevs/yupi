@@ -3,11 +3,12 @@ import json
 import csv
 import os
 from pathlib import Path
-from typing import List, NamedTuple, Union
+from typing import List, NamedTuple, Tuple, Union
 import numpy as np
 
 from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
+from yupi.features import Features
 
 
 _threshold = 1e-12
@@ -183,6 +184,8 @@ class Trajectory():
                 raise ValueError("You are giving 'dt' and 't' but 't0' is not "
                                  "the same as the first value of 't'.")
 
+        self.features = Features(self)
+
     @property
     def uniformly_spaced(self) -> bool:
         """bool : True if the time data is uniformly spaced"""
@@ -236,6 +239,17 @@ class Trajectory():
     def __iter__(self):
         for i in range(len(self)):
             yield self[i]
+
+    @property
+    def bounds(self) -> List[Tuple[float]]:
+        """List[Tuple[float]] : List of tuples indicanting the min and
+        max values of each dimension"""
+        _bounds = []
+        for d in range(self.dim):
+            min_bound = min(self.r.component(d))
+            max_bound = max(self.r.component(d))
+            _bounds.append((min_bound, max_bound))
+        return _bounds
 
     @property
     def dim(self) -> int:

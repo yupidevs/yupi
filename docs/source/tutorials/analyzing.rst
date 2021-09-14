@@ -33,7 +33,33 @@ from a generator, you can  plot them with:
    :alt: Distribution in submodules
    :align: center
 
-We limit to 10 the number of trajectories to plot for the sake of observability.
+Notice that we limited to 10 the number of trajectories to plot for the sake of observability, 
+but we will be using the full list of trajectories (traj) all over this tutorial.
+
+
+Three-dimensional spatial projections
+=====================================
+
+Plotting in three dimensions can be achieved in a similar way. Let us generate 3D trajectories:
+
+.. code-block:: python
+
+    from yupi.generators import LangevinGenerator
+    lg = LangevinGenerator(500, 3, 5, 0.5, 2,  0.1)
+    trajs3D = lg.generate()
+
+
+Then, we can plot them using:
+
+.. code-block:: python
+
+    from yupi.graphics import plot_3D
+    plot_3D(trajs3D, show=True, legend=False)
+
+
+.. figure:: /images/tutorial011.png
+   :alt: Distribution in submodules
+   :align: center
 
 
 Histogram of Velocity

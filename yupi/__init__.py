@@ -4,6 +4,7 @@ from one of the aforementioned modules.
 """
 
 import logging
+from yupi.features import Features
 from yupi.trajectory import Trajectory, TrajectoryPoint
 from yupi.vector import Vector
 
@@ -16,7 +17,8 @@ logging.basicConfig(
 __all__ = [
     'Trajectory',
     'TrajectoryPoint',
+    'Features',
     'Vector'
 ]
 
-__version__ = '0.7.1'
+__version__ = '0.8.0'

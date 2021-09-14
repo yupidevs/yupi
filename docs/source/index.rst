@@ -28,6 +28,7 @@ Standing for Yet Underused Path Instruments, **yupi** is a set of tools designed
    tutorials/operations
    tutorials/storing
    tutorials/analyzing
+   tutorials/collecting
 
 .. toctree::
    :maxdepth: 2

@@ -17,7 +17,7 @@ from yupi.graphics._stats_plots import (
     plot_hists
 )
 
-from yupi.graphics._trajs_plots import plot_2D
+from yupi.graphics._trajs_plots import plot_2D, plot_3D
 
 from yupi.graphics._style import (
     LINE,
@@ -32,6 +32,7 @@ __all__ = [
     'plot_vacf',
     'plot_velocity_hist',
     'plot_2D',
+    'plot_3D',
     'plot_psd',
     'plot_hist',
     'plot_hists',
