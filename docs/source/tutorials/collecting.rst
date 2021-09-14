@@ -101,6 +101,7 @@ The user is able to manage the "collected" data by means of the ``key`` paramete
    collect(trajs, key='dr')
 
 .. code-block:: python
+
    array([[ 2.,  4.],
           [ 2., 12.],
           [ 2., 20.],
@@ -123,6 +124,7 @@ If the letter *n* is set at the end of a key (e.g., ``'rn'``, ``'dvn'``), the ab
 Components can also be extracted from the collected vectors. It can be done in two ways: by specifying the *x*, *y* or *z* component (e.g., ``'rx'``, ``'dvy'``), or by explicitly appending to the key the position of the column vector (e.g., ``'r0'``, ``'dv1'``). The former is specially useful when dealing with multidimensional trajectories.
 
 .. code-block:: python
+
    collect(trajs, 'dvy') == collect(trajs, 'dv1')
 
 .. code-block:: python
