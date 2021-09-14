@@ -661,7 +661,7 @@ def kurtosis(trajs: List[Trajectory], time_avg: bool = True,
 def kurtosis_reference(trajs: List[Trajectory]) -> float:
     """Get the sampled kurtosis for the case of
     ``len(trajs)`` trajectories whose position
-    vectors are normaly distributed.
+    vectors are normally distributed.
 
     Parameters
     ----------
@@ -708,7 +708,7 @@ def psd(trajs: List[Trajectory], lag: int, omega: bool = False) -> np.ndarray:
     """
 
     _vacf = vacf_time(trajs, lag)
-    ft = np.fft.fft(_vacf, axis=0)
+    ft = np.fft.fft(_vacf, axis=0) * trajs[0].dt
     ft = np.fft.fftshift(ft)
     ft_abs = np.abs(ft)
     ft_mean = np.mean(ft_abs, axis=1)
