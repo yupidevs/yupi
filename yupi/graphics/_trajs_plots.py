@@ -75,8 +75,9 @@ def plot_2D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
     for i, t in enumerate(trajs):
 
         if t.dim != 2:
-            logging.warning(f'Using plot_2D with a trajectory of {t.dim} dimensions.')
-            logging.warning(f'Trajectory No. {i} with id {t.traj_id})')
+            logging.warning(f'Using plot_2D with a trajectory of {t.dim} '
+                            f' dimensions. Trajectory No. {i} with id'
+                            f' {t.traj_id})')
 
         # Plotting
         x, y = t.r.x, t.r.y
@@ -159,7 +160,7 @@ def plot_3D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
         elif isinstance(color, list):
             colors = color
 
-    
+
     ax = plt.gca(projection='3d')
 
     if connected:
@@ -180,9 +181,9 @@ def plot_3D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
     for i, t in enumerate(trajs):
 
         if t.dim != 3:
-            logging.warning(f'Using plot_2D with a trajectory of {t.dim} dimensions.')
-            logging.warning(f'Trajectory No. {i} with id {t.traj_id})')
-            
+            logging.warning(f'Using plot_3D with a trajectory of {t.dim} '
+                            f' dimensions. Trajectory No. {i} with id'
+                            f' {t.traj_id})')
 
         # Plotting
         x, y, z = t.r.x, t.r.y, t.r.z
@@ -197,8 +198,8 @@ def plot_3D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
 
         ax.plot(x[0], y[0], z[0], 'o', mfc='white',
                  label=f'{t.traj_id} initial position', color=color)
-   
-        ax.plot(x[-1], y[-1], z[-1], 'o', mfc='white', color=color) 
+
+        ax.plot(x[-1], y[-1], z[-1], 'o', mfc='white', color=color)
         ax.plot(x[-1], y[-1], z[-1], 'o', alpha=.5,
                  label=f'{t.traj_id} final position', color=color)
 
@@ -208,10 +209,9 @@ def plot_3D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
         plt.title(title)
         plt.tick_params(direction='in')
         plt.grid(True)
-        plt.xlabel(f'x{units}')
-        plt.ylabel(f'y{units}')
+        ax.set_xlabel(f'x{units}')
+        ax.set_ylabel(f'y{units}')
+        ax.set_zlabel(f'z{units}')
 
     if show:
         plt.show()
-
-    
