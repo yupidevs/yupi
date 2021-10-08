@@ -170,44 +170,57 @@ class _LangevinGenerator(Generator):
         self.tau = tau                  # Relaxation time
         self.noise_scale = noise_scale  # Noise scale parameter
 
-        # Intrinsic reference parameters
-        self.t_scale = tau                                  # Time scale
-        self.v_scale = noise_scale * np.sqrt(self.t_scale)  # Speed scale
-        self.r_scale = self.v_scale * self.t_scale          # Length scale
+        # Initial conditions
+        self.r0 = r0           # Initial position
+        self.v0 = v0           # Initial velocity
 
+        # Init variables before simulate and validate initial conditions
+        self._set_scaling_params()   # Set intrinsic reference parameters
+        self._set_simulation_vars()  # Init simulation variables
+        self._set_init_cond()        # Set initial conditions
+        self._set_noise()            # Set the attribute self.noise
+
+
+    # Intrinsic reference parameters
+    def _set_scaling_params(self):
+        self.t_scale = self.tau                                  # Time scale
+        self.v_scale = self.noise_scale * np.sqrt(self.t_scale)  # Speed scale
+        self.r_scale = self.v_scale * self.t_scale               # Length scale
+
+
+    # Simulation parameters and dynamic variables
+    def _set_simulation_vars(self):
         # Simulation parameters
-        self.dt = dt / self.t_scale    # Dimensionless time step
-        self.shape = (self.n, dim, N)  # Shape of dynamic variables
+        self.dt = self.dt / self.t_scale         # Dimensionless time step
+        self.shape = (self.n, self.dim, self.N)  # Shape of dynamic variables
 
         # Dynamic variables
         self.t = np.arange(self.n) * self.dt  # Time array
         self.r = np.empty(self.shape)         # Position array
         self.v = np.empty(self.shape)         # Velocity array
-        self.noise = None                     # Noise array (filled in _set_noise method)
-
-        # Initial conditions
-        self.r0 = r0           # Initial position
-        self.v0 = v0           # Initial velocity
-        self._set_init_cond()  # Check and set initial conditions
 
 
     # Set initial conditions
     def _set_init_cond(self):
+        # Initial positions
         if self.r0 is None:
-            self.r[0] = np.zeros((self.dim, self.N))  # Default initial positions
+            self.r[0] = np.zeros((self.dim, self.N))  # Default
         elif np.shape(self.r0) == (self.dim, self.N) or np.shape(self.r0) == ():
-            self.r[0] = self.r0                       # User initial positions
+            self.r[0] = self.r0                       # User input
         else:
             raise ValueError('r0 is expected to be a float or an '
                             f'array of shape {(self.dim, self.N)}.')
-        
+        self.r[0] /= self.r_scale
+
+        # Initial velocities
         if self.v0 is None:
-            self.v[0] = np.random.normal(size=(self.dim, self.N))  # Default initial velocities
+            self.v[0] = np.random.normal(size=(self.dim, self.N))  # Default
         elif np.shape(self.v0) == (self.dim, self.N) or np.shape(self.v0) == ():
-            self.v[0] = self.v0                                    # User initial velocities
+            self.v[0] = self.v0                                    # User input
         else:
             raise ValueError('v0 is expected to be a float or an '
                             f'array of shape {(self.dim, self.N)}.')
+        self.v[0] /= self.v_scale
 
 
     # Fill noise array with custom noise properties
@@ -239,9 +252,8 @@ class _LangevinGenerator(Generator):
 
     # Simulate the process
     def _simulate(self):
-        self._set_noise()  # Set the attribute self.noise
-        self._solve()      # Solve the Langevin equation
-        self._set_scale()  # Scaling
+        self._solve()                # Solve the Langevin equation
+        self._set_scale()            # Recovering dimensions
 
 
     # Generate yupi Trajectory objects
@@ -305,21 +317,30 @@ class LangevinGenerator(_LangevinGenerator):
         super().__init__(T, dim, N, dt, tau, noise_scale, v0, r0)
 
         # Verify if there is any boundary
-        self.bounds = np.float32(bounds)                     # Convert None into np.nan
-        self.has_bounds = not np.all(np.isnan(self.bounds))  # Check for all bounds
+        self.bounds = bounds
+        self.bounds_ext = bounds_extent
+        self.bounds_stg = bounds_strength
 
-        if self.has_bounds:
-            # Broadcast and scale bounds properties
-            ones = np.ones((2, self.dim))
-            self.bounds = self.bounds * ones / self.r_scale
-            self.bounds_ext = np.float32(bounds_extent) * ones / self.r_scale
-            self.bounds_stg = np.float32(bounds_strength) * ones * (self.t_scale**2/self.r_scale)
-            
-            # Check is initial positions are within bounds
-            self._check_r0()
+        # Set bounds and check initial positions
+        self._set_bounds()
 
 
-    # Check if all initial positions are inside boundaries
+    # Broadcast and convert None into np.nan
+    def _broadcast_bounds(self):
+        ones = np.ones((2, self.dim))
+        self.bounds = np.float32(self.bounds) * ones
+        self.bounds_ext = np.float32(self.bounds_ext) * ones
+        self.bounds_stg = np.float32(self.bounds_stg) * ones
+
+
+    # # Set dimensionless bounds properties
+    def _dimless_bounds(self):
+        self.bounds = self.bounds / self.r_scale
+        self.bounds_ext = self.bounds_ext / self.r_scale
+        self.bounds_stg = self.bounds_stg / (self.r_scale / self.t_scale**2)
+
+
+    # Check if all initial positions are whithin boundaries
     def _check_r0(self):
         # Unpack lower and upper bounds
         lb, ub = self.bounds
@@ -345,6 +366,20 @@ class LangevinGenerator(_LangevinGenerator):
         
         if not is_bellow_ub:
             raise ValueError('Initial positions must be bellow upper bounds.')
+
+
+    # Set bounds and check initial positions
+    # TODO: check that `bounds` are compatibles with `dim`
+    def _set_bounds(self):
+        # Broadcast and convert None into np.nan
+        self._broadcast_bounds()
+
+        # Check if there is at least one bound
+        self.has_bounds = not np.all(np.isnan(self.bounds))
+
+        if self.has_bounds:
+            self._dimless_bounds()  
+            self._check_r0()
 
 
     # Get net force from the boundaries
