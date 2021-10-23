@@ -21,7 +21,7 @@ PyQt5 = "^5.15.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"
-pylint = "^2.7.2"
+pre-commit = "^2.15.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
