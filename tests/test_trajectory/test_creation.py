@@ -1,4 +1,5 @@
 import pytest
+
 from yupi import Trajectory
 
 
@@ -68,6 +69,7 @@ def test_creation_with_time():
     with pytest.raises(ValueError):
         Trajectory(x=[1, 2], y=[2, 3], t=[0.4, 0.5], dt=0.1)
 
+
 def test_creation_with_ang():
     Trajectory(x=[1, 2], y=[2, 3], ang=[0, 0.1])
 
@@ -76,8 +78,7 @@ def test_creation_with_ang():
 
 
 def test_creation_general():
-    Trajectory(x=[1, 2], y=[2, 3], t=[0, 1], ang=[0, 0], traj_id='test')
-    Trajectory(x=[1, 2], y=[2, 3], dt=0.5, ang=[0, 1.2], traj_id='test')
-    Trajectory(points=[[1, 2], [2, 3]], dt=0.5, ang=[0, 1.2], traj_id='test')
-    Trajectory(dimensions=[[1, 2], [2, 3]], dt=0.5, t=[1, 1.5], t0=1,
-               traj_id='test')
+    Trajectory(x=[1, 2], y=[2, 3], t=[0, 1], ang=[0, 0], traj_id="test")
+    Trajectory(x=[1, 2], y=[2, 3], dt=0.5, ang=[0, 1.2], traj_id="test")
+    Trajectory(points=[[1, 2], [2, 3]], dt=0.5, ang=[0, 1.2], traj_id="test")
+    Trajectory(dimensions=[[1, 2], [2, 3]], dt=0.5, t=[1, 1.5], t0=1, traj_id="test")

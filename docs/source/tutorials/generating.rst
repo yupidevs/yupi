@@ -26,7 +26,7 @@ As any other :py:class:`~generators.Generator` in yupi, you can specify the para
 
 The :py:class:`~generators.RandomWalkGenerator` starts the generation of every trajectory in the origin of the reference frame. Then, iteratively, it computes an increment on each dimension. The increment (also called actions) can be -1, 0 or 1, and it is taken independently on each dimension for each iteration. Additionally, the user can define a list to establish the probabilities of taking each of the available actions:
 
-.. code-block:: python 
+.. code-block:: python
 
    prob = [[.5, .1, .4],   # x-axis
            [.5,  0, .5]]   # y-axis
@@ -107,8 +107,8 @@ A more complex application of this :py:class:`~generators.Generator` can be seen
 Diffusing Diffusivity Generator
 ===============================
 
-The :py:class:`~generators.DiffDiffGenerator` simulates trajectories governed by a 
-diffusion process with fluctuating diffusivity. It allows to produce 
+The :py:class:`~generators.DiffDiffGenerator` simulates trajectories governed by a
+diffusion process with fluctuating diffusivity. It allows to produce
 :py:class:`~yupi.Trajectory` objects that quantitatively emulate different systems.
 
 To use it, we first need to define the general parameters for a generator:
@@ -140,7 +140,7 @@ The generated trajectories can be inspected using the plot_2D function:
    :alt: Diff diff generator
    :align: center
 
-Although not illustrated in this example, the initial positions can be 
+Although not illustrated in this example, the initial positions can be
 specified in the :py:class:`~generators.DiffDiffGenerator`
 creation using the  ``r0`` parameter.
 

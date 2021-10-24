@@ -1,15 +1,16 @@
 from __future__ import annotations
-import json
+
 import csv
+import json
 import os
 from pathlib import Path
 from typing import List, NamedTuple, Tuple, Union
+
 import numpy as np
 
-from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 from yupi.features import Features
-
+from yupi.vector import Vector
 
 _threshold = 1e-12
 
@@ -36,7 +37,7 @@ class TrajectoryPoint(NamedTuple):
     t: float
 
 
-class Trajectory():
+class Trajectory:
     """
     A Trajectory object represents a multidimensional trajectory.
     It can be iterated to obtain the corresponding point for each
@@ -118,19 +119,30 @@ class Trajectory():
         values delta.
     """
 
-    def __init__(self, x: np.ndarray = None, y: np.ndarray = None,
-                 z: np.ndarray = None, points: np.ndarray = None,
-                 dimensions: np.ndarray = None, t: np.ndarray = None,
-                 ang: np.ndarray = None, dt: float = None, t0: float = 0.0,
-                 traj_id: str = None, lazy: bool = False):
+    def __init__(
+        self,
+        x: np.ndarray = None,
+        y: np.ndarray = None,
+        z: np.ndarray = None,
+        points: np.ndarray = None,
+        dimensions: np.ndarray = None,
+        t: np.ndarray = None,
+        ang: np.ndarray = None,
+        dt: float = None,
+        t0: float = 0.0,
+        traj_id: str = None,
+        lazy: bool = False,
+    ):
 
         from_xyz = x is not None
         from_points = points is not None
         from_dimensions = dimensions is not None
 
         if from_xyz + from_points + from_dimensions > 1:
-            raise ValueError("Positional data must come only from one way: "
-                             "'xyz' data, 'points' data or 'dimensions' data.")
+            raise ValueError(
+                "Positional data must come only from one way: "
+                "'xyz' data, 'points' data or 'dimensions' data."
+            )
 
         self.r = None
         data: List[Vector] = [t, ang]
@@ -153,15 +165,15 @@ class Trajectory():
             self.r = Vector.create(points, dtype=float)
 
         if self.r is None:
-            raise ValueError('No position data were given.')
+            raise ValueError("No position data were given.")
 
         if lengths.count(lengths[0]) != len(lengths):
-            raise ValueError('All input arrays must have the same shape.')
+            raise ValueError("All input arrays must have the same shape.")
 
         self.__t0 = t0
         self.__t = data[0]
         self.ang = data[1]
-        self.traj_id= traj_id
+        self.traj_id = traj_id
         self.lazy = lazy
 
         if self.__t is None:
@@ -175,14 +187,19 @@ class Trajectory():
 
         if t is not None and dt is not None:
             if abs(self.dt - dt) > _threshold:
-                raise ValueError("You are giving 'dt' and 't' but 'dt' "
-                                "does not match with time values delta.")
+                raise ValueError(
+                    "You are giving 'dt' and 't' but 'dt' "
+                    "does not match with time values delta."
+                )
             if abs(self.dt_std - 0) > _threshold:
-                raise ValueError("You are giving 'dt' and 't' but 't' is "
-                                    "not uniformly spaced.")
+                raise ValueError(
+                    "You are giving 'dt' and 't' but 't' is " "not uniformly spaced."
+                )
             if abs(self.__t[0] - t0) > _threshold:
-                raise ValueError("You are giving 'dt' and 't' but 't0' is not "
-                                 "the same as the first value of 't'.")
+                raise ValueError(
+                    "You are giving 'dt' and 't' but 't0' is not "
+                    "the same as the first value of 't'."
+                )
 
         self.features = Features(self)
 
@@ -210,7 +227,7 @@ class Trajectory():
                 data[1] = self.ang[index]
 
             # Velocity
-            data[2] = self.v[index - 1] if index > 0 else Vector.create([0]*self.dim)
+            data[2] = self.v[index - 1] if index > 0 else Vector.create([0] * self.dim)
 
             # Time
             if self.__t is not None:
@@ -231,8 +248,7 @@ class Trajectory():
             if self.uniformly_spaced:
                 new_dt = self.dt * step
                 new_t0 = self.__t0 + start * self.dt
-                return Trajectory(points=new_points, ang=new_ang, dt=new_dt,
-                                  t0=new_t0)
+                return Trajectory(points=new_points, ang=new_ang, dt=new_dt, t0=new_t0)
             new_t = self.t[start:stop:step]
             return Trajectory(points=new_points, ang=new_ang, t=new_t)
 
@@ -304,7 +320,7 @@ class Trajectory():
     def t(self) -> Vector:
         """Vector : Time vector"""
         if self.__t is None:
-            dt_vec = [self.__t0 + self.dt*i for i in range(len(self))]
+            dt_vec = [self.__t0 + self.dt * i for i in range(len(self))]
             self.__t = Vector.create(dt_vec)
         return self.__t
 
@@ -334,8 +350,9 @@ class Trajectory():
         """
 
         if self.dim != 2:
-            raise TypeError('Polar offsets can only be applied on 2 '
-                            'dimensional trajectories')
+            raise TypeError(
+                "Polar offsets can only be applied on 2 " "dimensional trajectories"
+            )
 
         # From cartesian to polar
         x, y = self.r.x, self.r.y
@@ -348,7 +365,7 @@ class Trajectory():
         # From polar to cartesian
         x = rad * np.cos(ang)
         y = rad * np.sin(ang)
-        self.r = Vector.create([x,y]).T
+        self.r = Vector.create([x, y]).T
 
     def rotate(self, angle: float):
         """
@@ -371,8 +388,9 @@ class Trajectory():
             Copy of the trajectory.
         """
 
-        return Trajectory(points=self.r, t=self.__t, ang=self.ang, dt=self.dt,
-                          lazy=self.lazy)
+        return Trajectory(
+            points=self.r, t=self.__t, ang=self.ang, dt=self.dt, lazy=self.lazy
+        )
 
     def _operable_with(self, other: Trajectory, threshold=None) -> bool:
         if threshold is None:
@@ -395,19 +413,22 @@ class Trajectory():
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
             if len(offset) != self.dim:
-                raise ValueError('Offset must be the same shape as the other '
-                                 'trajectory points')
+                raise ValueError(
+                    "Offset must be the same shape as the other " "trajectory points"
+                )
             self.r += offset
             return self
 
         if isinstance(other, Trajectory):
             if not self._operable_with(other):
-                raise ValueError('Incompatible trajectories')
+                raise ValueError("Incompatible trajectories")
             self.r += other.r
             return self
 
-        raise TypeError("unsoported operation (+) between 'Trajectory' and "
-                        f"'{type(other).__name__}'")
+        raise TypeError(
+            "unsoported operation (+) between 'Trajectory' and "
+            f"'{type(other).__name__}'"
+        )
 
     def __isub__(self, other):
         if isinstance(other, (int, float)):
@@ -417,19 +438,22 @@ class Trajectory():
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
             if len(offset) != self.dim:
-                raise ValueError('Offset must be the same shape as the other '
-                                 'trajectory points')
+                raise ValueError(
+                    "Offset must be the same shape as the other " "trajectory points"
+                )
             self.r -= offset
             return self
 
         if isinstance(other, Trajectory):
             if not self._operable_with(other):
-                raise ValueError('Incompatible trajectories')
+                raise ValueError("Incompatible trajectories")
             self.r -= other.r
             return self
 
-        raise TypeError("unsoported operation (-) between 'Trajectory' and "
-                        f"'{type(other).__name__}'")
+        raise TypeError(
+            "unsoported operation (-) between 'Trajectory' and "
+            f"'{type(other).__name__}'"
+        )
 
     def __add__(self, other):
         traj = self.copy()
@@ -452,8 +476,10 @@ class Trajectory():
             self.r *= other
             return self
 
-        raise TypeError("unsoported operation (*) between 'Trajectory' and "
-                        f"'{type(other).__name__}'")
+        raise TypeError(
+            "unsoported operation (*) between 'Trajectory' and "
+            f"'{type(other).__name__}'"
+        )
 
     def __mul__(self, other):
         traj = self.copy()
@@ -463,8 +489,13 @@ class Trajectory():
     def __rmul__(self, other):
         return self * other
 
-    def turning_angles(self, accumulate=False, degrees=False,
-                       centered=False, wrap=True):
+    def turning_angles(
+        self,
+        accumulate=False,
+        degrees=False,
+        centered=False,
+        wrap=True,
+    ):
         """
         Return the sequence of turning angles that forms the trajectory.
 
@@ -503,7 +534,7 @@ class Trajectory():
         if not accumulate:
             theta = np.ediff1d(theta)  # Relative turning angles
         else:
-            theta -= theta[0]          # Accumulative turning angles
+            theta -= theta[0]  # Accumulative turning angles
 
         if degrees:
             theta = np.rad2deg(theta)
@@ -529,26 +560,31 @@ class Trajectory():
 
         ang = None if self.ang is None else self.ang.T
         json_dict = {
-            'id': self.traj_id,
-            'dt': self.dt,
-            'r': convert_to_list(self.r.T),
-            'ang': convert_to_list(ang),
-            't': convert_to_list(self.__t)
+            "id": self.traj_id,
+            "dt": self.dt,
+            "r": convert_to_list(self.r.T),
+            "ang": convert_to_list(ang),
+            "t": convert_to_list(self.__t),
         }
-        with open(str(path), 'w') as traj_file:
+        with open(str(path), "w") as traj_file:
             json.dump(json_dict, traj_file)
 
     def _save_csv(self, path):
-        with open(str(path), 'w', newline='') as traj_file:
-            writer = csv.writer(traj_file, delimiter=',')
+        with open(str(path), "w", newline="") as traj_file:
+            writer = csv.writer(traj_file, delimiter=",")
             ang_shape = 0 if self.ang is None else self.ang.shape[1]
             writer.writerow([self.traj_id, self.dt, self.dim, ang_shape])
             for tp in self:
                 row = np.hstack(np.array([tp.r, tp.ang, tp.t]))
                 writer.writerow(row)
 
-    def save(self, file_name: str, path: str = '.', file_type: str = 'json',
-             overwrite: bool = True):
+    def save(
+        self,
+        file_name: str,
+        path: str = ".",
+        file_type: str = "json",
+        overwrite: bool = True,
+    ):
         """
         Saves the trajectory to disk.
 
@@ -581,22 +617,26 @@ class Trajectory():
         """
 
         # Build full path
-        full_path = Path(path) / Path(f'{file_name}.{file_type}')
+        full_path = Path(path) / Path(f"{file_name}.{file_type}")
 
         # Check file existance
         if not overwrite and full_path.exists():
             raise ValueError(f"File '{str(full_path)}' already exist")
 
-        if file_type == 'json':
+        if file_type == "json":
             self._save_json(full_path)
-        elif file_type == 'csv':
+        elif file_type == "csv":
             self._save_csv(full_path)
         else:
             raise ValueError(f"Invalid export file type '{file_type}'")
 
     @staticmethod
-    def save_trajectories(trajectories: list, folder_path: str = '.',
-                          file_type: str = 'json', overwrite: bool = True):
+    def save_trajectories(
+        trajectories: list,
+        folder_path: str = ".",
+        file_type: str = "json",
+        overwrite: bool = True,
+    ):
         """
         Saves a list of trajectories to disk. Each Trajectory object
         will be saved in a separate file inside the given folder.
@@ -624,34 +664,33 @@ class Trajectory():
 
         for i, traj in enumerate(trajectories):
             path = str(Path(folder_path))
-            name = str(Path(f'trajectory_{i}'))
+            name = str(Path(f"trajectory_{i}"))
             traj.save(name, path, file_type, overwrite)
 
     @staticmethod
     def _load_json(path: str):
-        with open(path, 'r') as traj_file:
+        with open(path, "r") as traj_file:
             data = json.load(traj_file)
 
-            traj_id = data['id']
-            dt = data['dt']
-            t = data['t']
+            traj_id = data["id"]
+            dt = data["dt"]
+            t = data["t"]
             ang = None
 
-            if data['ang'] is not None:
-                ang_values = list(data['ang'].values())
+            if data["ang"] is not None:
+                ang_values = list(data["ang"].values())
                 ang = Vector.create(ang_values).T
 
-            dims = list(data['r'].values())
+            dims = list(data["r"].values())
 
-            return Trajectory(dimensions=dims, t=t, ang=ang, dt=dt,
-                              traj_id=traj_id)
+            return Trajectory(dimensions=dims, t=t, ang=ang, dt=dt, traj_id=traj_id)
 
     @staticmethod
     def _load_csv(path: str):
-        with open(path, 'r') as traj_file:
+        with open(path, "r") as traj_file:
 
             def check_empty_val(val, cast=True):
-                if val == '':
+                if val == "":
                     return None
                 return float(val) if cast else val
 
@@ -679,8 +718,7 @@ class Trajectory():
             if not ang:
                 ang = None
 
-            return Trajectory(dimensions=r, t=t, ang=ang, dt=dt,
-                              traj_id=traj_id)
+            return Trajectory(dimensions=r, t=t, ang=ang, dt=dt, traj_id=traj_id)
 
     @staticmethod
     def load(file_path: str):
@@ -711,16 +749,16 @@ class Trajectory():
 
         # Check valid path
         if not path.exists():
-            raise ValueError('Path does not exist.')
+            raise ValueError("Path does not exist.")
         if not path.is_file():
             raise ValueError("Path must be a file.")
 
         file_type = path.suffix
 
         try:
-            if file_type == '.json':
+            if file_type == ".json":
                 return Trajectory._load_json(file_path)
-            elif file_type == '.csv':
+            elif file_type == ".csv":
                 return Trajectory._load_csv(file_path)
             else:
                 raise ValueError("Invalid file type.")
@@ -728,7 +766,7 @@ class Trajectory():
             raise LoadTrajectoryError(path) from exc
 
     @staticmethod
-    def load_folder(folder_path='.', recursively: bool = False):
+    def load_folder(folder_path=".", recursively: bool = False):
         """
         Loads all the trajectories from a folder.
 
@@ -753,7 +791,7 @@ class Trajectory():
                 try:
                     trajectories.append(Trajectory.load(path))
                 except LoadTrajectoryError as load_exception:
-                    print(f'Ignoring: {load_exception.path}')
+                    print(f"Ignoring: {load_exception.path}")
             if not recursively:
                 break
         return trajectories

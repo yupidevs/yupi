@@ -1,5 +1,6 @@
 from yupi import Trajectory
 
+
 def subsample(traj: Trajectory, step=1, new_traj_id: str = None):
     """
     Sample the trajectory ``traj`` by removing evenly spaced
@@ -25,7 +26,7 @@ def subsample(traj: Trajectory, step=1, new_traj_id: str = None):
         points=points,
         t=t,
         ang=ang,
-        dt=step*traj.dt,
-        traj_id=new_traj_id
+        dt=step * traj.dt,
+        traj_id=new_traj_id,
     )
     return subsampled_traj

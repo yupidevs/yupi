@@ -18,7 +18,7 @@ In this table you can easily find the examples that better suits you.
 
 .. list-table::
    :header-rows: 1
-  
+
    * -
      - Related API functions
    * - | :doc:`Example 1<example1>`
@@ -99,19 +99,19 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~tracking.algorithms.RemapUndistorter`
    * - | :doc:`Example 6<example6>`
        |
-       | A model framework of a diffusion process with fluctuating 
+       | A model framework of a diffusion process with fluctuating
        | diffusivity is presented.
      - * Generators:
           * :py:class:`~generators.DiffDiffGenerator`
-       
+
 .. toctree::
    :maxdepth: 2
    :caption: Advanced Resources
    :hidden:
-  
+
    example1
    example2
    example3
    example4
-   example5 
-   example6 
+   example5
+   example6

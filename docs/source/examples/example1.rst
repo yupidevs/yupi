@@ -74,7 +74,7 @@ First, we define some physical constants:
    d2 = 18e-10      # semi-minor axis [m] [2]
 
 
-Then, we can indirectly measure quantities that are 
+Then, we can indirectly measure quantities that are
 related with the physical model:
 
 .. code-block:: python

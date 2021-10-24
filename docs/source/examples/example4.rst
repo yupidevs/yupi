@@ -78,7 +78,7 @@ Then, we initialize two trackers, one for each marker of the intruder:
    algorithm1 = ColorMatching((70,40,20), (160,80,20)) # BGR
    cyan = ObjectTracker('center marker', algorithm1, ROI((50, 50)))
 
-   algorithm2 = ColorMatching((30,20, 50), (95, 45,120))        
+   algorithm2 = ColorMatching((30,20, 50), (95, 45,120))
    magenta = ObjectTracker('border marker', algorithm2,  ROI((30, 50)))
 
 

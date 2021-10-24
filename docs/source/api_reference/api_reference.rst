@@ -17,7 +17,7 @@ The API of yupi is divided into seven modules:
    :maxdepth: 2
    :caption: Quick access:
    :hidden:
-  
+
    yupi
    tracking/tracking
    generators/generators

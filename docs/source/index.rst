@@ -12,12 +12,12 @@ Standing for Yet Underused Path Instruments, **yupi** is a set of tools designed
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started
-  
+
    GS/Installation
    Getting Support <GS/Support>
    GS/Contributing
    GS/About
-  
+
 .. toctree::
    :maxdepth: 2
    :caption: Tutorials

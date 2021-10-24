@@ -1,10 +1,10 @@
-
-
 class YupiException(Exception):
     """Generic exception for yupi package"""
 
+
 class TrajectoryError(YupiException):
     """Generic exception for handling trajectory errors"""
+
 
 class LoadTrajectoryError(TrajectoryError):
     """Error while loading a trajectory"""

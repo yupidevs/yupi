@@ -33,8 +33,8 @@ Increasing yupi visibility
 
 To help us reach a broader audience in the scientific community, you can help us by:
 
- * Star the project `yupi <https://github.com/yupidevs/yupi/stargazers>`_ in GitHub 
+ * Star the project `yupi <https://github.com/yupidevs/yupi/stargazers>`_ in GitHub
  * Star the project `yupi_examples <https://github.com/yupidevs/yupi_examples/stargazers>`_ in GitHub
- * Cite our `arxiv paper <http://arxiv.org/abs/2108.06340>`_ 
+ * Cite our `arxiv paper <http://arxiv.org/abs/2108.06340>`_
 
 

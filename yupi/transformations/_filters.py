@@ -1,9 +1,9 @@
 import numpy as np
+
 from yupi.trajectory import Trajectory
 
 
-def exp_convolutional_filter(traj: Trajectory, gamma: float,
-                             new_traj_id: str = None):
+def exp_convolutional_filter(traj: Trajectory, gamma: float, new_traj_id: str = None):
     """
     Returns a smoothed version of the trajectory `traj`
     by taking a weighted average over past values.

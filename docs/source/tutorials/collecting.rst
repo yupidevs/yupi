@@ -40,7 +40,7 @@ Let us first create a fake ensemble of just two (for the sake of illustration) t
    trajs = [traj1, traj2]
 
 
-At this point, it is quite easy using `yupi` to extract some time series from a 
+At this point, it is quite easy using `yupi` to extract some time series from a
 single trajectory. For example:
 
 - position: ``traj1.r``

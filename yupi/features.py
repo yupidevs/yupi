@@ -1,8 +1,9 @@
 from typing import List
+
 import numpy as np
 
 
-class Features():
+class Features:
     """
     Extracts useful information from a trajectory.
 
@@ -32,8 +33,7 @@ class Features():
         traj = self.traj
         return sum(traj.delta_r.norm)
 
-    def as_dict(self, only: List[str] = None,
-                remove: List[str] = None) -> dict:
+    def as_dict(self, only: List[str] = None, remove: List[str] = None) -> dict:
         """
         Get all the features as dictionary.
 
@@ -53,11 +53,11 @@ class Features():
         """
 
         _dict = dict(self.__class__.__dict__)
-        _dict = {k:v for k,v in _dict.items() if isinstance(v, property)}
+        _dict = {k: v for k, v in _dict.items() if isinstance(v, property)}
         _keys = _dict.keys()
         if remove is not None:
             _keys = [k for k in _keys if k not in remove]
         if only is not None:
             _keys = [k for k in _keys if k in only]
-        _dict = {k:v.__get__(self) for k,v in _dict.items() if k in _keys}
+        _dict = {k: v.__get__(self) for k, v in _dict.items() if k in _keys}
         return _dict

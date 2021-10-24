@@ -73,7 +73,7 @@ Slicing is possible too and it is used to obtain a subtrajectory. All variance o
 Filtering
 =========
 
-:py:class:`~yupi.Trajectory` objects can be filtered in different ways. By 
+:py:class:`~yupi.Trajectory` objects can be filtered in different ways. By
 default, yupi offers an Exponential Convolutional Filter, typically used in
 the context of animal trajectory analysis:
 

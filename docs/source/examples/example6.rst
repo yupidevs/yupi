@@ -3,14 +3,14 @@
 Example 6
 =========
 
-A model framework of a diffusion process with fluctuating diffusivity 
-is presented. A Brownian but non-Gaussian diffusion by means of a coupled 
-set of stochastic differential equations is predicted. Position is 
-described by an overdamped Langevin equation and the diffusion coefficient 
+A model framework of a diffusion process with fluctuating diffusivity
+is presented. A Brownian but non-Gaussian diffusion by means of a coupled
+set of stochastic differential equations is predicted. Position is
+described by an overdamped Langevin equation and the diffusion coefficient
 as the square of an Ornstein-Uhlenbeck process.
 
-The example is focused in computing the probability density function for 
-displacements at different time instants for the case of a one-dimensional 
+The example is focused in computing the probability density function for
+displacements at different time instants for the case of a one-dimensional
 process, as shown analitically by Chechkin et al. in [1] and discussed in [2].
 
 The example is structured as follows:
@@ -111,7 +111,7 @@ Then, we can plot the results:
    :alt: Output of example6
    :align: center
 
-   
+
 .. _References 6:
 
 5. References

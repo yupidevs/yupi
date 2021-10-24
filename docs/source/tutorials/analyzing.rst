@@ -27,13 +27,13 @@ from a generator, you can  plot them with:
 
     from yupi.graphics import plot_2D
     plot_2D(trajs[:10])
-  
+
 
 .. figure:: /images/tutorial001.png
    :alt: Distribution in submodules
    :align: center
 
-Notice that we limited to 10 the number of trajectories to plot for the sake of observability, 
+Notice that we limited to 10 the number of trajectories to plot for the sake of observability,
 but we will be using the full list of trajectories (traj) all over this tutorial.
 
 
@@ -75,7 +75,7 @@ ensemble of trajectories is also possible using:
 
     v = speed_ensemble(trajs, step=1)
     plot_velocity_hist(v, bins=20)
-  
+
 
 .. figure:: /images/tutorial002.png
    :alt: Distribution in submodules
@@ -96,7 +96,7 @@ It can be observe with yupi by using:
 
     theta = turning_angles_ensemble(trajs)
     plot_angles_hist(theta)
-  
+
 
 .. figure:: /images/tutorial003.png
    :alt: Distribution in submodules
@@ -118,7 +118,7 @@ a linear function of time. To estimate the MSD of a list of
 
     msd, msd_std = msd(trajs, time_avg=True, lag=30)
     plot_msd(msd, msd_std, dt, lag=30)
-  
+
 
 .. figure:: /images/tutorial004.png
    :alt: Distribution in submodules
@@ -140,7 +140,7 @@ normality. It can be estimated using:
     ref = yupi.stats.kurtosis_reference(trajs)
     kurtosis = yupi.stats.kurtosis(trajs, time_avg=False, lag=30)
     yupi.graphics.plot_kurtosis(kurtosis, kurtosis_ref=ref, dt=dt)
-  
+
 
 .. figure:: /images/tutorial005.png
    :alt: Distribution in submodules
@@ -161,7 +161,7 @@ the results, you can use:
 
     vacf, _ = vacf(trajs, time_avg=True, lag=50)
     plot_vacf(vacf, dt, 50)
-  
+
 
 .. figure:: /images/tutorial006.png
    :alt: Distribution in submodules

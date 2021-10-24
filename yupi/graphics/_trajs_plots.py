@@ -1,15 +1,24 @@
 import itertools
 import logging
-import matplotlib.pyplot as plt
 from typing import List, Union
+
+import matplotlib.pyplot as plt
+
 from yupi import Trajectory
-from yupi.graphics._style import YUPI_COLORS, LINE
+from yupi.graphics._style import LINE, YUPI_COLORS
 
 
-
-def plot_2D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
-            title: str = None, legend: bool = True, show: bool = True,
-            connected: bool = False, units: str = 'm', color = None, **kwargs):
+def plot_2D(
+    trajs: Union[List[Trajectory], Trajectory],
+    line_style: str = LINE,
+    title: str = None,
+    legend: bool = True,
+    show: bool = True,
+    connected: bool = False,
+    units: str = "m",
+    color=None,
+    **kwargs,
+):
     """
     Plot all the points of trajectories from ``trajs`` in a 2D plane.
 
@@ -47,14 +56,14 @@ def plot_2D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
-    units = '' if units is None else f' [{units}]'
+    units = "" if units is None else f" [{units}]"
 
     cycle = itertools.cycle(YUPI_COLORS)
     colors = [cycle.__next__() for _ in trajs]
 
     if color is not None:
         if isinstance(color, (str, tuple)):
-            kwargs['color'] = color
+            kwargs["color"] = color
         elif isinstance(color, list):
             colors = color
 
@@ -63,7 +72,7 @@ def plot_2D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
         min_len = min(lengths)
         max_len = max(lengths)
         if min_len != max_len:
-            logging.warning('Not all the trajectories have the same length.')
+            logging.warning("Not all the trajectories have the same length.")
         for i in range(min_len):
             traj_points = [t[i] for t in trajs]
             traj_points.append(traj_points[0])
@@ -75,43 +84,65 @@ def plot_2D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
     for i, t in enumerate(trajs):
 
         if t.dim != 2:
-            logging.warning(f'Using plot_2D with a trajectory of {t.dim} '
-                            f' dimensions. Trajectory No. {i} with id'
-                            f' {t.traj_id})')
+            logging.warning(
+                f"Using plot_2D with a trajectory of {t.dim} "
+                f" dimensions. Trajectory No. {i} with id"
+                f" {t.traj_id})"
+            )
 
         # Plotting
         x, y = t.r.x, t.r.y
         if colors is not None:
             if i < len(colors):
-                kwargs['color'] = colors[i]
+                kwargs["color"] = colors[i]
             else:
-                kwargs.pop('color')
+                kwargs.pop("color")
         traj_plot = plt.plot(x, y, line_style, **kwargs)
         color = traj_plot[-1].get_color()
-        plt.plot(x[0], y[0], 'o', mfc='white', zorder=2,
-                 label=f'{t.traj_id} initial position', color=color)
-        plt.plot(x[-1], y[-1], 'o', mfc='white', zorder=2, color=color)
-        plt.plot(x[-1], y[-1], 'o', alpha=.5,
-                 label=f'{t.traj_id} final position', color=color)
+        plt.plot(
+            x[0],
+            y[0],
+            "o",
+            mfc="white",
+            zorder=2,
+            label=f"{t.traj_id} initial position",
+            color=color,
+        )
+        plt.plot(x[-1], y[-1], "o", mfc="white", zorder=2, color=color)
+        plt.plot(
+            x[-1],
+            y[-1],
+            "o",
+            alpha=0.5,
+            label=f"{t.traj_id} final position",
+            color=color,
+        )
 
         if legend:
             plt.legend()
 
         plt.title(title)
-        plt.tick_params(direction='in')
-        plt.axis('equal')
+        plt.tick_params(direction="in")
+        plt.axis("equal")
         plt.grid(True)
-        plt.xlabel(f'x{units}')
-        plt.ylabel(f'y{units}')
+        plt.xlabel(f"x{units}")
+        plt.ylabel(f"y{units}")
 
     if show:
         plt.show()
 
 
-
-def plot_3D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
-            title: str = None, legend: bool = True, show: bool = True,
-            connected: bool = False, units: str = 'm', color = None, **kwargs):
+def plot_3D(
+    trajs: Union[List[Trajectory], Trajectory],
+    line_style: str = LINE,
+    title: str = None,
+    legend: bool = True,
+    show: bool = True,
+    connected: bool = False,
+    units: str = "m",
+    color=None,
+    **kwargs,
+):
     """
     Plot all the points of trajectories from ``trajs`` in a 3D space.
 
@@ -149,26 +180,25 @@ def plot_3D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
-    units = '' if units is None else f' [{units}]'
+    units = "" if units is None else f" [{units}]"
 
     cycle = itertools.cycle(YUPI_COLORS)
     colors = [cycle.__next__() for _ in trajs]
 
     if color is not None:
         if isinstance(color, (str, tuple)):
-            kwargs['color'] = color
+            kwargs["color"] = color
         elif isinstance(color, list):
             colors = color
 
-
-    ax = plt.gca(projection='3d')
+    ax = plt.gca(projection="3d")
 
     if connected:
         lengths = list(map(len, trajs))
         min_len = min(lengths)
         max_len = max(lengths)
         if min_len != max_len:
-            logging.warning('Not all the trajectories have the same length.')
+            logging.warning("Not all the trajectories have the same length.")
         for i in range(min_len):
             traj_points = [t[i] for t in trajs]
             traj_points.append(traj_points[0])
@@ -181,37 +211,53 @@ def plot_3D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
     for i, t in enumerate(trajs):
 
         if t.dim != 3:
-            logging.warning(f'Using plot_3D with a trajectory of {t.dim} '
-                            f' dimensions. Trajectory No. {i} with id'
-                            f' {t.traj_id})')
+            logging.warning(
+                f"Using plot_3D with a trajectory of {t.dim} "
+                f" dimensions. Trajectory No. {i} with id"
+                f" {t.traj_id})"
+            )
 
         # Plotting
         x, y, z = t.r.x, t.r.y, t.r.z
 
         if colors is not None:
             if i < len(colors):
-                kwargs['color'] = colors[i]
+                kwargs["color"] = colors[i]
             else:
-                kwargs.pop('color')
+                kwargs.pop("color")
         traj_plot = ax.plot(x, y, z, line_style, **kwargs)
         color = traj_plot[-1].get_color()
 
-        ax.plot(x[0], y[0], z[0], 'o', mfc='white',
-                 label=f'{t.traj_id} initial position', color=color)
+        ax.plot(
+            x[0],
+            y[0],
+            z[0],
+            "o",
+            mfc="white",
+            label=f"{t.traj_id} initial position",
+            color=color,
+        )
 
-        ax.plot(x[-1], y[-1], z[-1], 'o', mfc='white', color=color)
-        ax.plot(x[-1], y[-1], z[-1], 'o', alpha=.5,
-                 label=f'{t.traj_id} final position', color=color)
+        ax.plot(x[-1], y[-1], z[-1], "o", mfc="white", color=color)
+        ax.plot(
+            x[-1],
+            y[-1],
+            z[-1],
+            "o",
+            alpha=0.5,
+            label=f"{t.traj_id} final position",
+            color=color,
+        )
 
         if legend:
             plt.legend()
 
         plt.title(title)
-        plt.tick_params(direction='in')
+        plt.tick_params(direction="in")
         plt.grid(True)
-        ax.set_xlabel(f'x{units}')
-        ax.set_ylabel(f'y{units}')
-        ax.set_zlabel(f'z{units}')
+        ax.set_xlabel(f"x{units}")
+        ax.set_ylabel(f"y{units}")
+        ax.set_zlabel(f"z{units}")
 
     if show:
         plt.show()
