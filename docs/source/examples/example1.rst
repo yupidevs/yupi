@@ -91,7 +91,7 @@ Langevin Generator:
 .. code-block:: python
 
    tau = (alpha / m)**-1                   # relaxation time
-   noise_scale = np.sqrt(2 / tau) * v_eq   # scale parameter of noise pdf
+   sigma = np.sqrt(2 / tau) * v_eq   # scale parameter of noise pdf
 
 
 Finally, we define general simulation parameters:
@@ -113,7 +113,7 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   lg = LangevinGenerator(tt, dim, N, dt, tau, noise_scale)
+   lg = LangevinGenerator(tt, dim, N, dt, tau, sigma)
    trajs = lg.generate()
 
 

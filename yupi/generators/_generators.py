@@ -157,7 +157,7 @@ class _LangevinGenerator(Generator):
                  N: int = 1, 
                  dt: float = 1., 
                  tau: float = 1., 
-                 noise_scale: float = 1., 
+                 sigma: float = 1., 
                  v0: np.ndarray = None, 
                  r0: np.ndarray = None):
 
@@ -168,7 +168,7 @@ class _LangevinGenerator(Generator):
 
         # Model parameters
         self.tau = tau                  # Relaxation time
-        self.noise_scale = noise_scale  # Noise scale parameter
+        self.sigma = sigma  # Noise scale parameter
 
         # Initial conditions
         self.r0 = r0           # Initial position
@@ -184,7 +184,7 @@ class _LangevinGenerator(Generator):
     # Intrinsic reference parameters
     def _set_scaling_params(self):
         self.t_scale = self.tau                                  # Time scale
-        self.v_scale = self.noise_scale * np.sqrt(self.t_scale)  # Speed scale
+        self.v_scale = self.sigma * np.sqrt(self.t_scale)  # Speed scale
         self.r_scale = self.v_scale * self.t_scale               # Length scale
 
 
@@ -286,7 +286,7 @@ class LangevinGenerator(_LangevinGenerator):
         Time step, by default 1.0.
     tau : float, optional
         Persistence time, by default 1.
-    noise_scale : float, optional
+    sigma : float, optional
         Noise intensity (i.e., scale parameter of noise pdf), by default 1.
     bounds: np.ndarray, optional
         Lower and upper reflecting boundaries that confine the trajectories. If None 
@@ -307,14 +307,14 @@ class LangevinGenerator(_LangevinGenerator):
                  N: int = 1, 
                  dt: float = 1., 
                  tau: float = 1., 
-                 noise_scale: float = 1.,  
+                 sigma: float = 1.,  
                  bounds: np.ndarray = None, 
                  bounds_extent: np.ndarray = None, 
                  bounds_strength: np.ndarray = None, 
                  v0: np.ndarray = None, 
                  r0: np.ndarray = None):
 
-        super().__init__(T, dim, N, dt, tau, noise_scale, v0, r0)
+        super().__init__(T, dim, N, dt, tau, sigma, v0, r0)
 
         # Verify if there is any boundary
         self.bounds = bounds
@@ -443,7 +443,7 @@ class _DiffDiffGenerator(Generator):
                  N: int = 1, 
                  dt: float = 1., 
                  tau: float = 1., 
-                 noise_scale: float = 1., 
+                 sigma: float = 1., 
                  dim_aux: int = 1, 
                  r0: np.ndarray = None):
 
@@ -454,11 +454,11 @@ class _DiffDiffGenerator(Generator):
 
         # Model parameters
         self.tau = tau                  # Relaxation time
-        self.noise_scale = noise_scale  # Noise scale parameter of auxiliary variable
+        self.sigma = sigma  # Noise scale parameter of auxiliary variable
 
         # Intrinsic reference parameters
         self.t_scale = tau                         # Time scale
-        self.r_scale = noise_scale * self.t_scale  # Length scale
+        self.r_scale = sigma * self.t_scale  # Length scale
 
         # Simulation parameters
         self.dt = dt / self.t_scale    # Dimensionless time step
@@ -557,7 +557,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         Time step of the Trajectory, by default 1.0.
     tau : float, optional
         Relaxation characteristic time of the auxiliary variable, by default 1.
-    noise_scale : float, optional
+    sigma : float, optional
         Scale parameter of the auxiliary variable noise, by default 1.
     dim_aux: int, optional
         Dimension of the auxiliary process, which is the square of the diffusivity, by default 1.
@@ -578,14 +578,14 @@ class DiffDiffGenerator(_DiffDiffGenerator):
                  N: int = 1, 
                  dt: float = 1., 
                  tau: float = 1., 
-                 noise_scale: float = 1., 
+                 sigma: float = 1., 
                  dim_aux: int = 1, 
                  bounds: np.ndarray = None, 
                  bounds_extent: np.ndarray = None, 
                  bounds_strength: np.ndarray = None, 
                  r0: np.ndarray = None):
 
-        super().__init__(T, dim, N, dt, tau, noise_scale, dim_aux, r0)
+        super().__init__(T, dim, N, dt, tau, sigma, dim_aux, r0)
 
         # Verify if there is any boundary
         self.bounds = np.float32(bounds)                     # Convert None into np.nan
