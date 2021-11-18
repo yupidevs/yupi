@@ -102,3 +102,43 @@ def test_checkers():
     # Same t checker
     with pytest.raises(ValueError):
         msd([simple_traj, non_equal_t0_traj], time_avg=False)
+
+
+def test_collect(traj, traj1):
+    # Collect r
+    traj_r = collect([traj])
+    assert np.allclose(traj_r, traj.r)
+
+    # Collect v
+    traj_v = collect([traj], velocity=True)
+    assert np.allclose(traj_v, traj.v)
+
+    # Collect with lag_step
+    traj_r = collect([traj], lag_step=2)
+    assert np.allclose(traj_r, traj.r[2:] - traj.r[:-2])
+
+    # Collect with lag_step and velocity
+    traj_v = collect([traj], velocity=True, lag_step=2)
+    true_val = (traj.r[2:] - traj.r[:-2]) / (traj.dt * 2)
+    assert np.allclose(traj_v, true_val)
+
+    # Collect multiple trajectories
+    traj_r = collect([traj, traj])
+    assert np.allclose(traj_r, np.concatenate([traj.r, traj.r]))
+
+    # Collect multiple trajectories with lag_step
+    traj_r = collect([traj, traj], lag_step=2)
+    true_r = traj.r[2:] - traj.r[:-2]
+    assert np.allclose(traj_r, np.concatenate([true_r, true_r]))
+
+    # Collect with lag_time
+    traj1_r = collect([traj1], lag_time=2)
+    step = int(2 / traj1.dt)
+    true_r = traj1.r[step:] - traj1.r[:-step]
+    assert np.allclose(traj1_r, true_r)
+
+    # Collect with lag_time and velocity
+    traj1_v = collect([traj1], velocity=True, lag_time=2)
+    step = int(2 / traj1.dt)
+    true_val = (traj1.r[step:] - traj1.r[:-step]) / (traj1.dt * 2)
+    assert np.allclose(traj1_v, true_val)

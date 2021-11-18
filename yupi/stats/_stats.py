@@ -150,11 +150,10 @@ def collect(trajs: List[Trajectory], lag_step: int = None, lag_time: int = None,
         if func is not None:
             traj_dr = func(traj_dr)
 
-        if concat:
-            data.extend(traj_dr)
-        else:
-            data.append(traj_dr)
-
+        data.append(traj_dr)
+    
+    if concat:
+        return np.concatenate(data)
     equal_len = np.all(len(d) == len(data[0]) for d in data)
     return np.array(data) if equal_len else np.array(data, dtype=object)
 
