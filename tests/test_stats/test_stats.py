@@ -140,5 +140,5 @@ def test_collect(traj, traj1):
     # Collect with lag_time and velocity
     traj1_v = collect([traj1], velocity=True, lag_time=2)
     step = int(2 / traj1.dt)
-    true_val = (traj1.r[step:] - traj1.r[:-step]) / (traj1.dt * 2)
+    true_val = (traj1.r[step:] - traj1.r[:-step]) / (traj1.dt)
     assert np.allclose(traj1_v, true_val)
