@@ -14,8 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8.6'
     - name: Install Poetry
-      run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+      run: curl -sSL https://install.python-poetry.org | python -
     - name: Add Poetry to path
       run: echo "${HOME}/.poetry/bin" >> $GITHUB_PATH
     - name: Install yupi on venv
