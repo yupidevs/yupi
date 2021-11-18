@@ -134,7 +134,10 @@ def collect(trajs: List[Trajectory], lag_step: int = None, lag_time: int = None,
     for traj in trajs:
         step = int(lag_time / traj.dt) if is_time else int(lag_step)
         if step == 0:
-            data.append(traj.v if velocity else traj.r)
+            current_vec = traj.v if velocity else traj.r
+            if func is not None:
+                current_vec = func(current_vec)
+            data.append(current_vec)
             continue
 
         traj_r = traj.r
@@ -148,6 +151,7 @@ def collect(trajs: List[Trajectory], lag_step: int = None, lag_time: int = None,
             traj_dr /= traj.dt * step
 
         if func is not None:
+            print('asd')
             traj_dr = func(traj_dr)
 
         data.append(traj_dr)
