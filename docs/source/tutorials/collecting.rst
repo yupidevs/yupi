@@ -61,8 +61,8 @@ different from the time step? In what is next, these questions are answered
 with some illustrative examples while a detailed explanation of every parameter
 is given on the :py:func:`~stats.collect` function.
 
-Simple collect
-==============
+Collect general function
+========================
 
 By default, the :py:func:`~stats.collect` function takes a list trajectory an returns
 an array with all the positional data of each trajectory concatenated.
@@ -87,21 +87,21 @@ an array with all the positional data of each trajectory concatenated.
 The following sections will describe all the parameters available that manipulate 
 the resulting data within the :py:func:`~stats.collect` function.
 
-The ``lag_step`` and ``lag_time`` parameters
-============================================
+The ``lag`` parameter
++++++++++++++++++++++
 
 Suppose the underlying ensemble of trajectories as being realizations of a
 process with different statistical properties at different time scales. For
-such a case, ``lag_step`` and ``lag_time`` can be helpful if they are set
-properly. If lag is an integer that account for number of samples, ``lag_step``
-should be used. Instead, use ``lag_time`` if its units are those of the time
-array (i.e., ``traj.t``).
+such a case, ``lag`` can be helpful if it is set properly. If ``lag`` is an
+integer it is taken as the number of samples. On the other hand, if ``lag`` is
+of type ``float``, it is taken as the time to lag where its units are those of
+the time array (i.e., ``traj.t``).
 
-If none of this parameters are given, ``lag_step=0`` will be assumed.
+If ``lag`` is not set, the default value is ``lag=0`` will be assumed.
 
 .. code-block:: python
 
-   collect(trajs, lag_step=2)
+   collect(trajs, lag=2)
 
 .. code-block:: text
 
@@ -114,7 +114,7 @@ If none of this parameters are given, ``lag_step=0`` will be assumed.
 
 .. code-block:: python
 
-   collect(trajs, lag_time=2*dt)
+   collect(trajs, lag=1.0)
 
 .. code-block:: text
 
@@ -126,7 +126,7 @@ If none of this parameters are given, ``lag_step=0`` will be assumed.
           [ 4., 56.]])
 
 The ``concat`` parameter
-========================
+++++++++++++++++++++++++
 
 As we show in the very first example, the code for `concat(trajs)` will return
 an array with all the positional data of each trajectory concatenated.
@@ -153,7 +153,7 @@ should be set to ``False``.
            [ 9., 81.]]])
 
 The ``warnings`` parameter
-==========================
+++++++++++++++++++++++++++
 
 If the given lag is larger than one of the trajectories length, a warning
 message will arise and the position of the trajectory in the ensemble and its
@@ -163,7 +163,7 @@ trajectory. To avoid warning messages set the parameter to ``False``.
 .. code-block:: python
 
    traj1.dt = .01  # redefining dt for the first trajectory
-   collect(trajs, lag_time=dt)
+   collect(trajs, lag=dt)
 
 .. code-block:: text
 
@@ -175,7 +175,7 @@ trajectory. To avoid warning messages set the parameter to ``False``.
 
 .. code-block:: python
 
-   collect(trajs, lag_time=dt, warnings=False)
+   collect(trajs, lag=dt, warnings=False)
 
 .. code-block:: text
 
@@ -185,7 +185,7 @@ trajectory. To avoid warning messages set the parameter to ``False``.
           [ 2., 32.]])
 
 The ``velocity`` parameter
-==========================
+++++++++++++++++++++++++++
 
 Some times it is useful to have the velocity of the trajectory. To indicate that
 the velocity is wanted, the ``velocity`` parameter should be set to ``True``.
@@ -205,12 +205,12 @@ the velocity is wanted, the ``velocity`` parameter should be set to ``True``.
            [ 4. 48.]
            [ 4. 64.]])
 
-Additional if the ``lag_step`` (or ``lag_time``) is used, the velocity will be
-calculated according the given lag.
+Additional if the ``lag`` is used, the velocity will be calculated according
+the given lag.
 
 .. code-block:: python
 
-   collect(trajs, lag_step=2, velocity=True)
+   collect(trajs, lag=2, velocity=True)
 
 .. code-block:: text
 
@@ -222,7 +222,7 @@ calculated according the given lag.
            [ 4. 56.]])
 
 The ``func`` parameter
-======================
+++++++++++++++++++++++
 
 All the examples described above only returns raw data from the trajectories. If
 the data is wanted to be transformed, the ``func`` parameter should be set to
@@ -252,3 +252,46 @@ trajectories.
 
     array([ 4.47213595 12.16552506 20.09975124 28.0713377 8.24621125 16.1245155
            24.08318916 32.06243908])
+
+The ``at`` parameter
+++++++++++++++++++++
+
+When the data is wanted to be extracted at a certain time (or index), the
+``at`` parameter should be used. If ``at`` is an integer, it is taken as the
+index. If ``at`` is a float, it is taken as the time (in this case the
+index is calculated using the trajectory's dt value).
+
+This paramenter can not be used with ``lag`` parameter at the same time. In
+addition, When the ``at`` parameter is used, the ``concat`` parameter is
+ignored.
+
+.. code-block:: python
+
+   collect(trajs, at=1)
+
+.. code-block:: text
+
+   array([[ 2.,  4.],
+          [ 3.,  9.]])
+
+.. code-block:: python
+   
+   collect(trajs, at=.5)
+
+.. code-block:: text
+
+   array([[ 2.,  4.],
+          [ 3.,  9.]])
+
+Collect specific functions
+==========================
+
+- :py:func:`~stats.collect_at_step`
+- :py:func:`~stats.collect_at_time`
+- :py:func:`~stats.collect_step_lagged`
+- :py:func:`~stats.collect_time_lagged`
+
+These functions are just spetializations of the :py:func:`~stats.collect`
+function. All of them use the :py:func:`~stats.collect` function internally.
+Each of them has a different usage depending on if the data is wanted to be
+extracted at a certain time or step or if it is wanted to be extracted lagged.

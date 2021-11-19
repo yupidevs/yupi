@@ -1,7 +1,6 @@
 from typing import Callable, List, Tuple, Any, Union
 import numpy as np
 import logging
-from numpy.linalg.linalg import norm as nrm
 from yupi.trajectory import Trajectory
 from yupi.vector import Vector
 from yupi.transformations import subsample
@@ -12,74 +11,6 @@ from yupi._checkers import (
     _check_exact_dim,
     _check_same_t
 )
-
-
-_COMPONENT_NUM = { 'x':0, 'y':1, 'z':2 }
-
-def _parse_collect_key(value: str) -> Callable:
-    original_value = value
-    is_delta = value.startswith('d')
-    value = value[1:] if is_delta else value
-    if len(value) == 0 or value[0] not in ['r', 'v', 'a']:
-        raise ValueError(f"Unknown key '{original_value}'")
-
-    vector_name = value[0]
-    component = value[1:]
-    is_norm = component == 'n'
-    if not is_norm:
-        if component.isnumeric():
-            component = int(component)
-        elif component in ['x','y','z']:
-            component = _COMPONENT_NUM[component]
-        elif component == '':
-            component = -1
-        else:
-            raise ValueError(f"Unknown key '{original_value}'")
-    else:
-        component = -1
-
-    def _key(traj: Trajectory, delta=True, norm=True):
-        data = None
-        if vector_name == 'r':
-            data = traj.r
-        elif vector_name == 'v':
-            data = traj.v
-        else:
-            data = traj.ang
-
-        if is_delta and delta:
-            data = data.delta
-        if is_norm and norm:
-            return data.norm
-        if component == -1:
-            return data
-        return data.component(component)
-
-    return _key, is_delta, is_norm
-
-
-def collect_at(trajs: List[Trajectory], key: str, step: int = None,
-               time: float = None, warnings: bool = True) -> np.ndarray:
-    is_step = step is not None
-    is_time = time is not None
-    if is_step + is_time == 0:
-        is_step = True
-        step = 1
-    if is_step + is_time == 2:
-        raise ValueError("You can not set 'step' and 'time' parameter at the "
-                        "same time")
-
-    key = _parse_collect_key(key)[0]
-    data = np.zeros(len(trajs))
-    for i, traj in enumerate(trajs):
-        step = int(time / traj.dt) if is_time else step
-        if warnings and step >= len(traj):
-            logging.warning(f"Trajectory {i} with id={traj.traj_id} is "
-                            f"shorten than {step} samples")
-            continue
-
-        data[i] = key(traj)[step]
-    return data
 
 
 def collect_at_step(trajs: List[Trajectory], step: int, warnings: bool = True,
@@ -319,7 +250,7 @@ def collect(trajs: List[Trajectory], lag: Union[int, float] = None,
 
         data.append(lagged_vec)
     
-    if concat:
+    if concat and is_lag:
         return np.concatenate(data)
     equal_len = np.all(len(d) == len(data[0]) for d in data)
     return np.array(data) if equal_len else np.array(data, dtype=object)
