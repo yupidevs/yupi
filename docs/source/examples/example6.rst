@@ -33,7 +33,7 @@ Import all the dependencies:
 .. code-block:: python
 
    import numpy as np
-   from yupi.stats import collect_at
+   from yupi.stats import collect
    from yupi.graphics import plot_hists
    from yupi.generators import DiffDiffGenerator
 
@@ -89,7 +89,7 @@ time instants:
 
 .. code-block:: python
 
-   r = [collect_at(trajs, 'rx', time=t) for t in time_instants]
+   r = [collect(trajs, at=float(t)) for t in time_instants]
 
 Then, we can plot the results:
 
