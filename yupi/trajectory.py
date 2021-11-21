@@ -544,7 +544,7 @@ class Trajectory():
             ang_shape = 0 if self.ang is None else self.ang.shape[1]
             writer.writerow([self.traj_id, self.dt, self.dim, ang_shape])
             for tp in self:
-                row = np.hstack(np.array([tp.r, tp.ang, tp.t]))
+                row = np.hstack(np.array([tp.r, tp.ang, tp.t], dtype=object))
                 writer.writerow(row)
 
     def save(self, file_name: str, path: str = '.', file_type: str = 'json',
