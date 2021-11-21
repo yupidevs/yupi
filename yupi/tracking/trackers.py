@@ -216,16 +216,17 @@ class ROI():
             Center of the ROI.
         """
 
-        win1_name = 'Click on the center of {} to init roi'.format(name)
+        win1_name = f'Click on the center of {name} to init roi'
+        logging.info(f"Open the video window to select {name}'s center")
 
         self.__global_height, self.__global_width = frame.shape[:2]
 
         frame_ = _resize_frame(frame, scale=self.scale)
         cv2.imshow(win1_name, frame_)
-
+        
+        roi_initialized = False
         # Callback handler to manually set the roi
         def on_click(event, x, y, flags, param):
-
             if event == cv2.EVENT_LBUTTONDOWN:
                 # Global roi center coordinates
                 self.__cXY = int(x / self.scale), int(y / self.scale)
@@ -239,12 +240,25 @@ class ROI():
                 pt1 = (int(xmin * self.scale), int(ymin * self.scale))
                 pt2 = (int(xmax * self.scale), int(ymax * self.scale))
                 cv2.rectangle(img_, pt1, pt2, (0, 255, 255), 1)
+
+                msg = "ROI initialized. Press any key to continue."
+
+                cv2.putText(img_, msg, (10, 20), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.5, (0, 255, 255), 1)
+                
                 cv2.imshow(win1_name, img_)
 
-                logging.info('ROI initialized, now press any key to continue')
+                nonlocal roi_initialized
+                roi_initialized = True
+                logging.info('ROI initialized. Press any key to continue.')
 
         cv2.setMouseCallback(win1_name, on_click)
-        cv2.waitKey(0)
+        while not roi_initialized:
+            cv2.waitKey(0)
+            logging.info('Waiting for ROI initialization. Please '
+                         f'click on the center of the {name}\'s ROI on '
+                         'the video window.')
+
         return self.__cXY
 
     def _check_roi_init(self, name: str) -> bool:
