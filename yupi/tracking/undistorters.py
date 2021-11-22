@@ -43,6 +43,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         # Initialize camera parameters
         self.c_h = npzfile['h']
         self.c_w = npzfile['w']
+        size=(int(self.c_w), int(self.c_h))
         self.c_mtx = npzfile['mtx']
         self.c_dist = npzfile['dist']
         self.c_newcameramtx = npzfile['newcameramtx']
@@ -52,7 +53,7 @@ class Undistorter(metaclass=abc.ABCMeta):
             distCoeffs=self.c_dist,
             R=None,
             newCameraMatrix=self.c_newcameramtx,
-            size=(self.c_w, self.c_h),
+            size=size,
             m1type=5
         )
         self.c_mapx, self.c_mapy = c_map
