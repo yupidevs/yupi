@@ -158,6 +158,8 @@ class Trajectory():
         if lengths.count(lengths[0]) != len(lengths):
             raise ValueError('All input arrays must have the same shape.')
 
+        self.__dt = dt
+        self.dt_mean = dt
         self.__t0 = t0
         self.__t = data[0]
         self.ang = data[1]
@@ -165,16 +167,16 @@ class Trajectory():
         self.lazy = lazy
 
         if self.__t is None:
-            self.dt = dt if dt is not None else 1.0
+            self.dt_mean = dt if dt is not None else 1.0
             self.dt_std = 0
             self.__v: Vector = self.r.delta / self.dt
         else:
-            self.dt = np.mean(np.array(self.__t.delta))
+            self.dt_mean = np.mean(np.array(self.__t.delta))
             self.dt_std = np.std(np.array(self.__t.delta))
             self.__v: Vector = (self.r.delta.T / self.__t.delta).T
 
         if t is not None and dt is not None:
-            if abs(self.dt - dt) > _threshold:
+            if abs(self.dt_mean - dt) > _threshold:
                 raise ValueError("You are giving 'dt' and 't' but 'dt' "
                                 "does not match with time values delta.")
             if abs(self.dt_std - 0) > _threshold:
@@ -185,6 +187,16 @@ class Trajectory():
                                  "the same as the first value of 't'.")
 
         self.features = Features(self)
+
+    @property
+    def dt(self) -> float:
+        """
+        Returns the time between each position data value.
+
+        If the time data is not uniformly spaced it returns an
+        estimated value.
+        """
+        return self.dt_mean if self.__dt is None else self.__dt
 
     @property
     def uniformly_spaced(self) -> bool:
@@ -530,7 +542,7 @@ class Trajectory():
         ang = None if self.ang is None else self.ang.T
         json_dict = {
             'id': self.traj_id,
-            'dt': self.dt,
+            'dt': self.__dt,
             'r': convert_to_list(self.r.T),
             'ang': convert_to_list(ang),
             't': convert_to_list(self.__t)
@@ -542,7 +554,7 @@ class Trajectory():
         with open(str(path), 'w', newline='') as traj_file:
             writer = csv.writer(traj_file, delimiter=',')
             ang_shape = 0 if self.ang is None else self.ang.shape[1]
-            writer.writerow([self.traj_id, self.dt, self.dim, ang_shape])
+            writer.writerow([self.traj_id, self.__dt, self.dim, ang_shape])
             for tp in self:
                 row = np.hstack(np.array([tp.r, tp.ang, tp.t], dtype=object))
                 writer.writerow(row)
