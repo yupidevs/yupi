@@ -11,6 +11,13 @@ Current recommended installation method is via the pypi package:
 pip install yupi
 ```
 
+## Compatibility
+
+- Python 3.7 or later
+- Ubuntu 18.04 or later
+- Windows 7 or later
+- macOS 10.12.6 (Sierra) or later.
+
 ## Getting Started
 
 In the [official documentation](https://yupi.readthedocs.io/en/latest/) there
