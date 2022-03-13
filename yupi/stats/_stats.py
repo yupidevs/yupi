@@ -44,7 +44,8 @@ def collect_at_step(trajs: List[Trajectory], step: int, warnings: bool = True,
     --------
     collect_at_time, collect_step_lagged, collect_time_lagged, collect
     """
-    return collect(trajs, at=step, warnings=warnings, velocity=velocity, func=func)
+    return collect(trajs, at=int(step), warnings=warnings, velocity=velocity,
+                   func=func)
 
 def collect_at_time(trajs: List[Trajectory], time: float, warnings: bool = True,
                     velocity: bool = False,
@@ -79,7 +80,8 @@ def collect_at_time(trajs: List[Trajectory], time: float, warnings: bool = True,
     --------
     collect_at_step, collect_step_lagged, collect_time_lagged, collect
     """
-    return collect(trajs, at=time, warnings=warnings, velocity=velocity, func=func)
+    return collect(trajs, at=float(time), warnings=warnings, velocity=velocity,
+                   func=func)
 
 def collect_step_lagged(trajs: List[Trajectory], step: int, warnings: bool = True,
                         velocity: bool = False, concat: bool = True,
@@ -114,7 +116,7 @@ def collect_step_lagged(trajs: List[Trajectory], step: int, warnings: bool = Tru
     --------
     collect_at_step, collect_at_step, collect_time_lagged, collect
     """
-    return collect(trajs, lag=step, concat=concat, warnings=warnings,
+    return collect(trajs, lag=int(step), concat=concat, warnings=warnings,
                    velocity=velocity, func=func)
 
 def collect_time_lagged(trajs: List[Trajectory], time: float, warnings: bool = True,
@@ -150,7 +152,7 @@ def collect_time_lagged(trajs: List[Trajectory], time: float, warnings: bool = T
     --------
     collect_at_step, collect_at_time, collect_step_lagged, collect
     """
-    return collect(trajs, lag=time, concat=concat, warnings=warnings,
+    return collect(trajs, lag=float(time), concat=concat, warnings=warnings,
                    velocity=velocity, func=func)
 
 
@@ -249,7 +251,7 @@ def collect(trajs: List[Trajectory], lag: Union[int, float] = None,
             lagged_vec = func(lagged_vec)
 
         data.append(lagged_vec)
-    
+
     if concat and is_lag:
         return np.concatenate(data)
     equal_len = np.all(len(d) == len(data[0]) for d in data)

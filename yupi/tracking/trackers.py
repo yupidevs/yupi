@@ -216,7 +216,7 @@ class ROI():
             Center of the ROI.
         """
 
-        win1_name = f'Click on the center of {name} to init roi'
+        win1_name = f'Initialization of trackers: Click on the initial position of: {name.upper()}'
         logging.info(f"Open the video window to select {name}'s center")
 
         self.__global_height, self.__global_width = frame.shape[:2]
@@ -641,6 +641,63 @@ class TrackingScenario():
         cv2.imshow('yupi processing window', frame)
         # Return frame
 
+    def _create_ui(self, img, t_name, current_tracker, total_trackers):
+        imgc = img.copy() 
+        shape = img.shape
+        h = shape[0]
+        w = shape[1]
+        h_pad = 0.2
+        w_pad = 0.15
+
+        imgc = cv2.blur(imgc, (5,5))
+
+        box = imgc[int(h*h_pad):int(h - h*h_pad),int(w*w_pad):int(w - w*w_pad),:]
+        threshold = 180
+
+        box[:,:] += np.array([threshold,threshold,threshold], dtype='uint8')
+        box[box < threshold] = 255
+
+        bshape = box.shape
+        boxw = bshape[1]
+        boxh = bshape[0]
+
+        # Text
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 0.0008333 * w + 0.0333333
+        color = (50, 50, 50)
+        thickness = int(fontScale + 1)
+
+
+        text1 = 'Your tracking scenario is almost ready'
+        text2 = "Let's initialize your trackers"
+        text3 = 'Next, you will have to click on the initial'
+        text4 = f'position of the tracker {t_name.upper()}'
+        text5 = 'Press any key to continue...'
+        text6 = f'Trackers Initialized: {current_tracker}/{total_trackers}'
+        
+        l = int(0.0396825 * boxw + 2.222222)
+        box = cv2.putText(box, text1, (l,l + l), font, 
+                       fontScale, color, thickness, cv2.LINE_AA)
+
+        box = cv2.putText(box, text2, (l, l+2*l), font, 
+                       fontScale, color, thickness, cv2.LINE_AA)
+
+        box = cv2.putText(box, text3, (l,l+4*l), font, 
+                       fontScale, color, thickness, cv2.LINE_AA)
+
+        box = cv2.putText(box, text4, (l,l+5*l), font, 
+                       fontScale, color, thickness, cv2.LINE_AA)
+
+        box = cv2.putText(box, text5, (l,l+7*l), font, 
+                       fontScale, color, thickness, cv2.LINE_AA)
+
+        box = cv2.putText(box, text6, (l,boxh-l), font, 
+                       fontScale, color, thickness, cv2.LINE_AA)
+
+        # box = cv2.putText(box, text6, (boxw-4*l,boxh-l), font, 
+                       # fontScale, color, thickness, cv2.LINE_AA)
+        return imgc
+
     def _first_iteration(self, start_frame):
         # Start processing frams at the given index
         if start_frame:
@@ -654,7 +711,13 @@ class TrackingScenario():
         self.prev_frame = self._undistort(prev_frame)
 
         # Initialize the roi of all the trackers
-        for otrack in self.object_trackers:
+        for i, otrack in enumerate(self.object_trackers):
+            if otrack.roi.init_mode == 'manual':
+                tracker_name = otrack.name
+                ui = self._create_ui(self.prev_frame, tracker_name, i, len(self.object_trackers))
+                cv2.imshow(f'Initialization of trackers: Press any key to start with tracker: {tracker_name.upper()}', ui)
+                cv2.waitKey(-1)
+                cv2.destroyAllWindows()
             retval = otrack._init_roi(self.prev_frame)
             if not retval:
                 return retval
