@@ -373,6 +373,41 @@ class Trajectory():
         """
         self.add_polar_offset(0, angle)
 
+    def rotate3d(self, vector: Union[list, np.ndarray], angle: float):
+        """
+        Rotates the trajectory around a given vector.
+
+        Parameters
+        ----------
+        vector : Vector
+            Vector to rotate the trajectory around.
+        angle : float
+            Angle in radians to rotate the trajectory.
+
+        Raises
+        ------
+        TypeError
+            If the trajectory is not 3 dimensional.
+        """
+
+        if self.dim != 3:
+            raise TypeError('3D rotations can only be applied on 3 '
+                            'dimensional trajectories')
+
+        vec: Vector = Vector.create(vector)
+        if len(vec) != 3:
+            raise ValueError('The vector must have 3 components')
+
+        vec = vec / vec.norm
+        vx, vy, vz = vec[0], vec[1], vec[2]
+        c, s = np.cos(angle), np.sin(angle)
+
+        R = np.array([[vx*vx*(1-c)+c, vx*vy*(1-c)-vz*s, vx*vz*(1-c)+vy*s],
+                      [vx*vy*(1-c)+vz*s, vy*vy*(1-c)+c, vy*vz*(1-c)-vx*s],
+                      [vx*vz*(1-c)-vy*s, vy*vz*(1-c)+vx*s, vz*vz*(1-c)+c]])
+
+        self.r = Vector.create(np.dot(self.r, R))
+
     def copy(self) -> Trajectory:
         """
         Returns a copy of the trajectory.
