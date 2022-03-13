@@ -82,10 +82,10 @@ green LED coupled with the wheel using ColorMatching algorithm.
 
    template = cv2.imread(template_path)
    algorithm = TemplateMatching(template, threshold=0.5)
-   trackers.append( ObjectTracker('center', algorithm, ROI((80, 80))) )
+   trackers.append( ObjectTracker('Central Pivot', algorithm, ROI((80, 80))) )
 
    algorithm = ColorMatching((80,170,90), (190,255,190))
-   trackers.append( ObjectTracker('green led', algorithm, ROI((50, 50))) )
+   trackers.append( ObjectTracker('Green LED', algorithm, ROI((50, 50))) )
 
    scenario = TrackingScenario(trackers)
 
