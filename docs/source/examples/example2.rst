@@ -70,7 +70,7 @@ color spaces, by default BGR.
 .. code-block:: python
 
    algorithm = ColorMatching((0,0,0), (150,150,150))
-   trackers.append( ObjectTracker('color_matching', algorithm, ROI((50, 50))) )
+   trackers.append( ObjectTracker('Ant (ColorMatching)', algorithm, ROI((50, 50))) )
 
 In the case of FrameDifferencing, we specify the threshold in pixel
 intensity difference among two consecutive frames to be considered part of the
@@ -79,7 +79,7 @@ tracked object.
 .. code-block:: python
 
    algorithm = FrameDifferencing(frame_diff_threshold=5)
-   trackers.append( ObjectTracker('frame_diff', algorithm, ROI((50, 50))) )
+   trackers.append( ObjectTracker('Ant (FrameDifferencing)', algorithm, ROI((50, 50))) )
 
 BackgroundSubtraction algorithm requires a picture that contains only the
 background of the scene. However, if there is none available, it is possible
@@ -92,7 +92,7 @@ moving object.
 
    background = BackgroundEstimator.from_video(video_path, 20)
    algorithm = BackgroundSubtraction(background, background_threshold=5)
-   trackers.append( ObjectTracker('bkgnd_sub', algorithm, ROI((50, 50))) )
+   trackers.append( ObjectTracker('Ant (BackgroundSubtraction)', algorithm, ROI((50, 50))) )
 
 For the case of TemplateMatching algorithm, a template
 image containing a typical sample of the object being tracked must be
@@ -103,7 +103,7 @@ correlation between the template and the region of the frame is maximum.
 
    template = cv2.imread(template_file)
    algorithm = TemplateMatching(template, threshold=0.7)
-   trackers.append( ObjectTracker('temp_match', algorithm, ROI((50, 50))) )
+   trackers.append( ObjectTracker('Ant (TemplateMatching)', algorithm, ROI((50, 50))) )
 
 OpticalFlow algorithm computes a dense optical flow among the current frame and
 the i-th previous frame, specified by the parameter buffer_size. If the
@@ -113,7 +113,7 @@ of the moving object.
 .. code-block:: python
 
    algorithm = OpticalFlow(threshold=0.3, buffer_size=3)
-   trackers.append( ObjectTracker('optical_flow', algorithm, ROI((50, 50))) )
+   trackers.append( ObjectTracker('Ant (OpticalFlow)', algorithm, ROI((50, 50))) )
 
 .. _Results 2:
 
