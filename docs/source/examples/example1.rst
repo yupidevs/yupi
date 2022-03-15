@@ -48,13 +48,6 @@ Import all the dependencies:
       plot_velocity_hist
    )
 
-Fix the random generator seed to make results reproducible:
-
-.. code-block:: python
-
-   np.random.seed(0)
-
-
 .. _Definition of parameters 1:
 
 2. Definition of parameters
@@ -113,7 +106,7 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   lg = LangevinGenerator(tt, dim, N, dt, tau, sigma)
+   lg = LangevinGenerator(tt, dim, N, dt, tau, sigma, seed=0)
    trajs = lg.generate()
 
 
