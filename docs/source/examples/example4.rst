@@ -114,8 +114,8 @@ effect of gravity:
 
 .. code-block:: python
 
-   tl[0].rotate(- pi / 2)
-   tl[1].rotate(- pi / 2)
+   tl[0].rotate2d(- pi / 2)
+   tl[1].rotate2d(- pi / 2)
 
 
 Next, we update the coordinate system to place it at the initial position of

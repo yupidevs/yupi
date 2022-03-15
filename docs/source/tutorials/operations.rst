@@ -46,7 +46,7 @@ Rotation can be made using the :py:func:`~yupi.Trajectory.rotate` method:
 .. code-block:: python
 
     traj_2 = Trajectory(points=[[0,0], [1,0]])
-    traj_2.rotate(-np.pi / 2)   # traj_2 points: [[0,0], [0,1]]
+    traj_2.rotate2d(-np.pi / 2)   # traj_2 points: [[0,0], [0,1]]
 
 
 Indexing and slicing
