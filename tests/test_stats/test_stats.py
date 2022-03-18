@@ -75,7 +75,7 @@ def test_psd(traj1):
     psd_o = psd([traj1], lag=lag, omega=True)
     assert psd_o[0] == pytest.approx([8.5, 6.5])
     assert psd_o[1] == pytest.approx([0, 0])
-    assert psd_o[2] == pytest.approx([-1.57079633,  0.])
+    assert psd_o[2] == pytest.approx([-9.8696044,  0.])
 
 
 def test_checkers():
