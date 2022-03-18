@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from yupi import Trajectory
+from yupi import Trajectory, VelMethod
 from yupi.stats import *
 
 APPROX_REL_TOLERANCE = 1e-10
@@ -9,19 +9,19 @@ APPROX_REL_TOLERANCE = 1e-10
 @pytest.fixture
 def traj():
     points = [[0, 0], [1, 0], [1, 1], [2, 1]]
-    return Trajectory(points=points)
+    return Trajectory(points=points, vel_est={"method": VelMethod.FORWARD})
 
 
 @pytest.fixture
 def traj1():
     x = [0, 8, 5, 11]
-    return Trajectory(x, dt=2)
+    return Trajectory(x, dt=2, vel_est={"method": VelMethod.FORWARD})
 
 
 @pytest.fixture
 def traj2():
     x = [0, 8.5, 4.9, 10.5]
-    return Trajectory(x, dt=2)
+    return Trajectory(x, dt=2, vel_est={"method": VelMethod.FORWARD})
 
 
 def test_turning_angles(traj):
@@ -33,8 +33,9 @@ def test_turning_angles(traj):
 
 
 def test_speed_ensemble(traj1):
+    print(traj1.v)
     se = speed_ensemble([traj1, traj1])
-    assert se == pytest.approx([4, 1.5, 3, 4, 1.5, 3], APPROX_REL_TOLERANCE)
+    assert se == pytest.approx([4, 1.5, 3, 3, 4, 1.5, 3, 3], APPROX_REL_TOLERANCE)
 
 
 def test_msd(traj1, traj2):
@@ -49,23 +50,17 @@ def test_msd(traj1, traj2):
     assert msd_t[1] == pytest.approx([1.26166667, 1.4975])
 
 
-def test_vacf():
-    traj1 = Trajectory([0, 8, 5, 11])
-    traj2 = Trajectory([0, 8.5, 4.9, 10.5])
-
+def test_vacf(traj1, traj2):
     vacf_e = vacf([traj1, traj2], time_avg=False)
-    assert vacf_e[0] == pytest.approx([68.125, -27.3, 47.8])
-    assert vacf_e[1] == pytest.approx([4.125, 3.3, 0.2])
+    assert vacf_e[0] == pytest.approx([68.125, -27.3, 47.8, 47.8])
+    assert vacf_e[1] == pytest.approx([4.125, 3.3, 0.2, 0.2])
 
     vacf_t = vacf([traj1, traj2], time_avg=True, lag=2)
     assert vacf_t[0] == pytest.approx([-23.19, 47.8])
     assert vacf_t[1] == pytest.approx([2.19, 0.2])
 
 
-def test_kurtosis():
-    traj1 = Trajectory([0, 8, 5, 11])
-    traj2 = Trajectory([0, 8.5, 4.9, 10.5])
-
+def test_kurtosis(traj1, traj2):
     kurt_e = kurtosis([traj1, traj2], time_avg=False)
     assert kurt_e[0] == pytest.approx([0, 1, 1, 1])
 
@@ -75,8 +70,7 @@ def test_kurtosis():
     assert kurt_t[1] == pytest.approx([0, 0])
 
 
-def test_psd():
-    traj1 = Trajectory([0, 8, 5, 11])
+def test_psd(traj1):
     lag = 2
     psd_o = psd([traj1], lag=lag, omega=True)
     assert psd_o[0] == pytest.approx([69, 27])

@@ -26,6 +26,7 @@ def subsample(traj: Trajectory, step=1, new_traj_id: str = None):
         t=t,
         ang=ang,
         dt=step*traj.dt,
-        traj_id=new_traj_id
+        traj_id=new_traj_id,
+        vel_est=traj.vel_est,
     )
     return subsampled_traj
