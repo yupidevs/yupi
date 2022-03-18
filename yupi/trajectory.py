@@ -203,22 +203,11 @@ class Trajectory:
             raise ValueError("Velocity estimation method not specfied.")
 
         h = self.vel_est.get("h", 1)
-        if (
-            1 < len(self) < 2*h
-            and self.vel_est["method"] == vel_estimators.VelMethod.CENTERED
-        ):
-            logging.warning(
-                "Trajectory is too short to estimate velocity using centered "
-                f"method (with h={h}). Foward method will be used instead. To "
-                "specify another method for estimate the velocity use the 'vel_est'"
-                "parameter. (e.g., 'vel_est={\"method\": VelMethod.BACKWARD}')"
-            )
-            self.vel_est["method"] = vel_estimators.VelMethod.FORWARD
-
         if len(self) < 2:
             logging.warning(
                 "Trajectory must have at least 2 points to estimate velocity."
             )
+            self.__v = None
         elif vel_estimators.validate_traj(self, self.vel_est):
             self.recalculate_velocity()
         else:
