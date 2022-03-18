@@ -1,5 +1,7 @@
 import pytest
-from yupi import Trajectory
+from yupi import Trajectory, VelMethod, VelPadding
+
+APPROX_REL_TOLERANCE = 1e-10
 
 
 def test_creation_by_xyz():
@@ -68,6 +70,7 @@ def test_creation_with_time():
     with pytest.raises(ValueError):
         Trajectory(x=[1, 2], y=[2, 3], t=[0.4, 0.5], dt=0.1)
 
+
 def test_creation_with_ang():
     Trajectory(x=[1, 2], y=[2, 3], ang=[0, 0.1])
 
@@ -76,8 +79,54 @@ def test_creation_with_ang():
 
 
 def test_creation_general():
-    Trajectory(x=[1, 2], y=[2, 3], t=[0, 1], ang=[0, 0], traj_id='test')
-    Trajectory(x=[1, 2], y=[2, 3], dt=0.5, ang=[0, 1.2], traj_id='test')
-    Trajectory(points=[[1, 2], [2, 3]], dt=0.5, ang=[0, 1.2], traj_id='test')
-    Trajectory(dimensions=[[1, 2], [2, 3]], dt=0.5, t=[1, 1.5], t0=1,
-               traj_id='test')
+    Trajectory(x=[1, 2], y=[2, 3], t=[0, 1], ang=[0, 0], traj_id="test")
+    Trajectory(x=[1, 2], y=[2, 3], dt=0.5, ang=[0, 1.2], traj_id="test")
+    Trajectory(points=[[1, 2], [2, 3]], dt=0.5, ang=[0, 1.2], traj_id="test")
+    Trajectory(dimensions=[[1, 2], [2, 3]], dt=0.5, t=[1, 1.5], t0=1, traj_id="test")
+
+
+def test_velocity_estimation_methods():
+    x = [1, 2, 4, 8, 16]
+
+    Trajectory.global_vel_method(VelMethod.FORWARD)
+    traj = Trajectory(x=x)
+
+    assert traj.v == pytest.approx([1, 2, 4, 8, 8], rel=APPROX_REL_TOLERANCE)
+
+    Trajectory.global_vel_method(VelMethod.CENTERED)
+    traj.set_vel_method(VelMethod.BACKWARD)
+
+    assert traj.v == pytest.approx([1, 1, 2, 4, 8], rel=APPROX_REL_TOLERANCE)
+
+    traj = Trajectory(x=x)
+
+    assert traj.v == pytest.approx([3 / 2, 3 / 2, 3, 6, 6], rel=APPROX_REL_TOLERANCE)
+
+    traj = Trajectory(x=x, vel_est={"method": VelMethod.FORWARD, "h": 2})
+
+    assert traj.v == pytest.approx([3 / 2, 3, 6, 6, 6], rel=APPROX_REL_TOLERANCE)
+
+    traj = Trajectory(
+        x=x,
+        vel_est={
+            "method": VelMethod.BACKWARD,
+            "h": 2,
+            "padding": VelPadding.VALUE,
+            "padding_val": 0,
+        },
+    )
+
+    assert traj.v == pytest.approx([0, 0, 3 / 2, 3, 6], rel=APPROX_REL_TOLERANCE)
+
+    traj.set_vel_method(VelMethod.CENTERED, h=2)
+
+    assert traj.v == pytest.approx(
+        [15 / 4, 15 / 4, 15 / 4, 15 / 4, 15 / 4], rel=APPROX_REL_TOLERANCE
+    )
+
+    with pytest.raises(ValueError):
+        traj.set_vel_method(VelMethod.CENTERED, h=0)
+
+    with pytest.raises(ValueError):
+        traj.set_vel_method(VelMethod.CENTERED, h=8)
+

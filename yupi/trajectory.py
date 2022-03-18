@@ -74,6 +74,9 @@ class Trajectory:
     lazy : bool
         Defines if the velocity vector is not recalculated every time
         is asked.
+    vel_est : dict
+        Dictionary containing the parameters for the velocity estimation
+        method.
 
     Attributes
     ----------
@@ -199,15 +202,16 @@ class Trajectory:
         if "method" not in self.vel_est:
             raise ValueError("Velocity estimation method not specfied.")
 
+        h = self.vel_est.get("h", 1)
         if (
-            len(self) == 2
+            1 < len(self) < 2*h
             and self.vel_est["method"] == vel_estimators.VelMethod.CENTERED
         ):
             logging.warning(
                 "Trajectory is too short to estimate velocity using centered "
-                "method. Foward method will be used instead. To specify another "
-                "method for estimate the velocity use the parameter 'vel_est'. "
-                "(e.g., 'vel_est={\"method\": VelMethod.BACKWARD}')"
+                f"method (with h={h}). Foward method will be used instead. To "
+                "specify another method for estimate the velocity use the 'vel_est'"
+                "parameter. (e.g., 'vel_est={\"method\": VelMethod.BACKWARD}')"
             )
             self.vel_est["method"] = vel_estimators.VelMethod.FORWARD
 
@@ -215,8 +219,15 @@ class Trajectory:
             logging.warning(
                 "Trajectory must have at least 2 points to estimate velocity."
             )
-        else:
+        elif vel_estimators.validate_traj(self, self.vel_est):
             self.recalculate_velocity()
+        else:
+            self.__v = None
+            method = self.vel_est["method"].name
+            logging.warning(
+                f"Trajectory is too short to estimate velocity using {str(method)} "
+                f"method with h={h}."
+            )
 
         # Time parameters validation
         if t is not None and dt is not None:
@@ -278,6 +289,12 @@ class Trajectory:
         """
         if method not in vel_estimators.VelMethod:
             raise ValueError("Invalid method.")
+
+        if not vel_estimators.validate_traj(self, {"method": method, **kwargs}):
+            raise ValueError(
+                "Trajectory is too short to estimate velocity using "
+                f"{str(method.name)} method with h={kwargs.get('h', 1)}."
+            )
 
         self.vel_est = kwargs.copy()
         self.vel_est["method"] = method
@@ -421,9 +438,12 @@ class Trajectory:
     @property
     def v(self) -> Vector:
         """Vector : Velocity vector"""
-        if len(self) == 1:
+        if self.__v is None:
+            method = self.vel_est["method"].name
+            h = self.vel_est.get("h", 1)
             raise ValueError(
-                "Trajectory must have at least 2 points to estimate velocity."
+                f"Trajectory is too short to estimate velocity using {str(method)} "
+                f"method with h={h}."
             )
         if self.lazy:
             return self.__v

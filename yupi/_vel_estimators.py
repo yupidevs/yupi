@@ -29,12 +29,22 @@ def _validate_parameters(kwargs):
     padd = kwargs.get("padding", VelPadding.EXTEND)
     if h <= 0:
         raise ValueError("h must be positive")
+    if not isinstance(h, int):
+        raise ValueError("h must be an integer")
     if padd == VelPadding.VALUE and "padding_val" not in kwargs:
         raise ValueError("padding_value must be specified")
     if padd not in VelPadding:
         raise ValueError("padding must be one of Padding")
     kwargs["h"] = h
     kwargs["padding"] = padd
+
+
+def validate_traj(traj, vel_est):
+    l = len(traj)
+    h = vel_est.get("h", 1)
+    method = vel_est["method"]
+    min_len = l - h if method != VelMethod.CENTERED else l - 2 * h
+    return min_len >= 1
 
 
 def forward(traj, **kwargs) -> Vector:
