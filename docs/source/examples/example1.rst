@@ -125,7 +125,7 @@ Plot spacial trajectories
 
 .. code-block:: python
 
-   ax1 = plt.subplot(231)
+   plt.subplot(231)
    plot_2D(trajs[:5], legend=False, show=False)
 
 Plot velocity histogram
@@ -142,7 +142,7 @@ Plot turning angles
 
    theta = turning_angles_ensemble(trajs)
    ax3 = plt.subplot(233, projection='polar')
-   plot_angles_hist(theta, bins=60, show=False)
+   plot_angles_hist(theta, bins=60, ax=ax3, show=False)
 
 
 Plot Velocity autocorrelation function
@@ -151,7 +151,7 @@ Plot Velocity autocorrelation function
 
    lag_vacf = 50
    vacf, _ = vacf(trajs, time_avg=True, lag=lag_vacf)
-   ax6 = plt.subplot(234)
+   plt.subplot(234)
    plot_vacf(vacf, dt, lag_vacf, show=False)
 
 
@@ -161,17 +161,17 @@ Plot Mean Square Displacement
 
    lag_msd = 30
    msd, msd_std = msd(trajs, time_avg=True, lag=lag_msd)
-   ax4 = plt.subplot(235)
+   plt.subplot(235)
    plot_msd(msd, msd_std, dt, lag=lag_msd, show=False)
 
 Plot Kurtosis
 
 .. code-block:: python
 
-   kurtosis = kurtosis(trajs, time_avg=False, lag=30)
+   kurt, _ = kurtosis(trajs, time_avg=False, lag=30)
    kurt_ref = kurtosis_reference(trajs)
-   ax5 = plt.subplot(236)
-   plot_kurtosis(kurtosis, kurtosis_ref=kurt_ref, dt=dt, show=False)
+   plt.subplot(236)
+   plot_kurtosis(kurt, kurtosis_ref=kurt_ref, dt=dt, show=False)
 
 
 Generate plot

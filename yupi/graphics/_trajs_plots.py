@@ -161,7 +161,7 @@ def plot_3D(trajs: Union[List[Trajectory], Trajectory], line_style: str = LINE,
             colors = color
 
 
-    ax = plt.gca(projection='3d')
+    ax = plt.axes(projection='3d')
 
     if connected:
         lengths = list(map(len, trajs))
