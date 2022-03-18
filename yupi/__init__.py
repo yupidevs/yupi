@@ -24,4 +24,4 @@ __all__ = [
     'VelPadding'
 ]
 
-__version__ = '0.8.6'
+__version__ = '0.8.7'
