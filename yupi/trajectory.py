@@ -9,6 +9,7 @@ import numpy as np
 from yupi.vector import Vector
 from yupi.exceptions import LoadTrajectoryError
 from yupi.features import Features
+import yupi._vel_estimators as vel_est
 
 
 _threshold = 1e-12
@@ -118,6 +119,8 @@ class Trajectory():
         values delta.
     """
 
+    __vel_est = {"method": vel_est.VelMethod.EULER}
+
     def __init__(self, x: np.ndarray = None, y: np.ndarray = None,
                  z: np.ndarray = None, points: np.ndarray = None,
                  dimensions: np.ndarray = None, t: np.ndarray = None,
@@ -165,15 +168,16 @@ class Trajectory():
         self.ang = data[1]
         self.traj_id= traj_id
         self.lazy = lazy
+        self.__vel_est = Trajectory.__vel_est.copy()
 
         if self.__t is None:
             self.dt_mean = dt if dt is not None else 1.0
             self.dt_std = 0
-            self.__v: Vector = self.r.delta / self.dt
         else:
             self.dt_mean = np.mean(np.array(self.__t.delta))
             self.dt_std = np.std(np.array(self.__t.delta))
-            self.__v: Vector = (self.r.delta.T / self.__t.delta).T
+
+        self.recalculate_velocity()
 
         if t is not None and dt is not None:
             if abs(self.dt_mean - dt) > _threshold:
@@ -187,6 +191,29 @@ class Trajectory():
                                  "the same as the first value of 't'.")
 
         self.features = Features(self)
+
+    @staticmethod
+    def set_vel_method(method: vel_est.VelMethod, **kwargs):
+        """
+        Set the method to calculate the velocity.
+
+        Parameters
+        ----------
+        method : VelMethod
+            Method to calculate the velocity.
+        kwargs
+            Parameters for the method.
+
+        Raises
+        ------
+        ValueError
+            If the method is not valid.
+        """
+        if method not in vel_est.VelMethod:
+            raise ValueError("Invalid method.")
+
+        Trajectory.__vel_est["method"] = method
+        Trajectory.__vel_est.update(kwargs)
 
     @property
     def dt(self) -> float:
@@ -299,10 +326,11 @@ class Trajectory():
             Velocity vector.
         """
 
-        if self.uniformly_spaced:
-            self.__v: Vector = self.r.delta / self.dt
+        vel_method = self.__vel_est["method"]
+        if vel_method in vel_est.FUNCTIONS:
+            self.__v = vel_est.FUNCTIONS[vel_method](self, **self.__vel_est)
         else:
-            self.__v: Vector = (self.r.delta.T / self.__t.delta).T
+            raise ValueError("Invalid method.")
         return self.__v
 
     @property
