@@ -52,12 +52,12 @@ def test_msd(traj1, traj2):
 
 def test_vacf(traj1, traj2):
     vacf_e = vacf([traj1, traj2], time_avg=False)
-    assert vacf_e[0] == pytest.approx([68.125, -27.3, 47.8, 47.8])
-    assert vacf_e[1] == pytest.approx([4.125, 3.3, 0.2, 0.2])
+    assert vacf_e[0] == pytest.approx([17.03125, -6.825, 11.95, 11.95])
+    assert vacf_e[1] == pytest.approx([1.03125, 0.825, 0.05, 0.05])
 
     vacf_t = vacf([traj1, traj2], time_avg=True, lag=2)
-    assert vacf_t[0] == pytest.approx([-23.19, 47.8])
-    assert vacf_t[1] == pytest.approx([2.19, 0.2])
+    assert vacf_t[0] == pytest.approx([-1.05833333, 3.59])
+    assert vacf_t[1] == pytest.approx([0.55833333, 0.16])
 
 
 def test_kurtosis(traj1, traj2):
@@ -73,9 +73,9 @@ def test_kurtosis(traj1, traj2):
 def test_psd(traj1):
     lag = 2
     psd_o = psd([traj1], lag=lag, omega=True)
-    assert psd_o[0] == pytest.approx([69, 27])
+    assert psd_o[0] == pytest.approx([8.5, 6.5])
     assert psd_o[1] == pytest.approx([0, 0])
-    assert psd_o[2] == pytest.approx([-3.14159265, 0])
+    assert psd_o[2] == pytest.approx([-1.57079633,  0.])
 
 
 def test_checkers():
