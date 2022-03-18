@@ -1,7 +1,7 @@
 import numpy as np
 from pytest import approx, fixture
 import pytest
-from yupi import Trajectory
+from yupi import Trajectory, VelMethod
 
 APPROX_REL_TOLERANCE = 1e-12
 
@@ -47,6 +47,7 @@ def test_copy(traj):
     assert traj.t == approx(copy_traj.t, APPROX_REL_TOLERANCE)
     assert traj.v == approx(copy_traj.v, APPROX_REL_TOLERANCE)
     assert traj.ang == approx(copy_traj.ang, APPROX_REL_TOLERANCE)
+    assert traj.vel_est == copy_traj.vel_est
 
 
 def test_iteration(points, angles, traj):

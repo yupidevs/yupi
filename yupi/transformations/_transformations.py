@@ -73,6 +73,7 @@ def add_moving_FoR(traj: Trajectory,
         y=y_al,
         ang=traj.ang,
         t=traj.t,
-        traj_id=new_traj_id
+        traj_id=new_traj_id,
+        vel_est=traj.vel_est,
     )
     return moved_traj

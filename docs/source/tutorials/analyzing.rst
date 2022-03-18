@@ -11,7 +11,7 @@ detailed explanation of the parameters.)
 .. code-block:: python
 
     from yupi.generators import LangevinGenerator
-    lg = LangevinGenerator(500, 2, 500, 0.5, 2,  0.1)
+    lg = LangevinGenerator(500, 2, 500, 0.5, 2, 0.1, seed=0)
     trajs = lg.generate()
 
 
@@ -45,7 +45,7 @@ Plotting in three dimensions can be achieved in a similar way. Let us generate 3
 .. code-block:: python
 
     from yupi.generators import LangevinGenerator
-    lg = LangevinGenerator(500, 3, 5, 0.5, 2,  0.1)
+    lg = LangevinGenerator(500, 3, 5, 0.5, 2, 0.1, seed=0)
     trajs3D = lg.generate()
 
 
@@ -128,8 +128,8 @@ a linear function of time. To estimate the MSD of a list of
 Kurtosis
 ========
 
-Another useful quantity is the kurtosis, $\kappa$, a measure of the disparity of
-spatial scales of a dispersal process and also an intuitive means to understand
+Another useful quantity is the kurtosis, a measure of the disparity of spatial
+scales of a dispersal process and also an intuitive means to understand
 normality. It can be estimated using:
 
 .. code-block:: python
@@ -138,7 +138,7 @@ normality. It can be estimated using:
     from yupi.graphics import plot_kurtosis
 
     ref = yupi.stats.kurtosis_reference(trajs)
-    kurtosis = yupi.stats.kurtosis(trajs, time_avg=False, lag=30)
+    kurtosis, _ = yupi.stats.kurtosis(trajs, time_avg=False, lag=30)
     yupi.graphics.plot_kurtosis(kurtosis, kurtosis_ref=ref, dt=dt)
   
 
@@ -181,8 +181,8 @@ enables the characterization of the motion in terms of the frequency components.
     from yupi.stats import psd
     from yupi.graphics import plot_psd
 
-    psd_mean, psd_std, omega = psd(trajs, lag=150, omega=True)
-    plot_psd(psd_mean, omega, psd_std)
+    psd_mean, psd_std, frec = psd(trajs, lag=150)
+    plot_psd(psd_mean, frec, psd_std)
 
 .. figure:: /images/tutorial009.png
    :alt: PSD IMAGE
