@@ -304,29 +304,36 @@ def plot_vacf(
         plt.show()
 
 
-def plot_psd(psd_mean, omega, psd_std=None, show=True, **kwargs):
+def plot_psd(psd_mean, frec, psd_std=None, omega=True, show=True, **kwargs):
     """Plot the Power Spectral Density.
 
     Parameters
     ----------
     psd_mean : np.ndarray
         Power spectral density array.
-    omega : np.ndarray
-        Array of angular frequencies.
+    frec : np.ndarray
+        Array of frequencies.
     psd_std : np.ndarray, optional
         Standard deviation of the power spectrum.
         By default None.
+    omega : bool, optional
+        If True, the `freq` is instended to be in rad/s, otherwise
+        in Hz. By default True.
     show : bool, optional
         If True, the plot is shown. By default True.
     """
 
-    plt.plot(omega, psd_mean, label="psd", **kwargs)
+    plt.plot(frec, psd_mean, label="psd", **kwargs)
     if psd_std is not None:
         plt.fill_between(
-            omega, psd_mean - psd_std, psd_mean + psd_std, alpha=0.3, label="psd_std"
+            frec, psd_mean - psd_std, psd_mean + psd_std, alpha=0.3, label="psd_std"
         )
     plt.xscale("log")
     plt.yscale("log")
+    plt.grid()
+    x_unit = "rad/s" if omega else "Hz"
+    plt.xlabel(f"frequency [{x_unit}]")
+    plt.ylabel("psd")
     plt.legend()
     if show:
         plt.show()
