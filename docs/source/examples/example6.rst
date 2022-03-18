@@ -37,13 +37,6 @@ Import all the dependencies:
    from yupi.graphics import plot_hists
    from yupi.generators import DiffDiffGenerator
 
-Fix the random generator seed to make results reproducible:
-
-.. code-block:: python
-
-   np.random.seed(0)
-
-
 .. _Definition of parameters 6:
 
 2. Definition of parameters
@@ -69,7 +62,7 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   dd = DiffDiffGenerator(T, N=N, dt=dt)
+   dd = DiffDiffGenerator(T, N=N, dt=dt, seed=0)
    trajs = dd.generate()
 
 

@@ -135,7 +135,9 @@ def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
     """
 
     if ax is None:
-        ax = plt.gca(projection="polar")
+        ax = plt.axes(projection="polar")
+    elif ax.name != "polar":
+        raise ValueError("The axes must be polar")
     default_kwargs = {"color": LIGHT_BLUE, "ec": (0, 0, 0, 0.6), "density": True}
     default_kwargs.update(kwargs)
     plt.hist(ang, bins, **default_kwargs)

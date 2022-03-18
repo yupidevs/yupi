@@ -362,7 +362,7 @@ class Trajectory():
         y = rad * np.sin(ang)
         self.r = Vector.create([x,y]).T
 
-    def rotate(self, angle: float):
+    def rotate2d(self, angle: float):
         """
         Rotates the trajectory around the center coordinates [0,0]
 
@@ -373,7 +373,7 @@ class Trajectory():
         """
         self.add_polar_offset(0, angle)
 
-    def rotate3d(self, vector: Union[list, np.ndarray], angle: float):
+    def rotate3d(self, angle: float, vector: Union[list, np.ndarray]):
         """
         Rotates the trajectory around a given vector.
 

@@ -67,7 +67,7 @@ def test_rotation(simple_traj):
 
     # [0, 0] -> [0,       0]
     # [1, 1] -> [0, sqrt(2)]
-    simple_traj.rotate(ang)
+    simple_traj.rotate2d(ang)
 
     assert simple_traj.r[0] == approx([0,0], APPROX_REL_TOLERANCE)
     assert simple_traj.r[1] == approx([0,np.sqrt(2)], APPROX_REL_TOLERANCE)
@@ -76,12 +76,12 @@ def test_rotation(simple_traj):
 def test_rotation_3d():
     traj = Trajectory(x=[0,1], y=[0,0], z=[0,0])
 
-    traj.rotate3d([0, 0, 3], -np.pi / 2)
+    traj.rotate3d(-np.pi / 2, [0, 0, 3])
 
     assert traj.r[0] == approx([0, 0, 0], APPROX_REL_TOLERANCE)
     assert traj.r[1] == approx([0, 1, 0], APPROX_REL_TOLERANCE)
 
-    traj.rotate3d([1, 0, 0], np.pi)
+    traj.rotate3d(np.pi, [1, 0, 0])
 
     assert traj.r[1] == approx([0, -1, 0], APPROX_REL_TOLERANCE)
 
