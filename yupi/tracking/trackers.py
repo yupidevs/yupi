@@ -641,11 +641,12 @@ class TrackingScenario():
         cv2.imshow('yupi processing window', frame)
         # Return frame
 
-    def _create_ui(self, img, t_name, current_tracker, total_trackers):
+    def _create_ui(self, img, t_name, current_tracker, total_trackers, roi):
         imgc = img.copy() 
+        imgc = _resize_frame(imgc, roi.scale)
         shape = img.shape
-        h = shape[0]
-        w = shape[1]
+        h = shape[0] * roi.scale
+        w = shape[1] * roi.scale
         h_pad = 0.2
         w_pad = 0.15
 
@@ -714,7 +715,7 @@ class TrackingScenario():
         for i, otrack in enumerate(self.object_trackers):
             if otrack.roi.init_mode == 'manual':
                 tracker_name = otrack.name
-                ui = self._create_ui(self.prev_frame, tracker_name, i, len(self.object_trackers))
+                ui = self._create_ui(self.prev_frame, tracker_name, i, len(self.object_trackers), otrack.roi)
                 cv2.imshow(f'Initialization of trackers: Press any key to start with tracker: {tracker_name.upper()}', ui)
                 cv2.waitKey(-1)
                 cv2.destroyAllWindows()
