@@ -1,9 +1,10 @@
 import numpy as np
-from pytest import approx, fixture
 import pytest
-from yupi import Trajectory, VelMethod
+from pytest import approx, fixture
+from yupi import Trajectory, WindowType
 
 APPROX_REL_TOLERANCE = 1e-12
+
 
 @fixture
 def points():
@@ -32,7 +33,7 @@ def timed_traj(points, angles, time):
 
 @fixture
 def simple_traj():
-    return Trajectory(x=[0,1], y=[0,1])
+    return Trajectory(x=[0, 1], y=[0, 1], vel_est={"window_type": WindowType.FORWARD})
 
 
 def test_length(points, traj):
@@ -59,8 +60,9 @@ def test_iteration(points, angles, traj):
         t = time[i]
 
         assert point == approx(tp.r, APPROX_REL_TOLERANCE)  # Position
-        assert t == approx(tp.t, APPROX_REL_TOLERANCE)      # Time
+        assert t == approx(tp.t, APPROX_REL_TOLERANCE)  # Time
         assert ang == approx(tp.ang, APPROX_REL_TOLERANCE)  # Angle
+
 
 def test_rotation(simple_traj):
     # 45 degrees
@@ -70,12 +72,14 @@ def test_rotation(simple_traj):
     # [1, 1] -> [0, sqrt(2)]
     simple_traj.rotate2d(ang)
 
-    assert simple_traj.r[0] == approx([0,0], APPROX_REL_TOLERANCE)
-    assert simple_traj.r[1] == approx([0,np.sqrt(2)], APPROX_REL_TOLERANCE)
+    assert simple_traj.r[0] == approx([0, 0], APPROX_REL_TOLERANCE)
+    assert simple_traj.r[1] == approx([0, np.sqrt(2)], APPROX_REL_TOLERANCE)
 
 
 def test_rotation_3d():
-    traj = Trajectory(x=[0,1], y=[0,0], z=[0,0])
+    traj = Trajectory(
+        x=[0, 1], y=[0, 0], z=[0, 0], vel_est={"window_type": WindowType.FORWARD}
+    )
 
     traj.rotate3d(-np.pi / 2, [0, 0, 3])
 
@@ -114,7 +118,7 @@ def test_traj_addition(points, traj):
 
 def test_wrong_addition(traj):
     with pytest.raises(TypeError):
-        traj += 'wrong'
+        traj += "wrong"
 
 
 def test_constant_substraction(points, traj):
@@ -144,7 +148,7 @@ def test_traj_substraction(points, traj):
 
 def test_wrong_substraction(traj):
     with pytest.raises(TypeError):
-        traj -= 'wrong'
+        traj -= "wrong"
 
 
 def test_constant_multiplication(points, traj):
@@ -157,7 +161,7 @@ def test_constant_multiplication(points, traj):
 
 def test_wrong_multiplication(traj):
     with pytest.raises(TypeError):
-        traj *= 'wrong'
+        traj *= "wrong"
     with pytest.raises(TypeError):
         traj *= [1, 2]
 
@@ -205,5 +209,3 @@ def test_slicing(traj, timed_traj):
     # Test dt
     assert slice_5.dt == approx(traj.dt * 2, APPROX_REL_TOLERANCE)
     assert slice_6.dt == approx(traj.dt * 2, APPROX_REL_TOLERANCE)
-
-    

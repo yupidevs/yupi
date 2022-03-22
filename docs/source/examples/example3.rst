@@ -167,7 +167,7 @@ The temporal evolution of the efficiency can be plotted by:
 .. code-block:: python
 
    import matplotlib.pyplot as plt
-   plt.plot(wheel.t[1:], eff)
+   plt.plot(wheel.t, eff)
    plt.xlabel('time [s]')
    plt.ylabel('efficiency')
    plt.show()

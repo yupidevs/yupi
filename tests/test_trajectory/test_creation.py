@@ -1,5 +1,5 @@
 import pytest
-from yupi import Trajectory, VelMethod, VelPadding
+from yupi import Trajectory, VelocityMethod, WindowType
 
 APPROX_REL_TOLERANCE = 1e-10
 
@@ -88,13 +88,13 @@ def test_creation_general():
 def test_velocity_estimation_methods():
     x = [1, 2, 4, 8, 16]
 
-    Trajectory.global_vel_method(VelMethod.FORWARD)
+    Trajectory.global_vel_method(VelocityMethod.LINEAR_DIFF, WindowType.FORWARD)
     traj = Trajectory(x=x)
 
     assert traj.v == pytest.approx([1, 2, 4, 8, 8], rel=APPROX_REL_TOLERANCE)
 
-    Trajectory.global_vel_method(VelMethod.CENTERED)
-    traj.set_vel_method(VelMethod.BACKWARD)
+    Trajectory.global_vel_method(VelocityMethod.LINEAR_DIFF)
+    traj.set_vel_method(VelocityMethod.LINEAR_DIFF, WindowType.BACKWARD)
 
     assert traj.v == pytest.approx([1, 1, 2, 4, 8], rel=APPROX_REL_TOLERANCE)
 
@@ -102,31 +102,19 @@ def test_velocity_estimation_methods():
 
     assert traj.v == pytest.approx([3 / 2, 3 / 2, 3, 6, 6], rel=APPROX_REL_TOLERANCE)
 
-    traj = Trajectory(x=x, vel_est={"method": VelMethod.FORWARD, "h": 2})
+    vel_est = {
+        "method": VelocityMethod.FORNBERG_DIFF,
+        "window_type": WindowType.CENTRAL,
+        "accuracy": 2,
+    }
 
-    assert traj.v == pytest.approx([3 / 2, 3, 6, 6, 6], rel=APPROX_REL_TOLERANCE)
+    traj = Trajectory(x=x, vel_est=vel_est)
 
-    traj = Trajectory(
-        x=x,
-        vel_est={
-            "method": VelMethod.BACKWARD,
-            "h": 2,
-            "padding": VelPadding.VALUE,
-            "padding_val": 0,
-        },
-    )
-
-    assert traj.v == pytest.approx([0, 0, 3 / 2, 3, 6], rel=APPROX_REL_TOLERANCE)
-
-    traj.set_vel_method(VelMethod.CENTERED, h=2)
-
-    assert traj.v == pytest.approx(
-        [15 / 4, 15 / 4, 15 / 4, 15 / 4, 15 / 4], rel=APPROX_REL_TOLERANCE
-    )
+    vel_est["accuracy"] = 3
 
     with pytest.raises(ValueError):
-        traj.set_vel_method(VelMethod.CENTERED, h=0)
+        traj.set_vel_method(**vel_est)
 
-    with pytest.raises(ValueError):
-        traj.set_vel_method(VelMethod.CENTERED, h=8)
+    vel_est["accuracy"] = 2
 
+    traj = Trajectory(x=x, y=[i**2 for i in x], vel_est=vel_est)
