@@ -124,7 +124,10 @@ class Trajectory:
         values delta.
     """
 
-    __vel_est = {"method": vel_estimators.VelMethod.CENTERED}
+    __vel_est = {
+        "method": vel_estimators.VelocityMethod.LINEAR_DIFF,
+        "window_type": vel_estimators.WindowType.CENTRAL,
+    }
 
     def __init__(
         self,
@@ -197,26 +200,11 @@ class Trajectory:
             self.dt_std = np.std(np.array(self.__t.delta))
 
         # Velocity estimation
-        self.vel_est = Trajectory.__vel_est.copy() if vel_est is None else vel_est
+        self.vel_est = Trajectory.__vel_est.copy()
+        if vel_est is not None:
+            self.vel_est.update(vel_est)
 
-        if "method" not in self.vel_est:
-            raise ValueError("Velocity estimation method not specfied.")
-
-        h = self.vel_est.get("h", 1)
-        if len(self) < 2:
-            logging.warning(
-                "Trajectory must have at least 2 points to estimate velocity."
-            )
-            self.__v = None
-        elif vel_estimators.validate_traj(self, self.vel_est):
-            self.recalculate_velocity()
-        else:
-            self.__v = None
-            method = self.vel_est["method"].name
-            logging.warning(
-                f"Trajectory is too short to estimate velocity using {str(method)} "
-                f"method with h={h}."
-            )
+        self.recalculate_velocity()
 
         # Time parameters validation
         if t is not None and dt is not None:
@@ -237,57 +225,58 @@ class Trajectory:
 
         self.features = Features(self)
 
-    @staticmethod
-    def global_vel_method(method: vel_estimators.VelMethod, **kwargs):
+    def set_vel_method(
+        self,
+        method: vel_estimators.VelocityMethod,
+        window_type: vel_estimators.WindowType = vel_estimators.WindowType.CENTRAL,
+        accuracy: int = 1,
+    ):
         """
         Set the method to calculate the velocity.
 
         Parameters
         ----------
-        method : VelMethod
+        method : VelocityMethod
             Method to calculate the velocity.
-        kwargs
-            Parameters for the method.
-
-        Raises
-        ------
-        ValueError
-            If the method is not valid.
+        window_type : WindowType
+            Type of window to use to calculate the velocity. By default,
+            the central window is used.
+        accuracy : int
+            Accuracy of the velocity estimation (only valid for
+            FORNBERG_DIFF method). By default, the accuracy is 1.
         """
-        if method not in vel_estimators.VelMethod:
-            raise ValueError("Invalid method.")
-
-        Trajectory.__vel_est["method"] = method
-        Trajectory.__vel_est.update(kwargs)
-
-    def set_vel_method(self, method: vel_estimators.VelMethod, **kwargs):
-        """
-        Set the method to calculate the velocity.
-
-        Parameters
-        ----------
-        method : VelMethod
-            Method to calculate the velocity.
-        kwargs
-            Parameters for the method.
-
-        Raises
-        ------
-        ValueError
-            If the method is not valid.
-        """
-        if method not in vel_estimators.VelMethod:
-            raise ValueError("Invalid method.")
-
-        if not vel_estimators.validate_traj(self, {"method": method, **kwargs}):
-            raise ValueError(
-                "Trajectory is too short to estimate velocity using "
-                f"{str(method.name)} method with h={kwargs.get('h', 1)}."
-            )
-
-        self.vel_est = kwargs.copy()
-        self.vel_est["method"] = method
+        self.vel_est = {
+            "method": method,
+            "window_type": window_type,
+            "accuracy": accuracy,
+        }
         self.recalculate_velocity()
+
+    @staticmethod
+    def global_vel_method(
+        method: vel_estimators.VelocityMethod,
+        window_type: vel_estimators.WindowType = vel_estimators.WindowType.CENTRAL,
+        accuracy: int = 1,
+    ):
+        """
+        Set the method to calculate the velocity.
+
+        Parameters
+        ----------
+        method : VelocityMethod
+            Method to calculate the velocity.
+        window_type : WindowType
+            Type of window to use to calculate the velocity. By default,
+            the central window is used.
+        accuracy : int
+            Accuracy of the velocity estimation (only valid for
+            FORNBERG method). By default, the accuracy is 1.
+        """
+        Trajectory.__vel_est = {
+            "method": method,
+            "window_type": window_type,
+            "accuracy": accuracy,
+        }
 
     @property
     def dt(self) -> float:
@@ -405,34 +394,28 @@ class Trajectory:
         -------
         Vector
             Velocity vector.
-
-        Raises
-        ------
-        ValueError
-            If the trajectory has less than 2 points.
         """
 
-        if len(self) < 2:
-            raise ValueError(
-                "Trajectory must have at least 2 points to estimate velocity."
-            )
-
-        vel_method = self.vel_est["method"]
-        if vel_method in vel_estimators.FUNCTIONS:
-            self.__v = vel_estimators.FUNCTIONS[vel_method](self, **self.vel_est)
-        else:
-            raise NotImplementedError("Not implemented method.")
+        self.__v = vel_estimators.estimate_velocity(self, **self.vel_est)
         return self.__v
 
     @property
     def v(self) -> Vector:
         """Vector : Velocity vector"""
         if self.__v is None:
-            method = self.vel_est["method"].name
-            h = self.vel_est.get("h", 1)
+            method = self.vel_est["method"]
+            win_type = self.vel_est.get(
+                "window_type", vel_estimators.WindowType.CENTRAL
+            )
+            acc = self.vel_est.get("accuracy", 1)
+            acc_text = (
+                f" and accuracy {acc}"
+                if method == vel_estimators.VelocityMethod.FORNBERG_DIFF
+                else ""
+            )
             raise ValueError(
-                f"Trajectory is too short to estimate velocity using {str(method)} "
-                f"method with h={h}."
+                f"Trajectory velocity can not be estimated using {method.name} "
+                f"method with window type {win_type.name}{acc_text}."
             )
         if self.lazy:
             return self.__v

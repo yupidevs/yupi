@@ -7,7 +7,7 @@ import logging
 from yupi.features import Features
 from yupi.trajectory import Trajectory, TrajectoryPoint
 from yupi.vector import Vector
-from yupi._vel_estimators import VelMethod, VelPadding
+from yupi._vel_estimators import VelocityMethod, WindowType
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,8 +20,8 @@ __all__ = [
     'TrajectoryPoint',
     'Features',
     'Vector',
-    'VelMethod',
-    'VelPadding'
+    'VelocityMethod',
+    'WindowType',
 ]
 
 __version__ = '0.8.7'

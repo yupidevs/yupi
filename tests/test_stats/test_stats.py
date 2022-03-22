@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from yupi import Trajectory, VelMethod
+from yupi import Trajectory, VelocityMethod, WindowType
 from yupi.stats import *
 
 APPROX_REL_TOLERANCE = 1e-10
@@ -9,19 +9,39 @@ APPROX_REL_TOLERANCE = 1e-10
 @pytest.fixture
 def traj():
     points = [[0, 0], [1, 0], [1, 1], [2, 1]]
-    return Trajectory(points=points, vel_est={"method": VelMethod.FORWARD})
+    return Trajectory(
+        points=points,
+        vel_est={
+            "method": VelocityMethod.LINEAR_DIFF,
+            "window_type": WindowType.FORWARD,
+        },
+    )
 
 
 @pytest.fixture
 def traj1():
     x = [0, 8, 5, 11]
-    return Trajectory(x, dt=2, vel_est={"method": VelMethod.FORWARD})
+    return Trajectory(
+        x=x,
+        dt=2,
+        vel_est={
+            "method": VelocityMethod.LINEAR_DIFF,
+            "window_type": WindowType.FORWARD,
+        },
+    )
 
 
 @pytest.fixture
 def traj2():
     x = [0, 8.5, 4.9, 10.5]
-    return Trajectory(x, dt=2, vel_est={"method": VelMethod.FORWARD})
+    return Trajectory(
+        x=x,
+        dt=2,
+        vel_est={
+            "method": VelocityMethod.LINEAR_DIFF,
+            "window_type": WindowType.FORWARD,
+        },
+    )
 
 
 def test_turning_angles(traj):
@@ -75,7 +95,7 @@ def test_psd(traj1):
     psd_o = psd([traj1], lag=lag, omega=True)
     assert psd_o[0] == pytest.approx([8.5, 6.5])
     assert psd_o[1] == pytest.approx([0, 0])
-    assert psd_o[2] == pytest.approx([-9.8696044,  0.])
+    assert psd_o[2] == pytest.approx([-9.8696044, 0.0])
 
 
 def test_checkers():
