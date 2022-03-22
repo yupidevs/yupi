@@ -549,7 +549,7 @@ class Trajectory:
             points=self.r,
             t=self.__t,
             ang=self.ang,
-            dt=self.dt,
+            dt=self.__dt,
             lazy=self.lazy,
             vel_est=self.vel_est,
         )
