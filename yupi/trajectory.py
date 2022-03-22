@@ -718,12 +718,22 @@ class Trajectory:
 
         ang = None if self.ang is None else self.ang.T
 
+        default_vel_est_method = vel_estimators.VelocityMethod.LINEAR_DIFF
+        default_vel_est_window = vel_estimators.WindowType.CENTRAL
+        default_vel_est_accuracy = 1
+        vel_est = {
+            "method": self.vel_est.get("method", default_vel_est_method).value,
+            "window_type": self.vel_est.get("window", default_vel_est_window).value,
+            "accuracy": self.vel_est.get("accuracy", default_vel_est_accuracy),
+        }
+
         json_dict = {
             "id": self.traj_id,
             "dt": self.__dt,
             "r": convert_to_list(self.r.T),
             "ang": convert_to_list(ang),
             "t": convert_to_list(self.__t),
+            "vel_est": vel_est,
         }
         with open(str(path), "w") as traj_file:
             json.dump(json_dict, traj_file)
@@ -733,6 +743,16 @@ class Trajectory:
             writer = csv.writer(traj_file, delimiter=",")
             ang_shape = 0 if self.ang is None else self.ang.shape[1]
             writer.writerow([self.traj_id, self.__dt, self.dim, ang_shape])
+
+            default_vel_est_method = vel_estimators.VelocityMethod.LINEAR_DIFF
+            default_vel_est_window = vel_estimators.WindowType.CENTRAL
+            default_vel_est_accuracy = 1
+            method = self.vel_est.get("method", default_vel_est_method).value
+            window = self.vel_est.get("window", default_vel_est_window).value
+            accuracy = self.vel_est.get("accuracy", default_vel_est_accuracy)
+            print(method, window, accuracy)
+            writer.writerow([method, window, accuracy])
+
             for tp in self:
                 row = np.hstack(np.array([tp.r, tp.ang, tp.t], dtype=object))
                 writer.writerow(row)
@@ -841,8 +861,18 @@ class Trajectory:
                 ang = Vector.create(ang_values).T
 
             dims = list(data["r"].values())
+            vel_est = data.get("vel_est", None)
+            if vel_est is None:
+                vel_est = Trajectory.__vel_est
+            else:
+                vel_est["method"] = vel_estimators.VelocityMethod(vel_est["method"])
+                vel_est["window_type"] = vel_estimators.WindowType(
+                    vel_est["window_type"]
+                )
 
-            return Trajectory(dimensions=dims, t=t, ang=ang, dt=dt, traj_id=traj_id)
+            return Trajectory(
+                dimensions=dims, t=t, ang=ang, dt=dt, traj_id=traj_id, vel_est=vel_est
+            )
 
     @staticmethod
     def _load_csv(path: str):
@@ -864,6 +894,14 @@ class Trajectory:
                     ang_dim = int(row[3])
                     r = [[] for _ in range(dim)]
                     ang = [[] for _ in range(ang_dim)]
+                    continue
+
+                if i == 1:
+                    vel_est = {
+                        "method": vel_estimators.VelocityMethod(int(row[0])),
+                        "window_type": vel_estimators.WindowType(int(row[1])),
+                        "accuracy": int(row[2]),
+                    }
                     continue
 
                 for j in range(dim):
