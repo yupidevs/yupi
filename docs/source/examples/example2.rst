@@ -3,22 +3,21 @@
 Example 2
 =========
 
-A comparison of different tracking methods over the same input video
-where the camera is fixed at a constant distance from the plane
-where an ant moves. Code and multimedia resources are available
-`here <https://github.com/yupidevs/yupi_examples/>`_.
+A model framework of a diffusion process with fluctuating diffusivity 
+is presented. A Brownian but non-Gaussian diffusion by means of a coupled 
+set of stochastic differential equations is predicted. Position is 
+described by an overdamped Langevin equation and the diffusion coefficient 
+as the square of an Ornstein-Uhlenbeck process.
 
-In the work of Frayle-Pérez et. al [1], the authors studied the
-capabilities of different image processing algorithms that
-can be used for image segmentation and tracking of the motion
-of insects under controlled environments. In this section, we
-illustrate a comparison of a subset of these algorithms and
-evaluate them using one of the videos from the original paper.
+The example is focused in computing the probability density function for 
+displacements at different time instants for the case of a one-dimensional 
+process, as shown analitically by Chechkin et al. in [1] and discussed in [2].
 
 The example is structured as follows:
   | :ref:`Setup dependencies 2`
-  | :ref:`Creation of the tracking objects 2`
-  | :ref:`Results 2`
+  | :ref:`Definition of parameters 2`
+  | :ref:`Generating trajectories 2`
+  | :ref:`Data analysis and plots 2`
   | :ref:`References 2`
 
 .. note::
@@ -33,133 +32,83 @@ Import all the dependencies:
 
 .. code-block:: python
 
-   import cv2
-   from yupi.tracking import ROI, ObjectTracker, TrackingScenario
-   from yupi.tracking import ColorMatching, FrameDifferencing
-   from yupi.tracking import BackgroundEstimator, BackgroundSubtraction
-   from yupi.tracking import TemplateMatching, OpticalFlow
-   from yupi.graphics import plot_2D
+   import numpy as np
+   from yupi.stats import collect
+   from yupi.graphics import plot_hists
+   from yupi.generators import DiffDiffGenerator
 
-Set up the path to multimedia resources:
+.. _Definition of parameters 2:
 
-.. code-block:: python
+2. Definition of parameters
+---------------------------
 
-   video_path = 'resources/videos/Frayle2017.mp4'
-   template_file = 'resources/templates/ant_small.png'
-
-
-.. _Creation of the tracking objects 2:
-
-2. Creation of the tracking objects
------------------------------------
-
-First, we create an empty list to add all the trackers. Each tracker is
-associated with a tracking algorithm so we can evaluate the differences in
-the tracking process performed by each algorithm.
-
-.. code-block:: python
-
-   trackers = []
-
-The first algorithm we will add is ColorMatching. It only requires the user to
-specify the range of colors that will considered by the algorithm as the ones
-belonging to the object. The range of colors can be indicated in different
-color spaces, by default BGR.
+Simulation parameters:
 
 
 .. code-block:: python
 
-   algorithm = ColorMatching((0,0,0), (150,150,150))
-   trackers.append( ObjectTracker('Ant (ColorMatching)', algorithm, ROI((50, 50))) )
+   T = 1000   # Total time of the simulation
+   N = 5000   # Number of trajectories
+   dt = .1    # Time step
 
-In the case of FrameDifferencing, we specify the threshold in pixel
-intensity difference among two consecutive frames to be considered part of the
-tracked object.
 
-.. code-block:: python
+.. _Generating trajectories 2:
 
-   algorithm = FrameDifferencing(frame_diff_threshold=5)
-   trackers.append( ObjectTracker('Ant (FrameDifferencing)', algorithm, ROI((50, 50))) )
+3. Generating trajectories
+--------------------------
 
-BackgroundSubtraction algorithm requires a picture that contains only the
-background of the scene. However, if there is none available, it is possible
-to estimate it from a video using a BackgroundEstimator. Then, we specify the
-background_threshold that indicates the the minimum difference in pixel
-intensity among a frame and the background to be considered part of the
-moving object.
+Once we have all the parameters required,
+we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   background = BackgroundEstimator.from_video(video_path, 20)
-   algorithm = BackgroundSubtraction(background, background_threshold=5)
-   trackers.append( ObjectTracker('Ant (BackgroundSubtraction)', algorithm, ROI((50, 50))) )
+   dd = DiffDiffGenerator(T, N=N, dt=dt, seed=0)
+   trajs = dd.generate()
 
-For the case of TemplateMatching algorithm, a template
-image containing a typical sample of the object being tracked must be
-provided. Then, it will compute the point in a frame in which the
-correlation between the template and the region of the frame is maximum.
 
-.. code-block:: python
+.. _Data analysis and plots 2:
 
-   template = cv2.imread(template_file)
-   algorithm = TemplateMatching(template, threshold=0.7)
-   trackers.append( ObjectTracker('Ant (TemplateMatching)', algorithm, ROI((50, 50))) )
+4. Data analysis and plots
+--------------------------
 
-OpticalFlow algorithm computes a dense optical flow among the current frame and
-the i-th previous frame, specified by the parameter buffer_size. If the
-magnitude of the flow is above a certain threshold it will be considered as part
-of the moving object.
+Definition of time instants:
 
 .. code-block:: python
 
-   algorithm = OpticalFlow(threshold=0.3, buffer_size=3)
-   trackers.append( ObjectTracker('Ant (OpticalFlow)', algorithm, ROI((50, 50))) )
+   time_instants = np.array([1, 10, 100])
 
-.. _Results 2:
-
-3. Results
-----------
-
-Once all the trackers are collected in a list, we can create a TrackingScenario:
-
+Let us obtain the position of all the trajectories in the key
+time instants:
 
 .. code-block:: python
 
-   scenario = TrackingScenario(trackers)
+   r = [collect(trajs, at=float(t)) for t in time_instants]
 
-and track the video using the configured scenario. The track method will process
-the video pointed by video_path, using the additional settings we provide. In this
-case we are using a scale factor of 1020 pixels per
-meter. We must initialize the ROI
-of each tracker manually, unless we stated it differently while creating each of the
-ROI instances of the trackers.
+Then, we can plot the results:
 
 .. code-block:: python
 
-   retval, tl = scenario.track(video_path, pix_per_m=1024)
+   plot_hists(r, bins=30, density=True,
+      labels=[f't = {t}' for t in time_instants],
+      xlabel='x',
+      ylabel='PDF',
+      legend=True,
+      grid=True,
+      yscale='log',
+      ylim=(1e-3, 1),
+      xlim=(-20, 20),
+      filled=True
+   )
 
-
-After the tracking process finishes we will have a list of Trajectory objects
-in the variable ``tl``. We can plot them together to evaluate the consistency
-of all methods.
-
-.. code-block:: python
-
-   plot_2D(tl)
-
-.. figure:: /images/example2.png
+.. figure:: /images/example6.png
    :alt: Output of example2
    :align: center
 
-It is easy to see that the estimated trajectories are very consistent with each other
-despite the differences on the tracking methods. It is also important to realize
-that the differences in the very last part of the track are due the escape of
-the object being tracked from the scene. In those cases, each method does its
-own estimation of the likely next position.
+   
+.. _References 6:
 
-.. _References 2:
+5. References
+-------------
 
-4. References
---------------------------
-
-| [1] Frayle-Pérez, S., et al. "Chasing insects: a survey of tracking algorithms." Revista Cubana de Fisica 34.1 (2017): 44-47.
+| [1] Chechkin, Aleksei V., et al. "Brownian yet non-Gaussian diffusion: from superstatistics to subordination of diffusing diffusivities." Physical Review X 7.2 (2017): 021002.
+| [2] Thapa, Samudrajit, et al. "Bayesian analysis of single-particle tracking data using the nested-sampling algorithm: maximum-likelihood model selection applied to stochastic-diffusivity data." Physical Chemistry Chemical Physics 20.46 (2018): 29018-29037.

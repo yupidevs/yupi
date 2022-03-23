@@ -59,7 +59,7 @@ In this case, the list ``tl`` will contain only one object describing the trajec
 Other Tracking Algorithms
 =========================
 
-There are several other algorithms available in yupi (see :doc:`../api_reference/tracking/algorithms` section on the :doc:`../api_reference/api_reference`). For a quick overview, we recommend you to inspect :ref:`Example 2` that contains a detailed comparison of them while developing a specific task.
+There are several other algorithms available in yupi (see :doc:`../api_reference/tracking/algorithms` section on the :doc:`../api_reference/api_reference`). For a quick overview, we recommend you to inspect :ref:`Example 6` that contains a detailed comparison of them while developing a specific task.
 
 
 Tracking objects when the camera is moving
