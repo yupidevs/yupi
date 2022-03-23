@@ -71,27 +71,45 @@ Set up the path to multimedia resources:
 2. Tracking tracking objects
 ----------------------------
 
-Similarly to the previous example, we start by storing all the
-trackers in a list and pass it to the TrackingScenario. We are going
-to track the central pivot using TemplateMatching algorithm and the
-green LED coupled with the wheel using ColorMatching algorithm.
+We start by creating a list that will be filled with all the trackers:
 
 .. code-block:: python
 
    trackers = []
 
+
+Since the central pivot should not move significantly, we are going to track 
+it using TemplateMatching algorithm, by comparing every frame with a 
+template of the object.
+
+.. code-block:: python
+
    template = cv2.imread(template_path)
    algorithm = TemplateMatching(template, threshold=0.5)
    trackers.append( ObjectTracker('Central Pivot', algorithm, ROI((80, 80))) )
 
+
+Next, we create another tracker with the ColorMatching algorithm to track 
+the position of the green LED coupled with the wheel.
+
+.. code-block:: python
+
    algorithm = ColorMatching((80,170,90), (190,255,190))
    trackers.append( ObjectTracker('Green LED', algorithm, ROI((50, 50))) )
 
+
+Now, we can and pass all the trackers to the TrackingScenario:
+
+.. code-block:: python
+
    scenario = TrackingScenario(trackers)
 
-In this case we are forcing the processing to start at frame 10 and stop
-in frame 200. Additionally, we are using  a scale factor of 4441
-pixels per meter.
+
+To start tracking, we just need to call the track method from
+the TrackingScenario. In this case we are forcing the processing 
+to start at frame 10 and stop at frame 200. Additionally, we are using 
+a scale factor of 4441 pixels per meter. 
+
 
 .. code-block:: python
 

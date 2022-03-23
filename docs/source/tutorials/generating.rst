@@ -145,6 +145,8 @@ specified in the :py:class:`~generators.DiffDiffGenerator`
 creation using the  ``r0`` parameter.
 
 
+A more complex application of this :py:class:`~generators.Generator` can be seen in the :ref:`Example 2`.
+
 Defining a Custom Generator
 ===========================
 
