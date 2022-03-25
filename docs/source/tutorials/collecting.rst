@@ -162,12 +162,13 @@ trajectory. To avoid warning messages set the parameter to ``False``.
 
 .. code-block:: python
 
-   traj1.dt = .01  # redefining dt for the first trajectory
-   collect(trajs, lag=dt)
+    # A trajectory with new dt
+    traj3 = Trajectory(x=x2, y=y2, dt=.01, traj_id="traj_03")
+    collect([traj3, traj2], lag=dt)
 
 .. code-block:: text
 
-   15:07:11 [WARNING] Trajectory 0 with id=traj_01 is shorten than 50 samples
+   15:07:11 [WARNING] Trajectory traj_03 is shorten than 50 samples
    array([[ 2.,  8.],
           [ 2., 16.],
           [ 2., 24.],
@@ -196,14 +197,16 @@ the velocity is wanted, the ``velocity`` parameter should be set to ``True``.
 
 .. code-block:: text
 
-    array([[ 4.  8.]
-           [ 4. 24.]
-           [ 4. 40.]
-           [ 4. 56.]
-           [ 4. 16.]
-           [ 4. 32.]
-           [ 4. 48.]
-           [ 4. 64.]])
+    array([[ 4., 16.],
+           [ 4., 16.],
+           [ 4., 32.],
+           [ 4., 48.],
+           [ 4., 48.],
+           [ 4., 24.],
+           [ 4., 24.],
+           [ 4., 40.],
+           [ 4., 56.],
+           [ 4., 56.]])
 
 Additional if the ``lag`` is used, the velocity will be calculated according
 the given lag.
@@ -237,12 +240,14 @@ trajectories.
 
 .. code-block:: text
 
-    array([[ 0. 16.]
+    array([[ 0.  0.]
            [ 0. 16.]
            [ 0. 16.]
+           [ 0.  0.]
+           [ 0.  0.]
            [ 0. 16.]
            [ 0. 16.]
-           [ 0. 16.]])
+           [ 0.  0.]])
 
 .. code-block:: python
 
@@ -250,8 +255,8 @@ trajectories.
 
 .. code-block:: text
 
-    array([ 4.47213595 12.16552506 20.09975124 28.0713377 8.24621125 16.1245155
-           24.08318916 32.06243908])
+    array([ 0.        ,  4.47213595, 16.4924225 , 36.49657518, 64.49806199,
+            1.41421356,  9.48683298, 25.49509757, 49.49747468, 81.49846624])
 
 The ``at`` parameter
 ++++++++++++++++++++
