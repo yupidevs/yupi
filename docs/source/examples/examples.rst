@@ -43,21 +43,10 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~graphics.plot_vacf`
    * - | :doc:`Example 2<example2>`
        |
-       | A comparison of different tracking methods over the
-       | same input video where the camera is fixed at a constant
-       | distance from the plane where an ant moves.
-     - * Graphics:
-          * :py:func:`~graphics.plot_2D`
-       * Tracking:
-          * :py:func:`~tracking.trackers.ROI`
-          * :py:func:`~tracking.trackers.ObjectTracker`
-          * :py:func:`~tracking.trackers.TrackingScenario`
-          * :py:func:`~tracking.algorithms.ColorMatching`
-          * :py:func:`~tracking.algorithms.FrameDifferencing`
-          * :py:func:`~tracking.algorithms.BackgroundEstimator`
-          * :py:func:`~tracking.algorithms.BackgroundSubtraction`
-          * :py:func:`~tracking.algorithms.TemplateMatching`
-          * :py:func:`~tracking.algorithms.OpticalFlow`
+       | A model framework of a diffusion process with fluctuating 
+       | diffusivity is presented.
+     - * Generators:
+          * :py:class:`~generators.DiffDiffGenerator`  
    * - | :doc:`Example 3<example3>`
        |
        | Tracking a scaled-size rover wheel moving over the sand.
@@ -99,10 +88,21 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~tracking.algorithms.RemapUndistorter`
    * - | :doc:`Example 6<example6>`
        |
-       | A model framework of a diffusion process with fluctuating 
-       | diffusivity is presented.
-     - * Generators:
-          * :py:class:`~generators.DiffDiffGenerator`
+       | A comparison of different tracking methods over the
+       | same input video where the camera is fixed at a constant
+       | distance from the plane where an ant moves.
+     - * Graphics:
+          * :py:func:`~graphics.plot_2D`
+       * Tracking:
+          * :py:func:`~tracking.trackers.ROI`
+          * :py:func:`~tracking.trackers.ObjectTracker`
+          * :py:func:`~tracking.trackers.TrackingScenario`
+          * :py:func:`~tracking.algorithms.ColorMatching`
+          * :py:func:`~tracking.algorithms.FrameDifferencing`
+          * :py:func:`~tracking.algorithms.BackgroundEstimator`
+          * :py:func:`~tracking.algorithms.BackgroundSubtraction`
+          * :py:func:`~tracking.algorithms.TemplateMatching`
+          * :py:func:`~tracking.algorithms.OpticalFlow`
        
 .. toctree::
    :maxdepth: 2
