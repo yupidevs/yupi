@@ -2,7 +2,7 @@ import abc
 from typing import Callable, Optional, Tuple
 
 import numpy as np
-from yupi import Trajectory
+from yupi import Trajectory, VelocityMethod, WindowType
 
 
 class Generator(metaclass=abc.ABCMeta):
@@ -172,6 +172,10 @@ class RandomWalkGenerator(Generator):
                     dt=self.dt,
                     t=self.t,
                     traj_id=f"{self.traj_id} {i + 1}",
+                    vel_est={
+                        "method": VelocityMethod.LINEAR_DIFF,
+                        "window_type": WindowType.FORWARD,
+                    },
                 )
             )
         return trajs
