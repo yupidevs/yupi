@@ -45,7 +45,7 @@ Import all the dependencies:
       plot_kurtosis,
       plot_msd,
       plot_vacf,
-      plot_velocity_hist
+      plot_speed_hist
    )
 
 .. _Definition of parameters 1:
@@ -134,7 +134,7 @@ Plot velocity histogram
 
    v_norm = speed_ensemble(trajs)
    plt.subplot(232)
-   plot_velocity_hist(v_norm, bins=20, show=False)
+   plot_speed_hist(v_norm, bins=20, show=False)
 
 Plot turning angles
 

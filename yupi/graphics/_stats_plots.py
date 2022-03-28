@@ -88,7 +88,7 @@ def plot_hists(
             plt.hist(vals, histtype="stepfilled", color=color, alpha=alpha, **kwargs)
 
 
-def plot_velocity_hist(v, show: bool = True, units: str = "m/s", **kwargs):
+def plot_speed_hist(v, show: bool = True, units: str = "m/s", **kwargs):
     """Plot a histogram of the array of velocities ``v``.
 
     Parameters

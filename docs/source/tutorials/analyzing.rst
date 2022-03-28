@@ -73,10 +73,10 @@ ensemble of trajectories is also possible using:
 .. code-block:: python
 
     from yupi.stats import speed_ensemble
-    from yupi.graphics import plot_velocity_hist
+    from yupi.graphics import plot_speed_hist
 
     v = speed_ensemble(trajs, step=1)
-    plot_velocity_hist(v, bins=20)
+    plot_speed_hist(v, bins=20)
   
 
 .. figure:: /images/tutorial002.png

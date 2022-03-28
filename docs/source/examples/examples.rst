@@ -36,7 +36,7 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~stats.vacf`
        * Graphics:
           * :py:func:`~graphics.plot_2D`
-          * :py:func:`~graphics.plot_velocity_hist`
+          * :py:func:`~graphics.plot_speed_hist`
           * :py:func:`~graphics.plot_angles_hist`
           * :py:func:`~graphics.plot_msd`
           * :py:func:`~graphics.plot_kurtosis`
