@@ -128,7 +128,7 @@ Plot spacial trajectories
    plt.subplot(231)
    plot_2D(trajs[:5], legend=False, show=False)
 
-Plot velocity histogram
+Plot speed histogram
 
 .. code-block:: python
 
