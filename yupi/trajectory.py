@@ -183,6 +183,9 @@ class Trajectory:
         if lengths.count(lengths[0]) != len(lengths):
             raise ValueError("All input arrays must have the same shape.")
 
+        if len(self.r) < 2:
+            raise ValueError("The trajectory must contain at least 2 points.")
+
         self.__dt = dt
         self.dt_mean = dt
         self.__t0 = t0

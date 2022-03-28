@@ -42,7 +42,6 @@ def test_creation_by_dimensions():
 
 
 def test_creation_by_points():
-    Trajectory(points=[[1, 2]])
     Trajectory(points=[[1, 2], [2, 3]])
     Trajectory(points=[[1, 2, 4], [2, 3, 2], [1, 4, 8]])
     Trajectory(points=[[1, 2, 7, 3], [2, 3, 5, 3]])
@@ -52,6 +51,9 @@ def test_creation_by_points():
 
     with pytest.raises(ValueError):
         Trajectory(points=[[1, 2], [2], [2, 5]])
+
+    with pytest.raises(ValueError):
+        Trajectory(points=[[1, 2]])
 
 
 def test_creation_with_time():
