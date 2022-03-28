@@ -126,9 +126,9 @@ class RandomWalkGenerator(Generator):
         actions_prob = np.asarray(actions_prob, dtype=np.float32)
 
         if actions_prob.shape[0] != dim:
-            raise ValueError("actions_prob must have shape like (dims, 3)")
+            raise ValueError("actions_prob must have shape like (dim, 3)")
         if actions_prob.shape[1] != actions.shape[0]:
-            raise ValueError("actions_prob must have shape like (dims, 3)")
+            raise ValueError("actions_prob must have shape like (dim, 3)")
 
         shape_tuple = (self.n - 1, dim, N)
         step_length = step_length_func(shape_tuple, **step_length_kwargs)

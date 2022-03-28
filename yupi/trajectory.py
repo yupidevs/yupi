@@ -56,7 +56,7 @@ class Trajectory:
     points : np.ndarray
         Array containing position data as a list of points, by default
         None
-    dimensions : np.ndarray
+    axes : np.ndarray
         Array containing position data as a list of axis, by default
         None
     t : np.ndarray
@@ -103,8 +103,8 @@ class Trajectory:
     Or even create it given all the data for each dimension in a single
     source:
 
-    >>> dims = [[0, 1.2, 3, 2.8], [0, 3.1, 0.7, 1.6]]
-    >>> Trajectory(dimensions=dims)
+    >>> axes = [[0, 1.2, 3, 2.8], [0, 3.1, 0.7, 1.6]]
+    >>> Trajectory(axes=axes)
 
     All of these examples create the same trajectory.
 
@@ -135,7 +135,7 @@ class Trajectory:
         y: np.ndarray = None,
         z: np.ndarray = None,
         points: np.ndarray = None,
-        dimensions: np.ndarray = None,
+        axes: np.ndarray = None,
         t: np.ndarray = None,
         ang: np.ndarray = None,
         dt: float = None,
@@ -148,12 +148,12 @@ class Trajectory:
         # Position data validation
         from_xyz = x is not None
         from_points = points is not None
-        from_dimensions = dimensions is not None
+        from_axes = axes is not None
 
-        if from_xyz + from_points + from_dimensions > 1:
+        if from_xyz + from_points + from_axes > 1:
             raise ValueError(
                 "Positional data must come only from one way: "
-                "'xyz' data, 'points' data or 'dimensions' data."
+                "'xyz' data, 'points' data or 'axes' data."
             )
 
         # Set position data
@@ -166,12 +166,12 @@ class Trajectory:
                 data[i] = Vector.create(item, dtype=float)
 
         if from_xyz:
-            dimensions = [d for d in [x, y, z] if d is not None]
-            from_dimensions = True
+            axes = [d for d in [x, y, z] if d is not None]
+            from_axes = True
 
-        if from_dimensions and len(dimensions) > 0:
-            lengths.extend([len(d) for d in dimensions])
-            self.r = Vector.create(dimensions, dtype=float).T
+        if from_axes and len(axes) > 0:
+            lengths.extend([len(d) for d in axes])
+            self.r = Vector.create(axes, dtype=float).T
 
         if from_points:
             lengths.append(len(points))
@@ -863,7 +863,7 @@ class Trajectory:
                 ang_values = list(data["ang"].values())
                 ang = Vector.create(ang_values).T
 
-            dims = list(data["r"].values())
+            axes = list(data["r"].values())
             vel_est = data.get("vel_est", None)
             if vel_est is None:
                 vel_est = Trajectory.__vel_est
@@ -874,7 +874,7 @@ class Trajectory:
                 )
 
             return Trajectory(
-                dimensions=dims, t=t, ang=ang, dt=dt, traj_id=traj_id, vel_est=vel_est
+                axes=axes, t=t, ang=ang, dt=dt, traj_id=traj_id, vel_est=vel_est
             )
 
     @staticmethod
@@ -918,7 +918,7 @@ class Trajectory:
             if not ang:
                 ang = None
 
-            return Trajectory(dimensions=r, t=t, ang=ang, dt=dt, traj_id=traj_id)
+            return Trajectory(axes=r, t=t, ang=ang, dt=dt, traj_id=traj_id)
 
     @staticmethod
     def load(file_path: str):
