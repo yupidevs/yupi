@@ -76,6 +76,7 @@ related with the physical model:
    a = np.sqrt(d1/2 * d2/2)     # radius of the molecule
    alpha = 6 * np.pi * eta * a  # Stoke's coefficient
    v_eq = np.sqrt(k * T / m)    # equilibrium thermal velocity
+   tau = m / alpha              # relaxation time
 
 
 Next, we compute actual statistical model parameters for the
@@ -83,7 +84,7 @@ Langevin Generator:
 
 .. code-block:: python
 
-   tau = (alpha / m)**-1                   # relaxation time
+   gamma = 1 / tau                   # drag parameter
    sigma = np.sqrt(2 / tau) * v_eq   # scale parameter of noise pdf
 
 
@@ -106,7 +107,7 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   lg = LangevinGenerator(tt, dim, N, dt, tau, sigma, seed=0)
+   lg = LangevinGenerator(tt, dim, N, dt, gamma, sigma, seed=0)
    trajs = lg.generate()
 
 

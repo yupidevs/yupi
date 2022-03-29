@@ -75,7 +75,7 @@ Then, some specific parameters can be set before the generator initialization:
 
 .. code-block:: python
 
-    tau = 1               # Relaxation time
+    gamma = 1       # Drag parameter
     sigma = 0.1     # Scale of the noise pdf
 
 Finally, the generator is created and the trajectories can be generated:
@@ -83,7 +83,7 @@ Finally, the generator is created and the trajectories can be generated:
 .. code-block:: python
 
    from yupi.generators import LangevinGenerator
-   lg = LangevinGenerator(T, dim, N, dt, tau, sigma)
+   lg = LangevinGenerator(T, dim, N, dt, gamma, sigma)
    trajectories = lg.generate()
 
 The generated trajectories can be inspected using the plot_2D function:
