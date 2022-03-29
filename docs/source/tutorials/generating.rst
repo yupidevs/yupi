@@ -1,12 +1,17 @@
 Generating artificial Trajectory objects
 ----------------------------------------
 
-If you want to generate :py:class:`~yupi.Trajectory` objects based on some statistical constrains, you can use one of the available :py:class:`~generators.Generator` to construct a list of :py:class:`~yupi.Trajectory` objects.
+If you want to generate :py:class:`~yupi.Trajectory` objects based on some
+statistical constrains, you can use one of the available
+:py:class:`~generators.Generator` to construct a list of
+:py:class:`~yupi.Trajectory` objects.
 
 Random Walk Generator
 =====================
 
-The :py:class:`~generators.RandomWalkGenerator` is able to simulate the trajectories of a walker, in an arbitrary number of dimensions, according some probabilistic constrains.
+The :py:class:`~generators.RandomWalkGenerator` is able to simulate the
+trajectories of a walker, in an arbitrary number of dimensions, according some
+probabilistic constrains.
 
 We can import it from generating module as:
 
@@ -14,7 +19,9 @@ We can import it from generating module as:
 
    from yupi.generators import RandomWalkGenerator
 
-As any other :py:class:`~generators.Generator` in yupi, you can specify the parameters that define the shape of the trajectories, as well as the number of trajectories to generate:
+As any other :py:class:`~generators.Generator` in yupi, you can specify the
+parameters that define the shape of the trajectories, as well as the number of
+trajectories to generate:
 
 .. code-block:: python
 
@@ -24,25 +31,36 @@ As any other :py:class:`~generators.Generator` in yupi, you can specify the para
    dt = 1      # Time step
 
 
-The :py:class:`~generators.RandomWalkGenerator` starts the generation of every trajectory in the origin of the reference frame. Then, iteratively, it computes an increment on each dimension. The increment (also called actions) can be -1, 0 or 1, and it is taken independently on each dimension for each iteration. Additionally, the user can define a list to establish the probabilities of taking each of the available actions:
+The :py:class:`~generators.RandomWalkGenerator` starts the generation of every
+trajectory in the origin of the reference frame. Then, iteratively, it computes
+an increment on each dimension. The increment (also called actions) can be -1,
+0 or 1, and it is taken independently on each dimension for each iteration.
+Additionally, the user can define a list to establish the probabilities of
+taking each of the available actions:
 
 .. code-block:: python 
 
    prob = [[.5, .1, .4],   # x-axis
            [.5,  0, .5]]   # y-axis
 
-Notice that the size of this list should coincide with the desired dimensions of the trajectories being generated, and each element of a list should be a 3-element list describing the probability vector of taking the actions [-1, 0, 1] in that dimension.
+Notice that the size of this list should coincide with the desired dimensions
+of the trajectories being generated, and each element of a list should be a
+3-element list describing the probability vector of taking the actions [-1, 0,
+1] in that dimension.
 
-Then, we can construct a :py:class:`~generators.RandomWalkGenerator` with the given variables and call its generate method:
+Then, we can construct a :py:class:`~generators.RandomWalkGenerator` with the
+given variables and call its generate method:
 
 .. code-block:: python
 
    rw = RandomWalkGenerator(T, dim, N, dt, prob)
    tr = rw.generate()
 
-In the variable ``tr`` we will have a list of **N** :py:class:`~yupi.Trajectory` objects generated using the given configuration.
+In the variable ``tr`` we will have a list of **N**
+:py:class:`~yupi.Trajectory` objects generated using the given configuration.
 
-The generated trajectories can be inspected using the :py:func:`~graphics.plot_2D` function:
+The generated trajectories can be inspected using the
+:py:func:`~graphics.plot_2D` function:
 
 .. code-block:: python
 
@@ -59,8 +77,9 @@ The generated trajectories can be inspected using the :py:func:`~graphics.plot_2
 Langevin Generator
 ==================
 
-The :py:class:`~generators.LangevinGenerator` simulates trajectories governed by the
-Langevin Equation. It allows to produce :py:class:`~yupi.Trajectory` objects that quantitatively emulate several systems.
+The :py:class:`~generators.LangevinGenerator` simulates trajectories governed
+by the Langevin Equation. It allows to produce :py:class:`~yupi.Trajectory`
+objects that quantitatively emulate several systems.
 
 To use it, we first need to define the general parameters for a generator:
 
@@ -86,7 +105,8 @@ Finally, the generator is created and the trajectories can be generated:
    lg = LangevinGenerator(T, dim, N, dt, gamma, sigma)
    trajectories = lg.generate()
 
-The generated trajectories can be inspected using the :py:func:`~graphics.plot_2D` function:
+The generated trajectories can be inspected using the
+:py:func:`~graphics.plot_2D` function:
 
 .. code-block:: python
 
@@ -101,7 +121,8 @@ Although not illustrated in this example, the initial
 velocities and positions can be specified in the :py:class:`~generators.LangevinGenerator`
 creation using the ``v0`` and ``r0`` parameters respectively.
 
-A more complex application of this :py:class:`~generators.Generator` can be seen in the :ref:`Example 1`.
+A more complex application of this :py:class:`~generators.Generator` can be
+seen in the :ref:`Example 1`.
 
 Diffusing Diffusivity Generator
 ===============================
@@ -134,7 +155,8 @@ The generator is created and the trajectories can be generated:
    dd = DiffDiffGenerator(T, N=N, dt=dt, dim=dim, tau=tau, sigma=sigma)
    trajs = dd.generate()
 
-The generated trajectories can be inspected using the :py:func:`~graphics.plot_2D` function:
+The generated trajectories can be inspected using the
+:py:func:`~graphics.plot_2D` function:
 
 .. code-block:: python
 
@@ -150,9 +172,12 @@ specified in the :py:class:`~generators.DiffDiffGenerator`
 creation using the  ``r0`` parameter.
 
 
-A more complex application of this :py:class:`~generators.Generator` can be seen in the :ref:`Example 2`.
+A more complex application of this :py:class:`~generators.Generator` can be
+seen in the :ref:`Example 2`.
 
 Defining a Custom Generator
 ===========================
 
-A user-defined generator can be easily added by building on top of an abstract class :py:class:`~generators.Generator` (which is the base of the already implemented generators).
+A user-defined generator can be easily added by building on top of an abstract
+class :py:class:`~generators.Generator` (which is the base of the already
+implemented generators).
