@@ -103,7 +103,6 @@ creation using the ``v0`` and ``r0`` parameters respectively.
 
 A more complex application of this :py:class:`~generators.Generator` can be seen in the :ref:`Example 1`.
 
-
 Diffusing Diffusivity Generator
 ===============================
 
@@ -120,13 +119,19 @@ To use it, we first need to define the general parameters for a generator:
    dt = .1    # Time step
    dim = 2    # Dimension of the Trajectories
 
+Then, some specific parameters can be set before the generator initialization:
+
+.. code-block:: python
+
+    tau = 1       # Drag parameter
+    sigma = 0.1     # Scale of the noise pdf
 
 The generator is created and the trajectories can be generated:
 
 .. code-block:: python
 
    from yupi.generators import DiffDiffGenerator
-   dd = DiffDiffGenerator(T, N=N, dt=dt, dim=dim)
+   dd = DiffDiffGenerator(T, N=N, dt=dt, dim=dim, tau=tau, sigma=sigma)
    trajs = dd.generate()
 
 The generated trajectories can be inspected using the plot_2D function:
