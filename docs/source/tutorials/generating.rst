@@ -86,7 +86,7 @@ Finally, the generator is created and the trajectories can be generated:
    lg = LangevinGenerator(T, dim, N, dt, gamma, sigma)
    trajectories = lg.generate()
 
-The generated trajectories can be inspected using the plot_2D function:
+The generated trajectories can be inspected using the :py:func:`~graphics.plot_2D` function:
 
 .. code-block:: python
 
@@ -134,7 +134,7 @@ The generator is created and the trajectories can be generated:
    dd = DiffDiffGenerator(T, N=N, dt=dt, dim=dim, tau=tau, sigma=sigma)
    trajs = dd.generate()
 
-The generated trajectories can be inspected using the plot_2D function:
+The generated trajectories can be inspected using the :py:func:`~graphics.plot_2D` function:
 
 .. code-block:: python
 
