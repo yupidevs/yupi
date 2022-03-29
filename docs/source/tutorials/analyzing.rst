@@ -11,7 +11,7 @@ of the parameters.)
 .. code-block:: python
 
     from yupi.generators import LangevinGenerator
-    lg = LangevinGenerator(500, 2, 500, 0.5, 2, 0.1, seed=0)
+    lg = LangevinGenerator(500, 2, 500, 0.5, 0.5, 0.1, seed=0)
     trajs = lg.generate()
 
 
@@ -47,7 +47,7 @@ Plotting in three dimensions can be achieved in a similar way. Let us generate
 .. code-block:: python
 
     from yupi.generators import LangevinGenerator
-    lg = LangevinGenerator(500, 3, 5, 0.5, 2, 0.1, seed=0)
+    lg = LangevinGenerator(500, 3, 5, 0.5, 0.5, 0.1, seed=0)
     trajs3D = lg.generate()
 
 
