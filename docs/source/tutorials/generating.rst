@@ -123,7 +123,7 @@ Then, some specific parameters can be set before the generator initialization:
 
 .. code-block:: python
 
-    tau = 1       # Drag parameter
+    tau = 1         # Relaxation time
     sigma = 0.1     # Scale of the noise pdf
 
 The generator is created and the trajectories can be generated:
