@@ -11,7 +11,7 @@ from yupi.graphics._stats_plots import (
     plot_kurtosis,
     plot_msd,
     plot_vacf,
-    plot_velocity_hist,
+    plot_speed_hist,
     plot_psd,
     plot_hist,
     plot_hists
@@ -30,7 +30,7 @@ __all__ = [
     'plot_kurtosis',
     'plot_msd',
     'plot_vacf',
-    'plot_velocity_hist',
+    'plot_speed_hist',
     'plot_2D',
     'plot_3D',
     'plot_psd',

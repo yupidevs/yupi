@@ -3,9 +3,9 @@ Analysis of Trajectory objects
 
 There are several tools you can use to analyze :py:class:`~yupi.Trajectory`
 objects. To illustrate the capabilities of yupi, let us consider a list of
-:py:class:`~yupi.Trajectory` objects  generated with a Langevin Generator
-(See tutorial dedicated tutorial of :ref:`Langevin Generator` for a more
-detailed explanation of the parameters.)
+:py:class:`~yupi.Trajectory` objects  generated with a Langevin Generator (See
+dedicated tutorial of :ref:`Langevin Generator` for a more detailed explanation
+of the parameters.)
 
 
 .. code-block:: python
@@ -26,21 +26,23 @@ from a generator, you can  plot them with:
 .. code-block:: python
 
     from yupi.graphics import plot_2D
-    plot_2D(trajs[:10])
+    plot_2D(trajs[:10], legend=False)
   
 
 .. figure:: /images/tutorial001.png
    :alt: Distribution in submodules
    :align: center
 
-Notice that we limited to 10 the number of trajectories to plot for the sake of observability, 
-but we will be using the full list of trajectories (traj) all over this tutorial.
+Notice that we limited to 10 the number of trajectories to plot for the sake of
+observability, but we will be using the full list of trajectories (traj) all
+over this tutorial.
 
 
 Three-dimensional spatial projections
 =====================================
 
-Plotting in three dimensions can be achieved in a similar way. Let us generate 3D trajectories:
+Plotting in three dimensions can be achieved in a similar way. Let us generate
+3D trajectories:
 
 .. code-block:: python
 
@@ -54,7 +56,7 @@ Then, we can plot them using:
 .. code-block:: python
 
     from yupi.graphics import plot_3D
-    plot_3D(trajs3D, show=True, legend=False)
+    plot_3D(trajs3D, legend=False)
 
 
 .. figure:: /images/tutorial011.png
@@ -71,10 +73,10 @@ ensemble of trajectories is also possible using:
 .. code-block:: python
 
     from yupi.stats import speed_ensemble
-    from yupi.graphics import plot_velocity_hist
+    from yupi.graphics import plot_speed_hist
 
     v = speed_ensemble(trajs, step=1)
-    plot_velocity_hist(v, bins=20)
+    plot_speed_hist(v, bins=20)
   
 
 .. figure:: /images/tutorial002.png
@@ -95,7 +97,7 @@ It can be observe with yupi by using:
     from yupi.graphics import plot_angles_hist
 
     theta = turning_angles_ensemble(trajs)
-    plot_angles_hist(theta)
+    plot_angles_hist(theta, bins=30)
   
 
 .. figure:: /images/tutorial003.png
@@ -116,8 +118,8 @@ a linear function of time. To estimate the MSD of a list of
     from yupi.stats import msd
     from yupi.graphics import plot_msd
 
-    msd, msd_std = msd(trajs, time_avg=True, lag=30)
-    plot_msd(msd, msd_std, dt, lag=30)
+    msd_mean, msd_std = msd(trajs, time_avg=True, lag=30)
+    plot_msd(msd_mean, msd_std, 0.5, lag=30)
   
 
 .. figure:: /images/tutorial004.png
@@ -137,9 +139,9 @@ normality. It can be estimated using:
     from yupi.stats import kurtosis, kurtosis_reference
     from yupi.graphics import plot_kurtosis
 
-    ref = yupi.stats.kurtosis_reference(trajs)
-    kurtosis, _ = yupi.stats.kurtosis(trajs, time_avg=False, lag=30)
-    yupi.graphics.plot_kurtosis(kurtosis, kurtosis_ref=ref, dt=dt)
+    kurt_ref = kurtosis_reference(trajs)
+    kurt_mean, _ = kurtosis(trajs, time_avg=False, lag=30)
+    plot_kurtosis(kurt_mean, kurtosis_ref=kurt_ref, dt=dt)
   
 
 .. figure:: /images/tutorial005.png
@@ -159,8 +161,8 @@ the results, you can use:
     from yupi.stats import vacf
     from yupi.graphics import plot_vacf
 
-    vacf, _ = vacf(trajs, time_avg=True, lag=50)
-    plot_vacf(vacf, dt, 50)
+    vacf_mean, _ = vacf(trajs, time_avg=True, lag=50)
+    plot_vacf(vacf_mean, dt, 50)
   
 
 .. figure:: /images/tutorial006.png

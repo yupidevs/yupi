@@ -45,7 +45,7 @@ Import all the dependencies:
       plot_kurtosis,
       plot_msd,
       plot_vacf,
-      plot_velocity_hist
+      plot_speed_hist
    )
 
 .. _Definition of parameters 1:
@@ -76,6 +76,7 @@ related with the physical model:
    a = np.sqrt(d1/2 * d2/2)     # radius of the molecule
    alpha = 6 * np.pi * eta * a  # Stoke's coefficient
    v_eq = np.sqrt(k * T / m)    # equilibrium thermal velocity
+   tau = m / alpha              # relaxation time
 
 
 Next, we compute actual statistical model parameters for the
@@ -83,7 +84,7 @@ Langevin Generator:
 
 .. code-block:: python
 
-   tau = (alpha / m)**-1                   # relaxation time
+   gamma = 1 / tau                   # drag parameter
    sigma = np.sqrt(2 / tau) * v_eq   # scale parameter of noise pdf
 
 
@@ -106,7 +107,7 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   lg = LangevinGenerator(tt, dim, N, dt, tau, sigma, seed=0)
+   lg = LangevinGenerator(tt, dim, N, dt, gamma, sigma, seed=0)
    trajs = lg.generate()
 
 
@@ -128,13 +129,13 @@ Plot spacial trajectories
    plt.subplot(231)
    plot_2D(trajs[:5], legend=False, show=False)
 
-Plot velocity histogram
+Plot speed histogram
 
 .. code-block:: python
 
    v_norm = speed_ensemble(trajs)
    plt.subplot(232)
-   plot_velocity_hist(v_norm, bins=20, show=False)
+   plot_speed_hist(v_norm, bins=20, show=False)
 
 Plot turning angles
 

@@ -88,7 +88,7 @@ def plot_hists(
             plt.hist(vals, histtype="stepfilled", color=color, alpha=alpha, **kwargs)
 
 
-def plot_velocity_hist(v, show: bool = True, units: str = "m/s", **kwargs):
+def plot_speed_hist(v, show: bool = True, units: str = "m/s", **kwargs):
     """Plot a histogram of the array of velocities ``v``.
 
     Parameters
@@ -155,7 +155,7 @@ def plot_msd(
     dt,
     lag,
     x_units: str = "s",
-    y_units: str = "m^2/s",
+    y_units: str = "m^2",
     show=True,
     fill_color=LIGHT_ORANGE,
     **kwargs,
@@ -186,10 +186,12 @@ def plot_msd(
     lag_t_msd = dt * np.arange(lag)
     default_kwargs = {"color": ".2"}
     default_kwargs.update(kwargs)
-    plt.plot(lag_t_msd, msd, **default_kwargs)
+    plt.plot(lag_t_msd, msd, ".", **default_kwargs)
     upper_bound = msd + msd_std
     lower_bound = msd - msd_std
     plt.fill_between(lag_t_msd, upper_bound, lower_bound, color=fill_color)
+    plt.xscale("log")
+    plt.yscale("log")
     plt.xlabel(f"lag time{x_units}")
     plt.ylabel(r"$\mathrm{msd \;" + y_units + "}$")
     plt.grid()

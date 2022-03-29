@@ -114,7 +114,7 @@ class RandomWalkGenerator(Generator):
         self.traj_id = "RandomWalk"
 
         # Dynamic variables
-        self.t = np.arange(self.n) * dt  # Time array
+        self.t = np.arange(self.n) * dt      # Time array
         self.r = np.zeros((self.n, dim, N))  # Position array
 
         # Model parameters
@@ -184,7 +184,7 @@ class _LangevinGenerator(Generator):
         dim: int = 1,
         N: int = 1,
         dt: float = 1.0,
-        tau: float = 1.0,
+        gamma: float = 1.0,
         sigma: float = 1.0,
         v0: np.ndarray = None,
         r0: np.ndarray = None,
@@ -197,7 +197,7 @@ class _LangevinGenerator(Generator):
         self.traj_id = "Langevin"
 
         # Model parameters
-        self.tau = tau  # Relaxation time
+        self.gamma = gamma  # Relaxation time
         self.sigma = sigma  # Noise scale parameter
 
         # Initial conditions
@@ -205,21 +205,21 @@ class _LangevinGenerator(Generator):
         self.v0 = v0  # Initial velocity
 
         # Init variables before simulate and validate initial conditions
-        self._set_scaling_params()  # Set intrinsic reference parameters
+        self._set_scaling_params()   # Set intrinsic reference parameters
         self._set_simulation_vars()  # Init simulation variables
-        self._set_init_cond()  # Set initial conditions
-        self._set_noise()  # Set the attribute self.noise
+        self._set_init_cond()        # Set initial conditions
+        self._set_noise()            # Set the attribute self.noise
 
     # Intrinsic reference parameters
     def _set_scaling_params(self):
-        self.t_scale = self.tau  # Time scale
+        self.t_scale = self.gamma**-1                      # Time scale
         self.v_scale = self.sigma * np.sqrt(self.t_scale)  # Speed scale
-        self.r_scale = self.v_scale * self.t_scale  # Length scale
+        self.r_scale = self.v_scale * self.t_scale         # Length scale
 
     # Simulation parameters and dynamic variables
     def _set_simulation_vars(self):
         # Simulation parameters
-        self.dt = self.dt / self.t_scale  # Dimensionless time step
+        self.dt = self.dt / self.t_scale         # Dimensionless time step
         self.shape = (self.n, self.dim, self.N)  # Shape of dynamic variables
 
         # Dynamic variables
@@ -232,7 +232,7 @@ class _LangevinGenerator(Generator):
         # Initial positions
         if self.r0 is None:
             self.r[0] = np.zeros((self.dim, self.N))  # Default
-        elif np.shape(self.r0) == (self.dim, self.N) or np.shape(self.r0) == ():
+        elif np.shape(self.r0) == (self.dim, self.N) or np.ndim(self.r0) == 0:
             self.r[0] = self.r0  # User input
         else:
             raise ValueError(
@@ -244,7 +244,7 @@ class _LangevinGenerator(Generator):
         # Initial velocities
         if self.v0 is None:
             self.v[0] = self.rng.normal(size=(self.dim, self.N))  # Default
-        elif np.shape(self.v0) == (self.dim, self.N) or np.shape(self.v0) == ():
+        elif np.shape(self.v0) == (self.dim, self.N) or np.ndim(self.v0) == 0:
             self.v[0] = self.v0  # User input
         else:
             raise ValueError(
@@ -260,14 +260,21 @@ class _LangevinGenerator(Generator):
     # Solve dimensionless Langevin Equation using
     # the numerical method of Euler-Maruyama
     def _solve(self):
+        sqrt_dt = np.sqrt(self.dt)
         for i in range(self.n - 1):
             # Solving for position
-            self.r[i + 1] = self.r[i] + self.v[i] * self.dt
+            self.r[i + 1] = (
+                self.r[i] 
+                + self.v[i] * self.dt
+            )
 
             # Solving for velocity
             self.v[i + 1] = (
-                self.v[i] + -self.v[i] * self.dt + np.sqrt(self.dt) * self.noise[i]
+                self.v[i] 
+                - self.v[i] * self.dt 
+                + self.noise[i] * sqrt_dt
             )
+                            
 
     # Scale by intrinsic reference quantities
     def _set_scale(self):
@@ -278,7 +285,7 @@ class _LangevinGenerator(Generator):
 
     # Simulate the process
     def _simulate(self):
-        self._solve()  # Solve the Langevin equation
+        self._solve()      # Solve the Langevin equation
         self._set_scale()  # Recovering dimensions
 
     # Generate yupi Trajectory objects
@@ -310,8 +317,8 @@ class LangevinGenerator(_LangevinGenerator):
         Number of simulated trajectories, by default 1.
     dt : float, optional
         Time step, by default 1.0.
-    tau : float, optional
-        Persistence time, by default 1.
+    gamma : float, optional
+        Drag parameter or inverse of the persistence time, by default 1.
     sigma : float, optional
         Noise intensity (i.e., scale parameter of noise pdf), by default 1.
     bounds: np.ndarray, optional
@@ -334,7 +341,7 @@ class LangevinGenerator(_LangevinGenerator):
         dim: int = 1,
         N: int = 1,
         dt: float = 1.0,
-        tau: float = 1.0,
+        gamma: float = 1.0,
         sigma: float = 1.0,
         bounds: np.ndarray = None,
         bounds_extent: np.ndarray = None,
@@ -344,7 +351,7 @@ class LangevinGenerator(_LangevinGenerator):
         seed: Optional[int] = None,
     ):
 
-        super().__init__(T, dim, N, dt, tau, sigma, v0, r0, seed)
+        super().__init__(T, dim, N, dt, gamma, sigma, v0, r0, seed)
 
         # Verify if there is any boundary
         self.bounds = bounds
@@ -445,15 +452,19 @@ class LangevinGenerator(_LangevinGenerator):
     # Solve dimensionless Langevin Equation using
     # the numerical method of Euler-Maruyama
     def _solve(self):
+        sqrt_dt = np.sqrt(self.dt)
         for i in range(self.n - 1):
             # Solving for position
-            self.r[i + 1] = self.r[i] + self.v[i] * self.dt
+            self.r[i + 1] = (
+                self.r[i]
+                + self.v[i] * self.dt
+            )
 
             # Solving for velocity
             self.v[i + 1] = (
                 self.v[i]
-                + -self.v[i] * self.dt
-                + np.sqrt(self.dt) * self.noise[i]
+                - self.v[i] * self.dt
+                + self.noise[i] * sqrt_dt
                 + self._bound_force(self.r[i]) * self.dt
             )
 
@@ -478,29 +489,27 @@ class _DiffDiffGenerator(Generator):
         self.traj_id = "DiffDiff"
 
         # Model parameters
-        self.tau = tau  # Relaxation time
+        self.tau = tau      # Relaxation time
         self.sigma = sigma  # Noise scale parameter of auxiliary variable
 
         # Intrinsic reference parameters
-        self.t_scale = tau  # Time scale
+        self.t_scale = tau                   # Time scale
         self.r_scale = sigma * self.t_scale  # Length scale
 
         # Simulation parameters
-        self.dt = dt / self.t_scale  # Dimensionless time step
+        self.dt = dt / self.t_scale    # Dimensionless time step
         self.shape = (self.n, dim, N)  # Shape of dynamic variables
-        self.dim_aux = dim_aux  # Dimension of the aux variable
+        self.dim_aux = dim_aux         # Dimension of the aux variable
 
         # Dynamic variables
         self.t = np.arange(self.n, dtype=np.float32)  # Time array
-        self.r = np.empty(self.shape)  # Position array
-        self.Y = np.empty((dim_aux, N))  # Aux variable: square of diffusivity
-        self.noise_r = None  # Noise array for position (filled in _set_noise method)
-        self.noise_Y = (
-            None  # Noise array for aux variable (filled in _set_noise method)
-        )
+        self.r = np.empty(self.shape)                 # Position array
+        self.Y = np.empty((dim_aux, N))               # Aux variable: square of diffusivity
+        self.noise_r = None                           # Noise for position (filled in _set_noise method)
+        self.noise_Y = None                           # Aux variable (filled in _set_noise method)
 
         # Initial conditions
-        self.r0 = r0  # Initial position
+        self.r0 = r0           # Initial position
         self._set_init_cond()  # Check and set initial conditions
 
     # Set initial conditions
@@ -512,7 +521,7 @@ class _DiffDiffGenerator(Generator):
 
         if self.r0 is None:
             self.r[0] = np.zeros((self.dim, self.N))  # Default initial positions
-        elif np.shape(self.r0) == (self.dim, self.N) or np.shape(self.r0) == ():
+        elif np.shape(self.r0) == (self.dim, self.N) or np.ndim(self.r0) == 0:
             self.r[0] = self.r0  # User initial positions
         else:
             raise ValueError(
@@ -528,15 +537,22 @@ class _DiffDiffGenerator(Generator):
 
     # Solve coupled Langevin equations
     def _solve(self):
+        sqrt_dt = np.sqrt(self.dt)
         for i in range(self.n - 1):
             # Solving for position
-            self.r[i + 1] = self.r[i] + np.sqrt(2 * self.D * self.dt) * self.noise_r[i]
+            self.r[i + 1] = (
+                self.r[i]
+                + np.sqrt(2 * self.D * self.dt) * self.noise_r[i]
+            )
 
             # Solving for auxiliary variable
-            self.Y = self.Y + -self.Y * self.dt + np.sqrt(self.dt) * self.noise_Y[i]
+            self.Y += (
+                - self.Y * self.dt + \
+                + self.noise_Y[i] * sqrt_dt
+            )
 
             # Updating the diffusivities
-            self.D = np.sum(self.Y ** 2, axis=0)
+            self.D = np.sum(self.Y**2, axis=0)
 
     # Scale by intrinsic reference quantities
     def _set_scale(self):
@@ -547,7 +563,7 @@ class _DiffDiffGenerator(Generator):
     # Simulate the process
     def _simulate(self):
         self._set_noise()  # Set the attribute self.noise
-        self._solve()  # Solve the Langevin equation
+        self._solve()      # Solve the Langevin equation
         self._set_scale()  # Scaling
 
     # Generate yupi Trajectory objects
@@ -695,6 +711,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
 
     # Solve dimensionless coupled Langevin equations
     def _solve(self):
+        sqrt_dt = np.sqrt(self.dt)
         for i in range(self.n - 1):
             # Solving for position
             self.r[i + 1] = (
@@ -704,7 +721,10 @@ class DiffDiffGenerator(_DiffDiffGenerator):
             )
 
             # Solving for auxiliary variable
-            self.Y = self.Y + -self.Y * self.dt + np.sqrt(self.dt) * self.noise_Y[i]
+            self.Y += (
+                -self.Y * self.dt 
+                + self.noise_Y[i] * sqrt_dt
+            )
 
             # Updating the diffusivities
-            self.D = np.sum(self.Y ** 2, axis=0)
+            self.D = np.sum(self.Y**2, axis=0)

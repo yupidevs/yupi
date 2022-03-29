@@ -5,13 +5,11 @@ Overview
 ========
 
 Collecting data such as displacements, velocities, speeds is a common task when
-analyzing trajectory data. Therefore, looping over an ensemble of trajectories
-ends up in repeated blocks of code specially when the data is wanted to, for
-instance, be analyzed at different time scales or be concatenated.
-
-This tutorial provides an step-by-step view over the :py:func:`~stats.collect`
-function. It gets a friendly way to "collect" the basic time series researchers
-that process trajectories are continuously dealing with.
+analyzing trajectory data. **Yupi** offers a `collec()` fuction that
+automatically iterates over an ensemble of trajectories and returns the
+requested data. Moreover, it can also get samples for a given time scale using
+moving windows. This tutorial provides an step-by-step view over this
+`collect()` function.
 
 
 Let's begin
@@ -128,7 +126,7 @@ If ``lag`` is not set, the default value is ``lag=0`` will be assumed.
 The ``concat`` parameter
 ++++++++++++++++++++++++
 
-As we show in the very first example, the code for `concat(trajs)` will return
+As we show in the very first example, the code for `collect(trajs)` will return
 an array with all the positional data of each trajectory concatenated.
 
 If the data is wanted to be split by realizations, the ``concat`` parameter
@@ -162,12 +160,13 @@ trajectory. To avoid warning messages set the parameter to ``False``.
 
 .. code-block:: python
 
-   traj1.dt = .01  # redefining dt for the first trajectory
-   collect(trajs, lag=dt)
+    # A trajectory with new dt
+    traj3 = Trajectory(x=x2, y=y2, dt=.01, traj_id="traj_03")
+    collect([traj3, traj2], lag=dt)
 
 .. code-block:: text
 
-   15:07:11 [WARNING] Trajectory 0 with id=traj_01 is shorten than 50 samples
+   15:07:11 [WARNING] Trajectory traj_03 is shorten than 50 samples
    array([[ 2.,  8.],
           [ 2., 16.],
           [ 2., 24.],
@@ -187,8 +186,8 @@ trajectory. To avoid warning messages set the parameter to ``False``.
 The ``velocity`` parameter
 ++++++++++++++++++++++++++
 
-Some times it is useful to have the velocity of the trajectory. To indicate that
-the velocity is wanted, the ``velocity`` parameter should be set to ``True``.
+Some times it is useful to have the velocity of the trajectories. To indicate that
+the velocity is needed, the ``velocity`` parameter should be set to ``True``.
 
 .. code-block:: python
 
@@ -196,14 +195,16 @@ the velocity is wanted, the ``velocity`` parameter should be set to ``True``.
 
 .. code-block:: text
 
-    array([[ 4.  8.]
-           [ 4. 24.]
-           [ 4. 40.]
-           [ 4. 56.]
-           [ 4. 16.]
-           [ 4. 32.]
-           [ 4. 48.]
-           [ 4. 64.]])
+    array([[ 4., 16.],
+           [ 4., 16.],
+           [ 4., 32.],
+           [ 4., 48.],
+           [ 4., 48.],
+           [ 4., 24.],
+           [ 4., 24.],
+           [ 4., 40.],
+           [ 4., 56.],
+           [ 4., 56.]])
 
 Additional if the ``lag`` is used, the velocity will be calculated according
 the given lag.
@@ -237,21 +238,16 @@ trajectories.
 
 .. code-block:: text
 
-    array([[ 0. 16.]
+    array([[ 0.  0.]
            [ 0. 16.]
            [ 0. 16.]
+           [ 0.  0.]
+           [ 0.  0.]
            [ 0. 16.]
            [ 0. 16.]
-           [ 0. 16.]])
+           [ 0.  0.]])
 
 .. code-block:: python
-
-   collect(trajs, func=lambda vec: vec.norm)
-
-.. code-block:: text
-
-    array([ 4.47213595 12.16552506 20.09975124 28.0713377 8.24621125 16.1245155
-           24.08318916 32.06243908])
 
 The ``at`` parameter
 ++++++++++++++++++++
@@ -293,5 +289,5 @@ Collect specific functions
 
 These functions are just spetializations of the :py:func:`~stats.collect`
 function. All of them use the :py:func:`~stats.collect` function internally.
-Each of them has a different usage depending on if the data is wanted to be
-extracted at a certain time or step or if it is wanted to be extracted lagged.
+Each of them has a different usage depending on the data, if it's wanted to be
+extracted at a certain time or step or if it's wanted to be extracted lagged.

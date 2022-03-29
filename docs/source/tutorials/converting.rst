@@ -24,18 +24,18 @@ For the three-dimensional case, you can pass a variable ``z`` to the constructor
 Creating trajectories with independent axis information
 =======================================================
 
-An extension to the previous case, that can be useful for Trajectories of higher dimensions, is to provide all the axis information in a single variable. The following example shows how to proceed in this case:
+An extension to the previous case, that can be useful for trajectories of higher dimensions, is to provide all the axis information in a single variable. The following example shows how to proceed in this case:
 
 .. code-block:: python
 
    from yupi import Trajectory
 
-   dims = [
+   axes = [
       [0, 1.0, 0.63, -0.37, -1.24, -1.5, -1.08, -0.19, 0.82, 1.63, 1.99, 1.85],
       [0, 0, 0.98, 1.24, 0.69, -0.3, -1.23, -1.72, -1.63, -1.01, -0.06, 0.94]
    ]
 
-   track = Trajectory(dimensions=dims, traj_id="Spiral")
+   track = Trajectory(axes=axes, traj_id="Spiral")
 
 
 Creating trajectories with independent samples
