@@ -17,7 +17,6 @@ opencv-python = ">=4.4.0"
 numpy = ">=1.16.5"
 nudged = ">=0.3.1"
 matplotlib = ">=3.2.0"
-PyQt5 = "^5.15.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"
