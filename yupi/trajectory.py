@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import csv
 import json
-import logging
 import os
 from pathlib import Path
 from typing import List, NamedTuple, Tuple, Union
@@ -73,18 +72,36 @@ class Trajectory:
         Id of the trajectory.
     lazy : bool
         Defines if the velocity vector is not recalculated every time
-        is asked.
+        is asked. By default False.
     vel_est : dict
         Dictionary containing the parameters for the velocity estimation
         method.
 
     Attributes
     ----------
+    r : Vector
+        Position vector.
+    t : Vector
+        Time vector.
+    v : Vector
+        Velocity vector.
+    ang : Vector
+        Angle vector.
     dt : float
-        If no time data is given this represents the time between each
-        position data value.
-    id : str
+        Time between each position data value. If the time data is not
+        uniformly spaced, this value is the mean of the time data delta.
+    dt_mean : float
+        Mean of the time data delta.
+    dt_std : float
+        Standard deviation of the time between each position data value.
+    traj_id : str
         Id of the trajectory.
+    lazy : bool
+        Defines if the velocity vector is not recalculated every time
+        is asked.
+    vel_est : dict
+        Dictionary containing the parameters for the velocity estimation
+        method.
 
     Examples
     --------
