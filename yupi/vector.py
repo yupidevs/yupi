@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import numpy as np
+from typing import Union
 from numpy.linalg.linalg import norm as nrm
 
 
@@ -6,40 +9,39 @@ class Vector(np.ndarray):
     """Represents a vector"""
 
     @property
-    def norm(self):
+    def norm(self) -> Union[Vector, float]:
         """Vector : Calculates the norm of the vector. If the vector
         is alist of vectors then the norm of each item is calculated"""
         if len(self.shape) < 2:
-            return nrm(self)
+            return float(nrm(self))
         return Vector.create([nrm(p) for p in self])
 
     @property
-    def delta(self):
+    def delta(self) -> Vector:
         """Vector : Calculates the differnece between each item"""
         if len(self.shape) > 1:
             new_vec = []
             for i in range(self.shape[1]):
                 new_vec.append(np.ediff1d(self[:, i]))
             return Vector.create(new_vec).T
-        else:
-            return Vector.create(np.ediff1d(self))
+        return Vector.create(np.ediff1d(self))
 
     @property
-    def x(self):
+    def x(self) -> Vector:
         """Vector : X component of all vector items"""
         return self.component(0)
 
     @property
-    def y(self):
+    def y(self) -> Vector:
         """Vector : Y component of all vector items"""
         return self.component(1)
 
     @property
-    def z(self):
+    def z(self) -> Vector:
         """Vector : Z component of all vector items"""
         return self.component(2)
 
-    def component(self, dim):
+    def component(self, dim) -> Vector:
         """
         Extract a given component from all vector items.
 
@@ -77,10 +79,10 @@ class Vector(np.ndarray):
             raise TypeError("Parameter 'dim' must be an integer")
         if self.shape[1] < dim + 1:
             raise ValueError(f"Vector has not component {dim}")
-        return self[:, dim]
+        return self[:, dim].view(Vector)
 
     @staticmethod
-    def create(*args, **kwargs):
+    def create(*args, **kwargs) -> Vector:
         """
         Creates a new vector.
 
