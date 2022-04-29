@@ -1,9 +1,11 @@
 import itertools
 import logging
+from typing import List, Optional, Union
+
 import matplotlib.pyplot as plt
-from typing import List, Union, Optional
+
 from yupi import Trajectory
-from yupi.graphics._style import YUPI_COLORS, LINE
+from yupi.graphics._style import LINE, YUPI_COLORS
 
 
 def plot_2D(

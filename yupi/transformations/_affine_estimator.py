@@ -3,24 +3,18 @@ import nudged
 import numpy as np
 
 # ShiTomasi corner detection
-feature_params = dict(
-    maxCorners=30,
-    qualityLevel=0.6,
-    minDistance=30,
-    blockSize=100
-)
+feature_params = dict(maxCorners=30, qualityLevel=0.6, minDistance=30, blockSize=100)
 
 # Lucas Kanade optical flow
 lk_params = dict(
     winSize=(20, 20),
     maxLevel=15,
-    criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 0.05)
+    criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 0.05),
 )
 
 
 def _rot_matrix(theta, inv=False):
-    R = np.array([[np.cos(theta), -np.sin(theta)],
-                  [np.sin(theta), np.cos(theta)]])
+    R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
     if inv:
         R = R.T
     return R
@@ -124,8 +118,7 @@ def _get_affine(img1, img2, region, mask=None):
 
     # Track good features
     p1_ = cv2.goodFeaturesToTrack(img1_gray, mask=mask, **feature_params)
-    p2_, st, _ = cv2.calcOpticalFlowPyrLK(img1_gray, img2_gray, p1_,
-                                          None, **lk_params)
+    p2_, st, _ = cv2.calcOpticalFlowPyrLK(img1_gray, img2_gray, p1_, None, **lk_params)
 
     # Change origin and select tracked points
     p1, p2 = p1_ + [x0, y0], p2_ + [x0, y0]
@@ -133,12 +126,13 @@ def _get_affine(img1, img2, region, mask=None):
 
     # Cancel estimation if no good points were found or tracked
     if p1_good.size == 0:
-        print('[ERROR] No good points were found or sucessfully tracked.')
-        return 3*(0,), 3*(0,), err
+        print("[ERROR] No good points were found or sucessfully tracked.")
+        return 3 * (0,), 3 * (0,), err
 
     # Estimate points and matrix
-    p_good, affine_params = _estimate_matrix(p1_good, p2_good,
-                                            quantile1=1.5, quantile2=1.5)
+    p_good, affine_params = _estimate_matrix(
+        p1_good, p2_good, quantile1=1.5, quantile2=1.5
+    )
     p1_good, p2_good, p3_good = p_good
 
     # Mean square error

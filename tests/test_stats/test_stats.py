@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from yupi import Trajectory, VelocityMethod, WindowType
 from yupi.stats import *
 

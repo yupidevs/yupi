@@ -1,6 +1,7 @@
 import abc
-import numpy as np
+
 import cv2
+import numpy as np
 
 
 class Undistorter(metaclass=abc.ABCMeta):
@@ -41,12 +42,12 @@ class Undistorter(metaclass=abc.ABCMeta):
         npzfile = np.load(camera_file)
 
         # Initialize camera parameters
-        self.c_h = npzfile['h']
-        self.c_w = npzfile['w']
-        size=(int(self.c_w), int(self.c_h))
-        self.c_mtx = npzfile['mtx']
-        self.c_dist = npzfile['dist']
-        self.c_newcameramtx = npzfile['newcameramtx']
+        self.c_h = npzfile["h"]
+        self.c_w = npzfile["w"]
+        size = (int(self.c_w), int(self.c_h))
+        self.c_mtx = npzfile["mtx"]
+        self.c_dist = npzfile["dist"]
+        self.c_newcameramtx = npzfile["newcameramtx"]
         self.turn = turn
         c_map = cv2.initUndistortRectifyMap(
             cameraMatrix=self.c_mtx,
@@ -54,7 +55,7 @@ class Undistorter(metaclass=abc.ABCMeta):
             R=None,
             newCameraMatrix=self.c_newcameramtx,
             size=size,
-            m1type=5
+            m1type=5,
         )
         self.c_mapx, self.c_mapy = c_map
         self.mask = None
@@ -98,7 +99,7 @@ class Undistorter(metaclass=abc.ABCMeta):
     # Apply the mask to a frame to adjust border colors
     def masked(self, frame):
         frame = cv2.bitwise_or(frame, self.mask)
-        return  self._rotate(frame, _input=False)
+        return self._rotate(frame, _input=False)
 
 
 class ClassicUndistorter(Undistorter):
@@ -135,7 +136,7 @@ class ClassicUndistorter(Undistorter):
             cameraMatrix=self.c_mtx,
             distCoeffs=self.c_dist,
             dst=None,
-            newCameraMatrix=self.c_newcameramtx
+            newCameraMatrix=self.c_newcameramtx,
         )
 
 

@@ -1,4 +1,5 @@
 import pytest
+
 from yupi import Trajectory, VelocityMethod, WindowType
 
 APPROX_REL_TOLERANCE = 1e-10

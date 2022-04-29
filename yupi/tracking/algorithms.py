@@ -1,5 +1,6 @@
 import abc
 import logging
+
 import cv2
 import numpy as np
 
@@ -12,15 +13,15 @@ def _resize_frame(frame, scale=1):
 
 
 def _change_colorspace(image, color_space):
-    if color_space == 'BGR':
+    if color_space == "BGR":
         return image
-    if color_space == 'GRAY':
+    if color_space == "GRAY":
         return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    if color_space == 'HSV':
+    if color_space == "HSV":
         return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
 
-class BackgroundEstimator():
+class BackgroundEstimator:
     """
     This class provides static methods to determine the background in image
     sequences. It estimates the temporal median of the sequence.
@@ -55,7 +56,7 @@ class BackgroundEstimator():
         effective_frames = total_frames - start_in
         spacing = effective_frames / samples
 
-         # Store frames in a list
+        # Store frames in a list
         frames = []
         for i in range(samples):
             cap.set(cv2.CAP_PROP_POS_FRAMES, i * spacing + start_in)
@@ -64,6 +65,7 @@ class BackgroundEstimator():
 
         # Calculate the median along time
         return np.median(frames, axis=0).astype(dtype=np.uint8)
+
 
 class TrackingAlgorithm(metaclass=abc.ABCMeta):
     """
@@ -93,13 +95,14 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
         M = cv2.moments(bin_img)
 
         # Check if something was over the threshold
-        if M['m00'] != 0:
+        if M["m00"] != 0:
             # Calculate x,y coordinate of center
-            cX = int(M['m10'] / M['m00'])
-            cY = int(M['m01'] / M['m00'])
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
             return cX, cY
-        logging.warning("Nothing was over threshold. Algorithm: %s",
-                        type(self).__name__)
+        logging.warning(
+            "Nothing was over threshold. Algorithm: %s", type(self).__name__
+        )
         return None
 
     def preprocess(self, frame, roi_bound, preprocessing):
@@ -159,8 +162,13 @@ class ColorMatching(TrackingAlgorithm):
         by default None.
     """
 
-    def __init__(self, lower_bound=(0, 0, 0), upper_bound=(255, 255, 255),
-                 color_space='BGR', max_pixels=None):
+    def __init__(
+        self,
+        lower_bound=(0, 0, 0),
+        upper_bound=(255, 255, 255),
+        color_space="BGR",
+        max_pixels=None,
+    ):
         super().__init__()
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
@@ -431,8 +439,7 @@ class TemplateMatching(TrackingAlgorithm):
         # Compute the centroid of the region with max correlation
         centroid = None
         if res[pt] > self.threshold:
-            centroid = (int(pt[1] + self.w/2), int(pt[0] + self.h/2))
-
+            centroid = (int(pt[1] + self.w / 2), int(pt[0] + self.h / 2))
 
         # Convert the grayscale image to binary image
         mask = None
@@ -465,7 +472,6 @@ class OpticalFlow(TrackingAlgorithm):
         assert buffer_size > 0
 
         self.buffer_size = buffer_size
-
 
     def detect(self, frame, roi_bound=None, preprocessing=None):
         """
@@ -501,14 +507,12 @@ class OpticalFlow(TrackingAlgorithm):
         if len(self.previous_frames) == self.buffer_size:
 
             cframe = self.preprocess(
-                frame=frame,
-                roi_bound=roi_bound,
-                preprocessing=preprocessing
+                frame=frame, roi_bound=roi_bound, preprocessing=preprocessing
             )
             pframe = self.preprocess(
                 frame=self.previous_frames[-1],
                 roi_bound=roi_bound,
-                preprocessing=preprocessing
+                preprocessing=preprocessing,
             )
 
             cframe = cv2.cvtColor(cframe, cv2.COLOR_BGR2GRAY)
@@ -524,7 +528,7 @@ class OpticalFlow(TrackingAlgorithm):
                 iterations=3,
                 poly_n=5,
                 poly_sigma=1.2,
-                flags=0
+                flags=0,
             )
             mag, _ = cv2.cartToPolar(diff[..., 0], diff[..., 1])
 

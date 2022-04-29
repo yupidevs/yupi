@@ -8,40 +8,31 @@ All the resources of this module should be imported directly
 from ``yupi.tracking``.
 """
 
-from yupi.tracking.trackers import (
-    ROI,
-    ObjectTracker,
-    CameraTracker,
-    TrackingScenario
-)
 from yupi.tracking.algorithms import (
-    TrackingAlgorithm,
+    BackgroundEstimator,
+    BackgroundSubtraction,
     ColorMatching,
     FrameDifferencing,
-    BackgroundSubtraction,
-    TemplateMatching,
     OpticalFlow,
-    BackgroundEstimator
+    TemplateMatching,
+    TrackingAlgorithm,
 )
-from yupi.tracking.undistorters import (
-    Undistorter,
-    ClassicUndistorter,
-    RemapUndistorter
-)
+from yupi.tracking.trackers import ROI, CameraTracker, ObjectTracker, TrackingScenario
+from yupi.tracking.undistorters import ClassicUndistorter, RemapUndistorter, Undistorter
 
 __all__ = [
-    'ROI',
-    'ObjectTracker',
-    'CameraTracker',
-    'TrackingScenario',
-    'TrackingAlgorithm',
-    'FrameDifferencing',
-    'ColorMatching',
-    'BackgroundSubtraction',
-    'TemplateMatching',
-    'OpticalFlow',
-    'BackgroundEstimator',
-    'Undistorter',
-    'ClassicUndistorter',
-    'RemapUndistorter',
+    "ROI",
+    "ObjectTracker",
+    "CameraTracker",
+    "TrackingScenario",
+    "TrackingAlgorithm",
+    "FrameDifferencing",
+    "ColorMatching",
+    "BackgroundSubtraction",
+    "TemplateMatching",
+    "OpticalFlow",
+    "BackgroundEstimator",
+    "Undistorter",
+    "ClassicUndistorter",
+    "RemapUndistorter",
 ]

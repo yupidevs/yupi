@@ -2,6 +2,7 @@ import abc
 from typing import Callable, Optional, Tuple
 
 import numpy as np
+
 from yupi import Trajectory, VelocityMethod, WindowType
 
 
@@ -216,7 +217,7 @@ class _LangevinGenerator(Generator):
 
     # Intrinsic reference parameters
     def _set_scaling_params(self):
-        self.t_scale = self.gamma ** -1  # Time scale
+        self.t_scale = self.gamma**-1  # Time scale
         self.v_scale = self.sigma * np.sqrt(self.t_scale)  # Speed scale
         self.r_scale = self.v_scale * self.t_scale  # Length scale
 
@@ -368,7 +369,7 @@ class LangevinGenerator(_LangevinGenerator):
     def _dimless_bounds(self):
         self.bounds = self.bounds / self.r_scale
         self.bounds_ext = self.bounds_ext / self.r_scale
-        self.bounds_stg = self.bounds_stg / (self.r_scale / self.t_scale ** 2)
+        self.bounds_stg = self.bounds_stg / (self.r_scale / self.t_scale**2)
 
     # Check if all initial positions are whithin boundaries
     def _check_r0(self):
@@ -510,7 +511,7 @@ class _DiffDiffGenerator(Generator):
         self.Y = self.rng.normal(
             size=(self.dim_aux, self.N)
         )  # Initial aux variable configuration
-        self.D = np.sum(self.Y ** 2, axis=0)  # Initial diffusivity configuration
+        self.D = np.sum(self.Y**2, axis=0)  # Initial diffusivity configuration
 
         if self.r0 is None:
             self.r[0] = np.zeros((self.dim, self.N))  # Default initial positions
@@ -539,7 +540,7 @@ class _DiffDiffGenerator(Generator):
             self.Y += -self.Y * self.dt + +self.noise_Y[i] * sqrt_dt
 
             # Updating the diffusivities
-            self.D = np.sum(self.Y ** 2, axis=0)
+            self.D = np.sum(self.Y**2, axis=0)
 
     # Scale by intrinsic reference quantities
     def _set_scale(self):
@@ -628,7 +629,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
             self.bounds = self.bounds * ones / self.r_scale
             self.bounds_ext = np.float32(bounds_extent) * ones / self.r_scale
             self.bounds_stg = (
-                np.float32(bounds_strength) * ones * (self.t_scale ** 2 / self.r_scale)
+                np.float32(bounds_strength) * ones * (self.t_scale**2 / self.r_scale)
             )
 
             # Check is initial positions are within bounds
@@ -711,4 +712,4 @@ class DiffDiffGenerator(_DiffDiffGenerator):
             self.Y += -self.Y * self.dt + self.noise_Y[i] * sqrt_dt
 
             # Updating the diffusivities
-            self.D = np.sum(self.Y ** 2, axis=0)
+            self.D = np.sum(self.Y**2, axis=0)

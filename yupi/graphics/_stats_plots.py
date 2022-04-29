@@ -4,9 +4,18 @@ from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from yupi.graphics._style import (GREEN, LIGHT_BLUE, LIGHT_GREEN, LIGHT_ORANGE,
-                                  LIGHT_YELLOW, RED, YUPI_COLORS,
-                                  YUPI_LIGHT_COLORS, _plot_basic_properties)
+
+from yupi.graphics._style import (
+    GREEN,
+    LIGHT_BLUE,
+    LIGHT_GREEN,
+    LIGHT_ORANGE,
+    LIGHT_YELLOW,
+    RED,
+    YUPI_COLORS,
+    YUPI_LIGHT_COLORS,
+    _plot_basic_properties,
+)
 
 
 def _validate_units(units):

@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from pytest import approx, fixture
+
 from yupi import Trajectory, WindowType
 
 APPROX_REL_TOLERANCE = 1e-12

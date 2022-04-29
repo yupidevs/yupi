@@ -72,11 +72,11 @@ class Vector(np.ndarray):
         """
 
         if len(self.shape) < 2:
-            raise TypeError('Operation not supperted on simple vectors')
+            raise TypeError("Operation not supperted on simple vectors")
         if not isinstance(dim, int):
             raise TypeError("Parameter 'dim' must be an integer")
         if self.shape[1] < dim + 1:
-            raise ValueError(f'Vector has not component {dim}')
+            raise ValueError(f"Vector has not component {dim}")
         return self[:, dim]
 
     @staticmethod

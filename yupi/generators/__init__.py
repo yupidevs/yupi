@@ -7,15 +7,10 @@ from ``yupi.generators``.
 """
 
 from yupi.generators._generators import (
+    DiffDiffGenerator,
     Generator,
-    RandomWalkGenerator,
     LangevinGenerator,
-    DiffDiffGenerator
+    RandomWalkGenerator,
 )
 
-__all__ = [
-    'Generator',
-    'RandomWalkGenerator',
-    'LangevinGenerator',
-    'DiffDiffGenerator'
-]
+__all__ = ["Generator", "RandomWalkGenerator", "LangevinGenerator", "DiffDiffGenerator"]

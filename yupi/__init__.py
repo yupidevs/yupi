@@ -4,24 +4,25 @@ from one of the aforementioned modules.
 """
 
 import logging
+
+from yupi._vel_estimators import VelocityMethod, WindowType
 from yupi.features import Features
 from yupi.trajectory import Trajectory, TrajectoryPoint
 from yupi.vector import Vector
-from yupi._vel_estimators import VelocityMethod, WindowType
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%H:%M:%S'
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
 )
 
 __all__ = [
-    'Trajectory',
-    'TrajectoryPoint',
-    'Features',
-    'Vector',
-    'VelocityMethod',
-    'WindowType',
+    "Trajectory",
+    "TrajectoryPoint",
+    "Features",
+    "Vector",
+    "VelocityMethod",
+    "WindowType",
 ]
 
-__version__ = '0.9.2'
+__version__ = "0.9.2"

@@ -1,12 +1,17 @@
 from typing import Tuple
+
 import numpy as np
+
 from yupi import Trajectory
 from yupi.transformations._affine_estimator import _affine_matrix
 
 
-def add_moving_FoR(traj: Trajectory,
-                   reference: Tuple[np.ndarray, np.ndarray, np.ndarray],
-                   start_at_origin: bool = True, new_traj_id: str = None):
+def add_moving_FoR(
+    traj: Trajectory,
+    reference: Tuple[np.ndarray, np.ndarray, np.ndarray],
+    start_at_origin: bool = True,
+    new_traj_id: str = None,
+):
     """
     This function fuses the information of a trajectory with an
     external reference of the motion of the Frame of Reference
