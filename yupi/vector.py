@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import numpy as np
 from typing import Union
+
+import numpy as np
 from numpy.linalg.linalg import norm as nrm
 
 
@@ -27,17 +28,17 @@ class Vector(np.ndarray):
         return Vector.create(np.ediff1d(self))
 
     @property
-    def x(self) -> Vector:
+    def x(self) -> Vector:  # pylint: disable=invalid-name
         """Vector : X component of all vector items"""
         return self.component(0)
 
     @property
-    def y(self) -> Vector:
+    def y(self) -> Vector:  # pylint: disable=invalid-name
         """Vector : Y component of all vector items"""
         return self.component(1)
 
     @property
-    def z(self) -> Vector:
+    def z(self) -> Vector:  # pylint: disable=invalid-name
         """Vector : Z component of all vector items"""
         return self.component(2)
 

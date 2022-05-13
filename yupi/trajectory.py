@@ -4,7 +4,7 @@ import csv
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Tuple, Union, cast
 
 import numpy as np
 
@@ -361,10 +361,10 @@ class Trajectory:
 
     def __iter__(self) -> Iterator[TrajectoryPoint]:
         for i in range(len(self)):
-            yield self[i]
+            yield cast(TrajectoryPoint, self[i])
 
     @property
-    def bounds(self) -> List[Tuple[float]]:
+    def bounds(self) -> List[Tuple[float, float]]:
         """List[Tuple[float]] : List of tuples indicanting the min and
         max values of each dimension"""
         _bounds = []
@@ -399,7 +399,7 @@ class Trajectory:
             return self.ang.delta
         return None
 
-    def recalculate_velocity(self) -> Optional[Vector]:
+    def recalculate_velocity(self) -> Vector:
         """
         Recalculates the velocity according time data or `dt` if time
         data is not available.
@@ -414,7 +414,7 @@ class Trajectory:
         return self.__v
 
     @property
-    def v(self) -> Vector:
+    def v(self) -> Vector:  # pylint: disable=invalid-name
         """Vector : Velocity vector"""
         if self.__v is None:
             method = self.vel_est["method"]
@@ -524,30 +524,30 @@ class Trajectory:
             raise ValueError("The vector must have 3 components")
 
         vec = (vec / vec.norm).view(Vector)
-        vx, vy, vz = vec[0], vec[1], vec[2]
-        c, s = np.cos(angle), np.sin(angle)
+        v_x, v_y, v_z = vec[0], vec[1], vec[2]
+        a_cos, a_sin = np.cos(angle), np.sin(angle)
 
-        R = np.array(
+        rot_matrix = np.array(
             [
                 [
-                    vx * vx * (1 - c) + c,
-                    vx * vy * (1 - c) - vz * s,
-                    vx * vz * (1 - c) + vy * s,
+                    v_x * v_x * (1 - a_cos) + a_cos,
+                    v_x * v_y * (1 - a_cos) - v_z * a_sin,
+                    v_x * v_z * (1 - a_cos) + v_y * a_sin,
                 ],
                 [
-                    vx * vy * (1 - c) + vz * s,
-                    vy * vy * (1 - c) + c,
-                    vy * vz * (1 - c) - vx * s,
+                    v_x * v_y * (1 - a_cos) + v_z * a_sin,
+                    v_y * v_y * (1 - a_cos) + a_cos,
+                    v_y * v_z * (1 - a_cos) - v_x * a_sin,
                 ],
                 [
-                    vx * vz * (1 - c) - vy * s,
-                    vy * vz * (1 - c) + vx * s,
-                    vz * vz * (1 - c) + c,
+                    v_x * v_z * (1 - a_cos) - v_y * a_sin,
+                    v_y * v_z * (1 - a_cos) + v_x * a_sin,
+                    v_z * v_z * (1 - a_cos) + a_cos,
                 ],
             ]
         )
 
-        self.r = Vector.create(np.dot(self.r, R))
+        self.r = Vector.create(np.dot(self.r, rot_matrix))
 
     def copy(self) -> Trajectory:
         """
@@ -699,9 +699,9 @@ class Trajectory:
             to a given time instant.
         """
 
-        dx = self.delta_r.x
-        dy = self.delta_r.y
-        theta = np.arctan2(dy, dx)
+        d_x = self.delta_r.x
+        d_y = self.delta_r.y
+        theta = np.arctan2(d_y, d_x)
 
         if not accumulate:
             theta = np.ediff1d(theta)  # Relative turning angles
@@ -767,8 +767,8 @@ class Trajectory:
             print(method, window, accuracy)
             writer.writerow([method, window, accuracy])
 
-            for tp in self:
-                row = np.hstack([tp.r, tp.ang, tp.t])
+            for t_p in self:
+                row = np.hstack([t_p.r, t_p.ang, t_p.t])
                 writer.writerow(row)
 
     def save(
@@ -901,7 +901,7 @@ class Trajectory:
             t: List[float] = []
             ang = []
             traj_id: Optional[str] = None
-            dt, dim, ang_dim = 1, 1, 1
+            dt, dim, ang_dim = 1.0, 1, 1
             vel_est = Trajectory.__vel_est
 
             for i, row in enumerate(csv.reader(traj_file)):
@@ -977,10 +977,9 @@ class Trajectory:
         try:
             if file_type == ".json":
                 return Trajectory._load_json(file_path)
-            elif file_type == ".csv":
+            if file_type == ".csv":
                 return Trajectory._load_csv(file_path)
-            else:
-                raise ValueError("Invalid file type.")
+            raise ValueError("Invalid file type.")
         except (json.JSONDecodeError, KeyError, ValueError, IndexError) as exc:
             raise LoadTrajectoryError(path) from exc
 

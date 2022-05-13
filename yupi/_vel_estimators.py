@@ -1,5 +1,4 @@
 import enum
-import logging
 from typing import Optional
 
 import numpy as np
@@ -26,7 +25,7 @@ class WindowType(enum.Enum):
     CENTRAL = enum.auto()
 
 
-def coeff(x_0: float, a: np.ndarray, coeff_arr: np.ndarray = None):
+def coeff(x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None):
     N = len(a)
     M = 2
     coeff = np.zeros((M, N, N)) if coeff_arr is None else coeff_arr
@@ -131,7 +130,7 @@ def estimate_velocity(
     method: VelocityMethod,
     window_type: WindowType = WindowType.CENTRAL,
     accuracy: int = 1,
-) -> Optional[Vector]:
+) -> Vector:
     """
     Estimate the velocity of a trajectory.
 
@@ -157,8 +156,7 @@ def estimate_velocity(
         If the trajectory is too short to estimate the velocity.
     """
     if not validate_traj(traj, method, window_type, accuracy):
-        logging.warning("Trajectory is too short to estimate the velocity.")
-        return None
+        raise ValueError("Trajectory is too short to estimate the velocity.")
 
     if method == VelocityMethod.LINEAR_DIFF:
         return _linear_diff(traj, window_type)
