@@ -103,7 +103,7 @@ class RandomWalkGenerator(Generator):
         dim: int = 1,
         N: int = 1,
         dt: float = 1,
-        actions_prob: np.ndarray = None,
+        actions_prob: Optional[np.ndarray] = None,
         step_length_func: Callable[[Tuple], np.ndarray] = np.ones,
         seed: Optional[int] = None,
         **step_length_kwargs,
@@ -191,8 +191,8 @@ class _LangevinGenerator(Generator):
         dt: float = 1.0,
         gamma: float = 1.0,
         sigma: float = 1.0,
-        v0: np.ndarray = None,
-        r0: np.ndarray = None,
+        v0: Optional[np.ndarray] = None,
+        r0: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
     ):
 
@@ -318,17 +318,17 @@ class LangevinGenerator(_LangevinGenerator):
         Drag parameter or inverse of the persistence time, by default 1.
     sigma : float, optional
         Noise intensity (i.e., scale parameter of noise pdf), by default 1.
-    bounds: np.ndarray, optional
+    bounds: Optional[np.ndarray]
         Lower and upper reflecting boundaries that confine the trajectories.
         If None is passed, trajectories are simulated in a free space.
         By default None.
-    bounds_extent: np.ndarray, optional
+    bounds_extent: Optional[np.ndarray]
         Decay length of boundary forces, by default None.
-    bounds_strength: np.ndarray, optional
+    bounds_strength: Optional[np.ndarray]
         Boundaries strength, by default None.
-    v0 : np.ndarray, optional
+    v0 : Optional[np.ndarray]
         Initial velocities, by default None.
-    r0 : np.ndarray, optional
+    r0 : Optional[np.ndarray]
         Initial positions, by default None.
     """
 
@@ -340,11 +340,11 @@ class LangevinGenerator(_LangevinGenerator):
         dt: float = 1.0,
         gamma: float = 1.0,
         sigma: float = 1.0,
-        bounds: np.ndarray = None,
-        bounds_extent: np.ndarray = None,
-        bounds_strength: np.ndarray = None,
-        v0: np.ndarray = None,
-        r0: np.ndarray = None,
+        bounds: Optional[np.ndarray] = None,
+        bounds_extent: Optional[np.ndarray] = None,
+        bounds_strength: Optional[np.ndarray] = None,
+        v0: Optional[np.ndarray] = None,
+        r0: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
     ):
 
@@ -473,7 +473,7 @@ class _DiffDiffGenerator(Generator):
         tau: float = 1.0,
         sigma: float = 1.0,
         dim_aux: int = 1,
-        r0: np.ndarray = None,
+        r0: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
     ):
 
@@ -499,8 +499,8 @@ class _DiffDiffGenerator(Generator):
         self.t = np.arange(self.n, dtype=np.float32)  # Time array
         self.r = np.empty(self.shape)  # Position array
         self.Y = np.empty((dim_aux, N))  # Aux variable: square of diffusivity
-        self.noise_r = None  # Noise for position (filled in _set_noise method)
-        self.noise_Y = None  # Aux variable (filled in _set_noise method)
+        self.noise_r: np.ndarray  # Noise for position (filled in _set_noise method)
+        self.noise_Y: np.ndarray  # Aux variable (filled in _set_noise method)
 
         # Initial conditions
         self.r0 = r0  # Initial position
@@ -589,15 +589,15 @@ class DiffDiffGenerator(_DiffDiffGenerator):
     dim_aux: int, optional
         Dimension of the auxiliary process, which is the square of
         the diffusivity, by default 1.
-    bounds: np.ndarray, optional
+    bounds: Optional[np.ndarray], optional
         Lower and upper reflecting boundaries that confine the trajectories.
         If None is passed, trajectories are simulated in a free space.
         By default None.
-    bounds_extent: np.ndarray, optional
+    bounds_extent: Optional[np.ndarray]
         Decay length of boundary forces, by default None.
-    bounds_strength: np.ndarray, optional
+    bounds_strength: Optional[np.ndarray]
         Boundaries strength, by default None.
-    r0 : np.ndarray, optional
+    r0 : Optional[np.ndarray]
         Initial positions, by default None.
     """
 
@@ -610,10 +610,10 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         tau: float = 1.0,
         sigma: float = 1.0,
         dim_aux: int = 1,
-        bounds: np.ndarray = None,
-        bounds_extent: np.ndarray = None,
-        bounds_strength: np.ndarray = None,
-        r0: np.ndarray = None,
+        bounds: Optional[np.ndarray] = None,
+        bounds_extent: Optional[np.ndarray] = None,
+        bounds_strength: Optional[np.ndarray] = None,
+        r0: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
     ):
 
