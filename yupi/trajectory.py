@@ -502,9 +502,9 @@ class Trajectory:
         warnings.warn(
             "rotate2d is deprecated, use rotate_2d instead", DeprecationWarning
         )
-        return self.rotate_2d(angle)
+        self.rotate_2d(angle)
 
-    def rotate3d(self, angle: float, vector: Union[list, np.ndarray]):
+    def rotate_3d(self, angle: float, vector: Union[list, np.ndarray]):
         """
         Rotates the trajectory around a given vector.
 
@@ -555,6 +555,12 @@ class Trajectory:
         )
 
         self.r = Vector.create(np.dot(self.r, rot_matrix))
+
+    def rotate3d(self, angle: float, vector: Union[list, np.ndarray]):
+        warnings.warn(
+            "rotate3d is deprecated, use rotate_3d instead", DeprecationWarning
+        )
+        self.rotate_3d(angle, vector)
 
     def copy(self) -> Trajectory:
         """
