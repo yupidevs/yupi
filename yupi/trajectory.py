@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import warnings
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Tuple, Union, cast
 
@@ -486,7 +487,7 @@ class Trajectory:
         y = rad * np.sin(ang)
         self.r = Vector.create([x, y]).T
 
-    def rotate2d(self, angle: float):
+    def rotate_2d(self, angle: float):
         """
         Rotates the trajectory around the center coordinates [0,0]
 
@@ -496,6 +497,12 @@ class Trajectory:
             Angle in radians to rotate the trajectory.
         """
         self.add_polar_offset(0, angle)
+
+    def rotate2d(self, angle: float):
+        warnings.warn(
+            "rotate2d is deprecated, use rotate_2d instead", DeprecationWarning
+        )
+        return self.rotate_2d(angle)
 
     def rotate3d(self, angle: float, vector: Union[list, np.ndarray]):
         """
