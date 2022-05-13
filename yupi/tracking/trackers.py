@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -10,6 +10,9 @@ from yupi.tracking.undistorters import Undistorter
 from yupi.trajectory import Trajectory
 from yupi.transformations import add_moving_FoR
 from yupi.transformations._affine_estimator import _get_affine
+
+Centroid = Tuple[int, int]
+Bounds = Tuple[int, int, int, int]
 
 
 class ROI:
@@ -104,17 +107,19 @@ class ROI:
         self.width, self.height = size
         self.init_mode = init_mode
         self.scale = scale
-        self.__prev_cXY = None, None
-        self.__cXY = None, None
-        self.__global_height, self.__global_width = None, None
+        self._prev_cXY: Centroid
+        self._cXY: Centroid
+        self._global_height: int
+        self._global_width: int
 
     # This repr could change
     def __repr__(self):
-        return "ROI: size=({}, {}) init_mode={} scale={}".format(
-            self.width, self.height, self.init_mode, self.scale
+        return (
+            "ROI: size=({self.width}, {self.height}) "
+            "init_mode={self.init_mode} scale={self.scale}"
         )
 
-    def _recenter(self, centroid: tuple) -> tuple:
+    def _recenter(self, centroid: Optional[Centroid]) -> None:
         """
         Recenters ROI position.
 
@@ -134,20 +139,20 @@ class ROI:
             cX_roi, cY_roi = centroid
 
             # Get the centroid refered to the full image
-            cX = self.__prev_cXY[0] - int(self.width / 2) + cX_roi
-            cY = self.__prev_cXY[1] - int(self.height / 2) + cY_roi
+            cX = self._prev_cXY[0] - int(self.width / 2) + cX_roi
+            cY = self._prev_cXY[1] - int(self.height / 2) + cY_roi
 
-            cX = min(cX, self.__global_width)
+            cX = min(cX, self._global_width)
             cX = max(cX, 0)
-            cY = min(cY, self.__global_height)
+            cY = min(cY, self._global_height)
             cY = max(cY, 0)
 
-            self.__cXY = cX, cY
+            self._cXY = cX, cY
 
         else:
-            self.__cXY = self.__prev_cXY
+            self._cXY = self._prev_cXY
 
-    def _get_bounds(self, prev: bool = False) -> tuple:
+    def _get_bounds(self, prev: bool = False) -> Bounds:
         """
         ROI's bounds.
 
@@ -172,18 +177,18 @@ class ROI:
         """
 
         if prev:
-            cX, cY = self.__prev_cXY
+            cX, cY = self._prev_cXY
         else:
-            cX, cY = self.__cXY
+            cX, cY = self._cXY
 
         half_width, half_height = int(self.width / 2), int(self.height / 2)
         xmin = max(cX - half_width, 0)
-        xmax = min(cX + half_width, self.__global_width)
+        xmax = min(cX + half_width, self._global_width)
         ymin = max(cY - half_height, 0)
-        ymax = min(cY + half_height, self.__global_height)
+        ymax = min(cY + half_height, self._global_height)
         return xmin, xmax, ymin, ymax
 
-    def _center_init(self, frame: np.ndarray) -> tuple:
+    def _center_init(self, frame: np.ndarray) -> Centroid:
         """
         Initialize ROI using center initialization mode.
 
@@ -198,13 +203,13 @@ class ROI:
             Center of the ROI.
         """
 
-        self.__global_height, self.__global_width = frame.shape[:2]
-        self.__cXY = self.__global_width // 2, self.__global_height // 2
-        return self.__cXY
+        self._global_height, self._global_width = frame.shape[:2]
+        self._cXY = self._global_width // 2, self._global_height // 2
+        return self._cXY
 
     # TODO: check for 'win2_name' utility. Maybe it should be 'ROI' as
     # Default so there is no need to pass it as a parameter
-    def _manual_init(self, frame: np.ndarray, name: str) -> tuple:
+    def _manual_init(self, frame: np.ndarray, name: str) -> Centroid:
         """
         Initialize ROI using manual initialization mode.
 
@@ -224,7 +229,7 @@ class ROI:
         win1_name = f"Initialization of trackers: Click on the initial position of: {name.upper()}"
         logging.info(f"Open the video window to select {name}'s center")
 
-        self.__global_height, self.__global_width = frame.shape[:2]
+        self._global_height, self._global_width = frame.shape[:2]
 
         frame_ = _resize_frame(frame, scale=self.scale)
         cv2.imshow(win1_name, frame_)
@@ -234,7 +239,7 @@ class ROI:
         def on_click(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
                 # Global roi center coordinates
-                self.__cXY = int(x / self.scale), int(y / self.scale)
+                self._cXY = int(x / self.scale), int(y / self.scale)
 
                 # Copy of true frame and its resized version
                 img_ = frame_.copy()
@@ -267,7 +272,7 @@ class ROI:
                 "the video window."
             )
 
-        return self.__cXY
+        return self._cXY
 
     def _check_roi_init(self, name: str) -> bool:
         """
@@ -284,7 +289,7 @@ class ROI:
             Whether or not the ROI is initialized.
         """
 
-        if not self.__prev_cXY[0]:
+        if not self._prev_cXY[0]:
             logging.error(f"ROI was not initialized in {name}")
             return False
         else:
@@ -312,20 +317,19 @@ class ROI:
             Whether or not the ROI was initialized.
         """
 
-        h, w = first_frame.shape[:2]
+        height, weight = first_frame.shape[:2]
         if self.width <= 1:
-            self.width *= w
+            self.width *= weight
         if self.height <= 1:
-            self.height *= h
+            self.height *= height
 
         # Initialize ROI coordinates manually by user input
         if self.init_mode == ROI.MANUAL_INIT_MODE:
-            self.__cXY = self._manual_init(first_frame, name)
-            self.__prev_cXY = self.__cXY
+            self._cXY = self._manual_init(first_frame, name)
         else:
-            self.__cXY = self._center_init(first_frame)
-            self.__prev_cXY = self.__cXY
+            self._cXY = self._center_init(first_frame)
 
+        self._prev_cXY = self._cXY
         return self._check_roi_init(name)
 
     def _crop(self, frame: np.ndarray, prev: bool = False) -> np.ndarray:
@@ -345,7 +349,7 @@ class ROI:
             Cropped part of the frame.
         """
 
-        self.__global_height, self.__global_width = frame.shape[:2]
+        self._global_height, self._global_width = frame.shape[:2]
         # Bounds of the roi
         xmin, xmax, ymin, ymax = self._get_bounds(prev)
         window = frame[ymin:ymax, xmin:xmax, :]
@@ -376,9 +380,9 @@ class ObjectTracker:
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
-    history : list of tuple
+    history : List[Centroid]
         ROI's position in every frame of the video.
-    preprocessing : Callable[[np.ndarray], np.ndarray]
+    preprocessing : Optional[Callable[[np.ndarray], np.ndarray]]
         Preprocessing function aplied to the frame before being used by
         the algorithm.
     """
@@ -388,19 +392,19 @@ class ObjectTracker:
         name: str,
         algorithm: TrackingAlgorithm,
         roi: ROI,
-        preprocessing: Callable[[np.ndarray], np.ndarray] = None,
+        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
     ):
         self.name = name
         self.roi = roi
-        self.history = []
         self.algorithm = algorithm
         self.preprocessing = preprocessing
-        self.mask = None
+        self.history: List[Centroid] = []
+        self.mask: np.ndarray
 
     def _init_roi(self, frame: np.ndarray) -> bool:
         return self.roi._initialize(self.name, frame)
 
-    def _track(self, frame: np.ndarray) -> tuple:
+    def _track(self, frame: np.ndarray):
         """
         Tracks the center of the object.
 
@@ -426,7 +430,7 @@ class ObjectTracker:
         self.roi._recenter(centroid)
 
         # Update data
-        self.history.append(self.roi._ROI__cXY)
+        self.history.append(self.roi._cXY)
 
 
 class CameraTracker:
@@ -444,15 +448,15 @@ class CameraTracker:
     roi : ROI
         Region of interest where the background changes will be
         detected.
-    history : list of tuple
+    history : List[Centroid]
         ROI's position in every frame of the video.
     """
 
     def __init__(self, roi: ROI):
-        self.history = []
-        self.mse = []
+        self.history: List[Centroid] = []
+        self.mse: List[float] = []
         self.roi = roi
-        self.features = None
+        self.features: Any
 
     def _init_roi(self, prev_frame: np.ndarray) -> bool:
         return self.roi._initialize("Camera", prev_frame)
@@ -483,12 +487,12 @@ class CameraTracker:
         """
 
         # Initialize a mask of what to track
-        h, w = frame.shape[:2]
-        mask = 255 * np.ones((h, w), dtype=np.uint8)
+        height, weight = frame.shape[:2]
+        mask = 255 * np.ones((height, weight), dtype=np.uint8)
 
         # Mask pixeles inside every ROIs
-        for x0, xf, y0, yf in ignored_regions:
-            mask[y0:yf, x0:xf] = 0
+        for x_0, x_f, y_0, y_f in ignored_regions:
+            mask[y_0:y_f, x_0:x_f] = 0
 
         p_good, aff_params, err = _get_affine(
             img1=prev_frame, img2=frame, region=self.roi._get_bounds(), mask=mask
@@ -551,9 +555,9 @@ class TrackingScenario:
 
     def __init__(
         self,
-        object_trackers: list,
-        camera_tracker: CameraTracker = None,
-        undistorter: Undistorter = None,
+        object_trackers: List[ObjectTracker],
+        camera_tracker: Optional[CameraTracker] = None,
+        undistorter: Optional[Undistorter] = None,
         preview_scale: float = 1,
         auto_mode: bool = True,
     ):
@@ -565,16 +569,16 @@ class TrackingScenario:
         self._enabled = True
         self._iteration_counter = 0
 
-        self.video_path = None
-        self.cap = None
-        self.frame_count = None
-        self.fps = None
-        self.w = None
-        self.h = None
-        self.dim = None
-        self.first_frame = None
-        self.last_frame = None
-        self.prev_frame = None
+        self.video_path: str
+        self.cap: Any
+        self.frame_count: int
+        self.fps: int
+        self.w: int
+        self.h: int
+        self.dim: Tuple[int, int]
+        self.prev_frame: np.ndarray
+        self.first_frame: Optional[int] = None
+        self.last_frame: Optional[int] = None
 
     def _digest_video_path(self, video_path):
         if not Path.exists(Path(video_path)):
@@ -643,7 +647,7 @@ class TrackingScenario:
 
             # Draw a point over the roi center and draw bounds
             x1, x2, y1, y2 = otrack.roi._get_bounds()
-            cv2.circle(frame, otrack.roi._ROI__cXY, 5, (255, 255, 255), -1)
+            cv2.circle(frame, otrack.roi._cXY, 5, (255, 255, 255), -1)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
             cv2.putText(
                 frame,
@@ -765,7 +769,8 @@ class TrackingScenario:
                     otrack.roi,
                 )
                 cv2.imshow(
-                    f"Initialization of trackers: Press any key to start with tracker: {tracker_name.upper()}",
+                    f"Initialization of trackers: Press any key to start with "
+                    "tracker: {tracker_name.upper()}",
                     ui,
                 )
                 cv2.waitKey(-1)
@@ -836,7 +841,7 @@ class TrackingScenario:
         self._show_frame(frame)
 
         for otrack in self.object_trackers:
-            otrack.roi._ROI__prev_cXY = otrack.roi._ROI__cXY
+            otrack.roi._prev_cXY = otrack.roi._cXY
 
         # Save current frame and ROI center as previous for next iteration
         self.prev_frame = frame.copy()
