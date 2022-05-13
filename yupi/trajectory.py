@@ -4,7 +4,7 @@ import csv
 import json
 import os
 from pathlib import Path
-from typing import List, NamedTuple, Tuple, Union
+from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Tuple, Union, cast
 
 import numpy as np
 
@@ -141,26 +141,26 @@ class Trajectory:
         values delta.
     """
 
-    __vel_est = {
+    __vel_est: Dict[str, Any] = {
         "method": vel_estimators.VelocityMethod.LINEAR_DIFF,
         "window_type": vel_estimators.WindowType.CENTRAL,
     }
 
     def __init__(
         self,
-        x: np.ndarray = None,
-        y: np.ndarray = None,
-        z: np.ndarray = None,
-        points: np.ndarray = None,
-        axes: np.ndarray = None,
-        t: np.ndarray = None,
-        ang: np.ndarray = None,
-        dt: float = None,
+        x: Optional[Union[np.ndarray, list, Vector]] = None,
+        y: Optional[Union[np.ndarray, list, Vector]] = None,
+        z: Optional[Union[np.ndarray, list, Vector]] = None,
+        points: Optional[Union[np.ndarray, list, Vector]] = None,
+        axes: Optional[Union[np.ndarray, list, Vector]] = None,
+        t: Optional[Union[np.ndarray, list, Vector]] = None,
+        ang: Optional[Union[np.ndarray, list, Vector]] = None,
+        dt: Optional[float] = None,
         t0: float = 0.0,
-        traj_id: str = None,
-        lazy: bool = False,
-        vel_est: dict = None,
-    ):
+        traj_id: Optional[str] = None,
+        lazy: Optional[bool] = False,
+        vel_est: Optional[dict] = None,
+    ):  # pylint: disable=invalid-name
 
         # Position data validation
         from_xyz = x is not None
@@ -174,29 +174,23 @@ class Trajectory:
             )
 
         # Set position data
-        self.r = None
-        data: List[Vector] = [t, ang]
-        lengths = [len(item) for item in data if item is not None]
+        lengths = [len(item) for item in [t, ang] if item is not None]
 
-        for i, item in enumerate(data):
-            if item is not None:
-                data[i] = Vector.create(item, dtype=float)
-
+        # xyz data is converted to axes
         if from_xyz:
             axes = [d for d in [x, y, z] if d is not None]
-            from_axes = True
 
-        if from_axes and len(axes) > 0:
+        # Check if positional data is given
+        if axes is not None and len(axes) > 0:
             lengths.extend([len(d) for d in axes])
             self.r = Vector.create(axes, dtype=float).T
-
-        if from_points:
+        elif points is not None:
             lengths.append(len(points))
             self.r = Vector.create(points, dtype=float)
-
-        if self.r is None:
+        else:
             raise ValueError("No position data were given.")
 
+        # Check if all the given data has the same shape
         if lengths.count(lengths[0]) != len(lengths):
             raise ValueError("All input arrays must have the same shape.")
 
@@ -204,10 +198,9 @@ class Trajectory:
             raise ValueError("The trajectory must contain at least 2 points.")
 
         self.__dt = dt
-        self.dt_mean = dt
         self.__t0 = t0
-        self.__t = data[0]
-        self.ang = data[1]
+        self.__t = None if t is None else Vector.create(t, dtype=float)
+        self.ang = None if ang is None else Vector.create(ang, dtype=float)
         self.traj_id = traj_id
         self.lazy = lazy
 
@@ -227,7 +220,7 @@ class Trajectory:
         self.recalculate_velocity()
 
         # Time parameters validation
-        if t is not None and dt is not None:
+        if self.__t is not None and dt is not None:
             if abs(self.dt_mean - dt) > _threshold:
                 raise ValueError(
                     "You are giving 'dt' and 't' but 'dt' "
@@ -322,7 +315,7 @@ class Trajectory:
     def __len__(self):
         return self.r.shape[0]
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> Union[Trajectory, TrajectoryPoint]:
         if isinstance(index, int):
             # *dim, *ang, v, t
             data = [self.r[index], [], None, None]
@@ -364,13 +357,14 @@ class Trajectory:
             return Trajectory(
                 points=new_points, ang=new_ang, t=new_t, vel_est=self.vel_est
             )
+        raise TypeError("Index must be an integer or a slice.")
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[TrajectoryPoint]:
         for i in range(len(self)):
-            yield self[i]
+            yield cast(TrajectoryPoint, self[i])
 
     @property
-    def bounds(self) -> List[Tuple[float]]:
+    def bounds(self) -> List[Tuple[float, float]]:
         """List[Tuple[float]] : List of tuples indicanting the min and
         max values of each dimension"""
         _bounds = []
@@ -420,7 +414,7 @@ class Trajectory:
         return self.__v
 
     @property
-    def v(self) -> Vector:
+    def v(self) -> Vector:  # pylint: disable=invalid-name
         """Vector : Velocity vector"""
         if self.__v is None:
             method = self.vel_est["method"]
@@ -454,7 +448,7 @@ class Trajectory:
         """Union[Vector, None] : Computes the angular velocity from the
         ``ang`` vector of the Trajectory."""
         if self.ang is not None:
-            return self.ang.delta / self.dt
+            return (self.ang.delta / self.dt).view(Vector)
         return None
 
     def add_polar_offset(self, radius: float, angle: float) -> None:
@@ -525,35 +519,35 @@ class Trajectory:
                 "3D rotations can only be applied on 3 " "dimensional trajectories"
             )
 
-        vec: Vector = Vector.create(vector)
+        vec = Vector.create(vector)
         if len(vec) != 3:
             raise ValueError("The vector must have 3 components")
 
-        vec = vec / vec.norm
-        vx, vy, vz = vec[0], vec[1], vec[2]
-        c, s = np.cos(angle), np.sin(angle)
+        vec = (vec / vec.norm).view(Vector)
+        v_x, v_y, v_z = vec[0], vec[1], vec[2]
+        a_cos, a_sin = np.cos(angle), np.sin(angle)
 
-        R = np.array(
+        rot_matrix = np.array(
             [
                 [
-                    vx * vx * (1 - c) + c,
-                    vx * vy * (1 - c) - vz * s,
-                    vx * vz * (1 - c) + vy * s,
+                    v_x * v_x * (1 - a_cos) + a_cos,
+                    v_x * v_y * (1 - a_cos) - v_z * a_sin,
+                    v_x * v_z * (1 - a_cos) + v_y * a_sin,
                 ],
                 [
-                    vx * vy * (1 - c) + vz * s,
-                    vy * vy * (1 - c) + c,
-                    vy * vz * (1 - c) - vx * s,
+                    v_x * v_y * (1 - a_cos) + v_z * a_sin,
+                    v_y * v_y * (1 - a_cos) + a_cos,
+                    v_y * v_z * (1 - a_cos) - v_x * a_sin,
                 ],
                 [
-                    vx * vz * (1 - c) - vy * s,
-                    vy * vz * (1 - c) + vx * s,
-                    vz * vz * (1 - c) + c,
+                    v_x * v_z * (1 - a_cos) - v_y * a_sin,
+                    v_y * v_z * (1 - a_cos) + v_x * a_sin,
+                    v_z * v_z * (1 - a_cos) + a_cos,
                 ],
             ]
         )
 
-        self.r = Vector.create(np.dot(self.r, R))
+        self.r = Vector.create(np.dot(self.r, rot_matrix))
 
     def copy(self) -> Trajectory:
         """
@@ -584,7 +578,7 @@ class Trajectory:
         self_time = self.t
         other_time = other.t
 
-        diff = np.abs(self_time - other_time)
+        diff = np.abs(np.subtract(self_time, other_time))
         return all(diff < threshold)
 
     def __iadd__(self, other):
@@ -705,9 +699,9 @@ class Trajectory:
             to a given time instant.
         """
 
-        dx = self.delta_r.x
-        dy = self.delta_r.y
-        theta = np.arctan2(dy, dx)
+        d_x = self.delta_r.x
+        d_y = self.delta_r.y
+        theta = np.arctan2(d_y, d_x)
 
         if not accumulate:
             theta = np.ediff1d(theta)  # Relative turning angles
@@ -727,8 +721,8 @@ class Trajectory:
         discont_half = discont / 2
         return -((discont_half - theta) % discont - discont_half)
 
-    def _save_json(self, path: str):
-        def convert_to_list(vec: Vector):
+    def _save_json(self, path: Union[str, Path]) -> None:
+        def convert_to_list(vec: Optional[Vector]):
             if vec is None:
                 return vec
 
@@ -758,7 +752,7 @@ class Trajectory:
         with open(str(path), "w") as traj_file:
             json.dump(json_dict, traj_file)
 
-    def _save_csv(self, path):
+    def _save_csv(self, path: Union[str, Path]) -> None:
         with open(str(path), "w", newline="") as traj_file:
             writer = csv.writer(traj_file, delimiter=",")
             ang_shape = 0 if self.ang is None else self.ang.shape[1]
@@ -773,8 +767,8 @@ class Trajectory:
             print(method, window, accuracy)
             writer.writerow([method, window, accuracy])
 
-            for tp in self:
-                row = np.hstack(np.array([tp.r, tp.ang, tp.t], dtype=object))
+            for t_p in self:
+                row = np.hstack([t_p.r, t_p.ang, t_p.t])
                 writer.writerow(row)
 
     def save(
@@ -898,17 +892,21 @@ class Trajectory:
     def _load_csv(path: str):
         with open(path, "r") as traj_file:
 
-            def check_empty_val(val, cast=True):
+            def check_empty_val(val, cast=True) -> Union[None, float]:
                 if val == "":
                     return None
                 return float(val) if cast else val
 
-            r, ang, t = [], [], []
-            traj_id, dt, dim = None, None, None
+            r: List[List[float]] = []
+            t: List[float] = []
+            ang = []
+            traj_id: Optional[str] = None
+            dt, dim, ang_dim = 1.0, 1, 1
+            vel_est = Trajectory.__vel_est
 
             for i, row in enumerate(csv.reader(traj_file)):
                 if i == 0:
-                    traj_id = check_empty_val(row[0], cast=False)
+                    traj_id = row[0] if row[0] != "" else None
                     dt = check_empty_val(row[1])
                     dim = int(row[2])
                     ang_dim = int(row[3])
@@ -928,14 +926,18 @@ class Trajectory:
                     r[j].append(float(row[j]))
 
                 for j, k in enumerate(range(dim, dim + ang_dim)):
-                    ang[j] = row[k]
+                    ang[j][k - dim] = check_empty_val(row[k])
 
                 t.append(float(row[-1]))
 
             if not ang:
                 ang = None
+            elif ang_dim == 1:
+                ang = np.array(ang).T
 
-            return Trajectory(axes=r, t=t, ang=ang, dt=dt, traj_id=traj_id)
+            return Trajectory(
+                axes=r, t=t, ang=ang, dt=dt, traj_id=traj_id, vel_est=vel_est
+            )
 
     @staticmethod
     def load(file_path: str):
@@ -975,10 +977,9 @@ class Trajectory:
         try:
             if file_type == ".json":
                 return Trajectory._load_json(file_path)
-            elif file_type == ".csv":
+            if file_type == ".csv":
                 return Trajectory._load_csv(file_path)
-            else:
-                raise ValueError("Invalid file type.")
+            raise ValueError("Invalid file type.")
         except (json.JSONDecodeError, KeyError, ValueError, IndexError) as exc:
             raise LoadTrajectoryError(path) from exc
 

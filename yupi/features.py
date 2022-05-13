@@ -54,7 +54,7 @@ class Features:
 
         _dict = dict(self.__class__.__dict__)
         _dict = {k: v for k, v in _dict.items() if isinstance(v, property)}
-        _keys = _dict.keys()
+        _keys = list(_dict.keys())
         if remove is not None:
             _keys = [k for k in _keys if k not in remove]
         if only is not None:
