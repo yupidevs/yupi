@@ -4,12 +4,14 @@ from one of the aforementioned modules.
 """
 
 import logging
+import warnings
 
 from yupi._vel_estimators import VelocityMethod, WindowType
 from yupi.features import Features
 from yupi.trajectory import Trajectory, TrajectoryPoint
 from yupi.vector import Vector
 
+warnings.filterwarnings("default", category=DeprecationWarning, module="yupi")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",

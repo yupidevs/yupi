@@ -1,5 +1,6 @@
 import itertools
 import logging
+import warnings
 from typing import List, Optional, Union
 
 import matplotlib.pyplot as plt
@@ -8,7 +9,7 @@ from yupi import Trajectory
 from yupi.graphics._style import LINE, YUPI_COLORS
 
 
-def plot_2D(
+def plot_2d(
     trajs: Union[List[Trajectory], Trajectory],
     line_style: str = LINE,
     title: Optional[str] = None,
@@ -133,7 +134,32 @@ def plot_2D(
         plt.show()
 
 
-def plot_3D(
+def plot_2D(
+    trajs: Union[List[Trajectory], Trajectory],
+    line_style: str = LINE,
+    title: Optional[str] = None,
+    legend: bool = True,
+    show: bool = True,
+    connected: bool = False,
+    units: str = "m",
+    color=None,
+    **kwargs,
+):
+    warnings.warn("plot_2D is deprecated, use plot_2d instead", DeprecationWarning)
+    plot_2d(
+        trajs,
+        line_style,
+        title,
+        legend,
+        show,
+        connected,
+        units,
+        color,
+        **kwargs,
+    )
+
+
+def plot_3d(
     trajs: Union[List[Trajectory], Trajectory],
     line_style: str = LINE,
     title: Optional[str] = None,
@@ -263,3 +289,28 @@ def plot_3D(
 
     if show:
         plt.show()
+
+
+def plot_3D(
+    trajs: Union[List[Trajectory], Trajectory],
+    line_style: str = LINE,
+    title: Optional[str] = None,
+    legend: bool = True,
+    show: bool = True,
+    connected: bool = False,
+    units: str = "m",
+    color=None,
+    **kwargs,
+):
+    warnings.warn("plot_3D is deprecated, use plot_3d instead", DeprecationWarning)
+    plot_3d(
+        trajs,
+        line_style,
+        title,
+        legend,
+        show,
+        connected,
+        units,
+        color,
+        **kwargs,
+    )
