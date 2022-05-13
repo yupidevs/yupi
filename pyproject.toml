@@ -10,6 +10,9 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/yupidevs/yupi"
+documentation = "https://yupi.readthedocs.io"
+keywords = ["trajectory", "analysis", "tracking"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
