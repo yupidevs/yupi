@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -10,8 +10,8 @@ def add_moving_FoR(
     traj: Trajectory,
     reference: Tuple[np.ndarray, np.ndarray, np.ndarray],
     start_at_origin: bool = True,
-    new_traj_id: str = None,
-):
+    new_traj_id: Optional[str] = None,
+) -> Trajectory:
     """
     This function fuses the information of a trajectory with an
     external reference of the motion of the Frame of Reference
@@ -69,9 +69,6 @@ def add_moving_FoR(
     if start_at_origin:
         x_al = x_al - x_al[0]
         y_al = y_al - y_al[0]
-
-    traj.x = x_al
-    traj.y = y_al
 
     moved_traj = Trajectory(
         x=x_al,
