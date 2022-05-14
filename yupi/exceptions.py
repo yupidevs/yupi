@@ -1,3 +1,7 @@
+"""
+This contains specific exceptions related to the library.
+"""
+
 class YupiException(Exception):
     """Generic exception for yupi package"""
 

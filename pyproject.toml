@@ -34,6 +34,25 @@ known_first_party = ["yupi"]
 [tool.black]
 target-version = ["py37"]
 
+[tool.pylint."MESSAGES CONTROL"]
+extension-pkg-whitelist = ["cv2"]
+max-line-length = 88
+good-names = [
+	"x",   # Data from x axis
+	"y",   # Data from y axis
+	"z",   # Data from z axis
+	"t",   # Time vector
+	"r",   # Position vector
+	"v",   # Velocity vector
+	"dt",  # Time spacing (delta time)
+	"i",   # Usual iteration variable
+	"j",   # Usual iteration variable
+	"k",   # Usual iteration variable
+	"ax",  # Matplotlib Axes
+	"T",   # Total time
+	"N"    # Number of trajectories
+]
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

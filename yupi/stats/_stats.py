@@ -1,14 +1,20 @@
+"""
+This contains all the statistical functions.
+"""
+
+# pylint: disable=too-many-arguments
+
 import logging
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
 from yupi._checkers import (
-    _check_exact_dim,
-    _check_same_dim,
-    _check_same_dt,
-    _check_same_t,
-    _check_uniform_time_spaced,
+    check_exact_dim,
+    check_same_dim,
+    check_same_dt,
+    check_same_t,
+    check_uniform_time_spaced,
 )
 from yupi.trajectory import Trajectory
 from yupi.transformations import subsample
@@ -197,8 +203,8 @@ def collect(
     concat: bool = True,
     warnings: bool = True,
     velocity: bool = False,
-    func: Optional[Callable[[Vector], Any]] = None,
-    at: Optional[Union[int, float]] = None,
+    func: Optional[Callable[[Vector], Vector]] = None,
+    at: Optional[Union[int, float]] = None,  # pylint: disable=invalid-name
 ) -> np.ndarray:
     """
     Collect general function.
@@ -224,7 +230,7 @@ def collect(
     velocity : bool, optional
         If true, the velocity will be returned (calculated using the
         lag if given), by default False.
-    func : Optional[Callable[[Vector], Any]]
+    func : Optional[Callable[[Vector], Vector]]
         Function to apply to each resulting vector, by default None.
     at : Optional[Union[int, float]]
         If int, the index of the collected vector in the trajectory. If
@@ -242,30 +248,30 @@ def collect(
         If ``lag`` and ``at`` are given at the same time.
     """
 
-    is_step = lag is not None and isinstance(lag, int)
-    is_time = lag is not None and isinstance(lag, float)
-    is_at_step = at is not None and isinstance(at, int)
-    is_at_time = at is not None and isinstance(at, float)
+    checks = [
+        isinstance(lag, int),
+        isinstance(lag, float),
+        isinstance(at, int),
+        isinstance(at, float),
+    ]
 
-    if is_step + is_time + is_at_step + is_at_time == 0:
-        is_step = True
+    if sum(checks) == 0:
         lag = 0
-    if is_step + is_time + is_at_step + is_at_time > 1:
+        checks[0] = True
+    if sum(checks) > 1:
         raise ValueError(
             "You can not set `lag` and `at` parameters at the " "same time"
         )
-    is_lag = is_step or is_time
-    is_at = is_at_step or is_at_time
+    is_lag = checks[0] or checks[1]
 
     data = []
-
     for traj in trajs:
         if is_lag:
             assert lag is not None
-            step = int(lag / traj.dt) if is_time else int(lag)
+            step = int(lag / traj.dt) if checks[1] else int(lag)
         else:
             assert at is not None
-            step = int(at / traj.dt) if is_at_time else int(at)
+            step = int(at / traj.dt) if checks[3] else int(at)
 
         current_vec = traj.r
         if step == 0:
@@ -278,11 +284,11 @@ def collect(
 
         if warnings and step >= len(current_vec):
             logging.warning(
-                f"Trajectory {traj.traj_id} is shorten than " f"{step} samples"
+                "Trajectory %s is shorten than %i samples", traj.traj_id, step
             )
             continue
 
-        if is_at:
+        if not is_lag:  # Is at
             data.append(current_vec[step])
             continue
 
@@ -301,9 +307,9 @@ def collect(
     return np.array(data) if equal_len else np.array(data, dtype=object)
 
 
-@_check_same_dt
-@_check_exact_dim(2)
-@_check_uniform_time_spaced
+@check_same_dt
+@check_exact_dim(2)
+@check_uniform_time_spaced
 def turning_angles_ensemble(
     trajs: List[Trajectory], accumulate=False, degrees=False, centered=False, wrap=True
 ) -> np.ndarray:
@@ -340,7 +346,7 @@ def turning_angles_ensemble(
     return np.concatenate(theta)
 
 
-@_check_same_dim
+@check_same_dim
 def speed_ensemble(trajs: List[Trajectory], step: int = 1) -> np.ndarray:
     """
     Estimate speeds of the list of trajectories, ``trajs``,
@@ -364,7 +370,7 @@ def speed_ensemble(trajs: List[Trajectory], step: int = 1) -> np.ndarray:
     return np.concatenate([traj.v.norm for traj in trajs_])
 
 
-@_check_same_t
+@check_same_t
 def msd_ensemble(trajs: List[Trajectory]) -> np.ndarray:
     """
     Compute the square displacements for every Trajectory object
@@ -393,15 +399,15 @@ def msd_ensemble(trajs: List[Trajectory]) -> np.ndarray:
 
         # Square displacements
         r_2 = (r - r[0]) ** 2  # Square coordinates
-        r2 = np.sum(r_2, axis=1)  # Square distances
-        _msd.append(r2)  # Append square distances
+        r_2_dis = np.sum(r_2, axis=1)  # Square distances
+        _msd.append(r_2_dis)  # Append square distances
 
     # Transpose to have time/trials as first/second axis
     return np.transpose(_msd)
 
 
-@_check_same_dt
-@_check_uniform_time_spaced
+@check_same_dt
+@check_uniform_time_spaced
 def msd_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the mean square displacement for every Trajectory
@@ -435,9 +441,9 @@ def msd_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
         current_msd = np.empty(lag)
         for lag_ in range(1, lag + 1):
             # Lag displacement vectors
-            dr = r[lag_:] - r[:-lag_]
+            lagged_r = r[lag_:] - r[:-lag_]
             # Lag displacement
-            dr2 = np.sum(dr**2, axis=1)
+            dr2 = np.sum(lagged_r**2, axis=1)
             # Averaging over a single realization
             current_msd[lag_ - 1] = np.mean(dr2)
 
@@ -448,7 +454,7 @@ def msd_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
     return np.transpose(_msd)
 
 
-@_check_same_dim
+@check_same_dim
 def msd(
     trajs: List[Trajectory], time_avg: bool = True, lag: Optional[int] = None
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -491,7 +497,7 @@ def msd(
     return msd_mean, msd_std
 
 
-@_check_same_t
+@check_same_t
 def vacf_ensemble(trajs: List[Trajectory]) -> np.ndarray:
     """
     Compute the pair-wise dot product between initial and current
@@ -525,8 +531,8 @@ def vacf_ensemble(trajs: List[Trajectory]) -> np.ndarray:
     return np.transpose(_vacf)
 
 
-@_check_same_dt
-@_check_uniform_time_spaced
+@check_same_dt
+@check_uniform_time_spaced
 def vacf_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the velocity autocorrelation function for every
@@ -576,7 +582,7 @@ def vacf_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
     return np.transpose(_vacf)
 
 
-@_check_same_dim
+@check_same_dim
 def vacf(
     trajs: List[Trajectory], time_avg: bool = True, lag: Optional[int] = None
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -646,14 +652,14 @@ def _kurtosis(arr):
 
         # Second and fourth central moments averaging
         # over repetitions
-        m2 = np.mean(arr_zm**2)
-        m4 = np.mean(arr_zm**4)
+        m_2 = np.mean(arr_zm**2)
+        m_4 = np.mean(arr_zm**4)
 
         # Compute kurtosis for those cases in which the
         # second moment is different from zero
-        if m2 == 0:
+        if m_2 == 0:
             return 0
-        kurt = m4 / m2**2
+        kurt = m_4 / m_2**2
         return kurt
 
     # MULTIDIMENSIONAL CASE
@@ -671,13 +677,13 @@ def _kurtosis(arr):
         return 0
 
     # Kurtosis definition for multivariate r.v.'s
-    k = np.sum(arr_zm * (cov_inv @ arr_zm), axis=0)
-    kurt = np.mean(k**2)
+    _k = np.sum(arr_zm * (cov_inv @ arr_zm), axis=0)
+    kurt = np.mean(_k**2)
 
     return kurt
 
 
-@_check_same_t
+@check_same_t
 def kurtosis_ensemble(trajs: List[Trajectory]) -> np.ndarray:
     """Estimate kurtosis as a function of time of the
     list of Trajectory objects, ``trajs``. The average
@@ -696,7 +702,7 @@ def kurtosis_ensemble(trajs: List[Trajectory]) -> np.ndarray:
 
     # Get ensemble positions where axis 0/1/2 are
     # in the order trials/time/dim
-    r = Vector.create([traj.r for traj in trajs])
+    r = Vector([traj.r for traj in trajs])
 
     # Set trials as the last axis
     moved_r = np.moveaxis(r, 0, 2)
@@ -707,8 +713,8 @@ def kurtosis_ensemble(trajs: List[Trajectory]) -> np.ndarray:
     return np.array(kurt)
 
 
-@_check_same_dt
-@_check_uniform_time_spaced
+@check_same_dt
+@check_uniform_time_spaced
 def kurtosis_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the kurtosis for every Trajectory object stored
@@ -734,16 +740,16 @@ def kurtosis_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
         current_kurt = np.empty(lag)
         for lag_ in range(lag):
             try:
-                dr = traj.r[lag_:] - traj.r[:-lag_]
+                lagged_r = traj.r[lag_:] - traj.r[:-lag_]
             except ValueError:
                 current_kurt[lag_] = 0
                 continue
-            current_kurt[lag_] = _kurtosis(dr.T)
+            current_kurt[lag_] = _kurtosis(lagged_r.T)
         kurt.append(current_kurt)
     return np.transpose(kurt)
 
 
-@_check_same_dim
+@check_same_dim
 def kurtosis(
     trajs: List[Trajectory], time_avg: bool = True, lag: Optional[int] = None
 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
@@ -774,7 +780,7 @@ def kurtosis(
 
     if not time_avg:
         return kurtosis_ensemble(trajs), None
-    elif lag is None:
+    if lag is None:
         raise ValueError("You must set 'lag' param if 'time_avg' is True")
 
     kurt = kurtosis_time(trajs, lag)
@@ -783,7 +789,7 @@ def kurtosis(
     return kurt_mean, kurt_std
 
 
-@_check_same_dim
+@check_same_dim
 def kurtosis_reference(trajs: List[Trajectory]) -> float:
     """Get the sampled kurtosis for the case of
     ``len(trajs)`` trajectories whose position
@@ -800,16 +806,16 @@ def kurtosis_reference(trajs: List[Trajectory]) -> float:
         Value of kurtosis.
     """
 
-    d = trajs[0].dim
-    n = len(trajs)
-    kurt = d * (d + 2)
-    if n == 1:
+    dim = trajs[0].dim
+    count = len(trajs)
+    kurt = dim * (dim + 2)
+    if count == 1:
         return kurt
-    return kurt * (n - 1) / (n + 1)
+    return kurt * (count - 1) / (count + 1)
 
 
-@_check_same_dt
-@_check_uniform_time_spaced
+@check_same_dt
+@check_uniform_time_spaced
 def psd(
     trajs: List[Trajectory], lag: int, omega: bool = True
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -835,9 +841,9 @@ def psd(
     """
 
     _vacf = vacf_time(trajs, lag)
-    ft = np.fft.fft(_vacf, axis=0) * trajs[0].dt
-    ft = np.fft.fftshift(ft)
-    ft_abs = np.abs(ft)
+    _ft = np.fft.fft(_vacf, axis=0) * trajs[0].dt
+    _ft = np.fft.fftshift(_ft)
+    ft_abs = np.abs(_ft)
     ft_mean = np.mean(ft_abs, axis=1)
     ft_std = np.std(ft_abs, axis=1)
 

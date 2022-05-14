@@ -1,3 +1,7 @@
+"""
+This contains the methods to estimate the velocity of a trajectory.
+"""
+
 import enum
 from typing import Optional
 
@@ -7,30 +11,31 @@ from yupi.vector import Vector
 
 
 class VelocityMethod(enum.Enum):
-    """
-    Enum to define the method to calculate the velocity.
-    """
+    """Enum to define the method to calculate the velocity."""
 
     LINEAR_DIFF = enum.auto()
     FORNBERG_DIFF = enum.auto()
 
 
 class WindowType(enum.Enum):
-    """
-    Enum to define the type of window to use.
-    """
+    """Enum to define the type of window to use."""
 
     FORWARD = enum.auto()
     BACKWARD = enum.auto()
     CENTRAL = enum.auto()
 
 
-def coeff(x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None):
-    N = len(a)
-    M = 2
-    coeff = np.zeros((M, N, N)) if coeff_arr is None else coeff_arr
+def _get_coeff(x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None):
+    # pylint: disable=invalid-name
+    # The variables where named as in the original algorithm.
 
-    coeff[0, 0, 0] = 1
+    N = len(a)
+    M = 2  # Fixed to the second derivative.
+
+    if coeff_arr is None:
+        coeff_arr = np.zeros((M, N, N))
+
+    coeff_arr[0, 0, 0] = 1
     c1 = 1
     for n in range(1, N):
         c2 = 1
@@ -38,75 +43,75 @@ def coeff(x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None):
             c3 = a[n] - a[v]
             c2 = c2 * c3
             if n < M:
-                coeff[n, n - 1, v] = 0
+                coeff_arr[n, n - 1, v] = 0
             for m in range(min(n + 1, M)):
-                d_1 = coeff[m, n - 1, v]
-                d_2 = coeff[m - 1, n - 1, v] if m != 0 else 0
-                coeff[m, n, v] = ((a[n] - x_0) * d_1 - m * d_2) / c3
+                d_1 = coeff_arr[m, n - 1, v]
+                d_2 = coeff_arr[m - 1, n - 1, v] if m != 0 else 0
+                coeff_arr[m, n, v] = ((a[n] - x_0) * d_1 - m * d_2) / c3
         for m in range(min(n + 1, M)):
-            d_1 = coeff[m - 1, n - 1, n - 1] if m != 0 else 0
-            d_2 = coeff[m, n - 1, n - 1]
-            coeff[m, n, n] = (c1 / c2) * (m * d_1 - (a[n - 1] - x_0) * d_2)
+            d_1 = coeff_arr[m - 1, n - 1, n - 1] if m != 0 else 0
+            d_2 = coeff_arr[m, n - 1, n - 1]
+            coeff_arr[m, n, n] = (c1 / c2) * (m * d_1 - (a[n - 1] - x_0) * d_2)
         c1 = c2
 
-    return coeff
+    return coeff_arr
 
 
-def validate_traj(traj, method, window_type, accuracy):
-    l = len(traj)
+def _validate_traj(traj, method, window_type, accuracy):
+    length = len(traj)
     if method == VelocityMethod.LINEAR_DIFF:
-        return l >= 3 if window_type == WindowType.CENTRAL else l >= 2
+        return length >= 3 if window_type == WindowType.CENTRAL else length >= 2
     if method == VelocityMethod.FORNBERG_DIFF:
-        return l >= accuracy + 1
+        return length >= accuracy + 1
     raise ValueError("Invalid method to estimate the velocity.")
 
 
 def _linear_diff(traj, window_type):
-    v = np.zeros_like(traj.r)
+    vel = np.zeros_like(traj.r)
     if window_type == WindowType.FORWARD:
         diff = ((traj.r[1:] - traj.r[:-1]).T / (traj.t[1:] - traj.t[:-1])).T
-        v[:-1] = diff
-        v[-1] = diff[-1]
+        vel[:-1] = diff
+        vel[-1] = diff[-1]
     elif window_type == WindowType.BACKWARD:
         diff = ((traj.r[1:] - traj.r[:-1]).T / (traj.t[1:] - traj.t[:-1])).T
-        v[1:] = diff
-        v[0] = diff[0]
+        vel[1:] = diff
+        vel[0] = diff[0]
     elif window_type == WindowType.CENTRAL:
         diff = ((traj.r[2:] - traj.r[:-2]).T / (traj.t[2:] - traj.t[:-2])).T
-        v[1:-1] = diff
-        v[0] = diff[0]
-        v[-1] = diff[-1]
+        vel[1:-1] = diff
+        vel[0] = diff[0]
+        vel[-1] = diff[-1]
     else:
         raise ValueError("Invalid window type to estimate the velocity.")
-    return Vector.create(v)
+    return Vector(vel)
 
 
-def _fornberg_diff_forward(traj, n):
-    v = np.zeros_like(traj.r)
+def _fornberg_diff_forward(traj, n):  # pylint: disable=invalid-name
+    vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
     for i in range(len(traj.r)):
         alpha = traj.t[i : i + a_len] if i < len(traj.r) - a_len else traj.t[-a_len:]
         _y = traj.r[i : i + a_len] if i < len(traj.r) - a_len else traj.r[-a_len:]
-        _coeff = coeff(traj.t[i], alpha, _coeff)
-        v[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
-    return Vector.create(v)
+        _coeff = _get_coeff(traj.t[i], alpha, _coeff)
+        vel[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
+    return Vector(vel)
 
 
-def _fornberg_diff_backward(traj, n):
-    v = np.zeros_like(traj.r)
+def _fornberg_diff_backward(traj, n):  # pylint: disable=invalid-name
+    vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
     for i in range(len(traj.r)):
         alpha = traj.t[i - a_len : i] if i >= a_len else traj.t[:a_len]
         _y = traj.r[i - a_len : i] if i >= a_len else traj.r[:a_len]
-        _coeff = coeff(traj.t[i], alpha, _coeff)
-        v[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
-    return Vector.create(v)
+        _coeff = _get_coeff(traj.t[i], alpha, _coeff)
+        vel[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
+    return Vector(vel)
 
 
-def _fornberg_diff_central(traj, n):
-    v = np.zeros_like(traj.r)
+def _fornberg_diff_central(traj, n):  # pylint: disable=invalid-name
+    vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
     midd = n // 2
@@ -120,9 +125,9 @@ def _fornberg_diff_central(traj, n):
         else:
             alpha = traj.t[-a_len:]
             _y = traj.r[-a_len:]
-        _coeff = coeff(traj.t[i], alpha, _coeff)
-        v[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
-    return Vector.create(v)
+        _coeff = _get_coeff(traj.t[i], alpha, _coeff)
+        vel[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
+    return Vector(vel)
 
 
 def estimate_velocity(
@@ -155,7 +160,7 @@ def estimate_velocity(
     ValueError
         If the trajectory is too short to estimate the velocity.
     """
-    if not validate_traj(traj, method, window_type, accuracy):
+    if not _validate_traj(traj, method, window_type, accuracy):
         raise ValueError("Trajectory is too short to estimate the velocity.")
 
     if method == VelocityMethod.LINEAR_DIFF:

@@ -9,10 +9,16 @@ from yupi.tracking.algorithms import TrackingAlgorithm, _resize_frame
 from yupi.tracking.undistorters import Undistorter
 from yupi.trajectory import Trajectory
 from yupi.transformations import add_moving_FoR
-from yupi.transformations._affine_estimator import _get_affine
+from yupi.transformations._affine_estimator import AffineParams, _get_affine
+
+# pylint: disable=protected-access
+
 
 Centroid = Tuple[int, int]
+"""Centroid of a tracked object: x, y."""
+
 Bounds = Tuple[int, int, int, int]
+"""Bounds of a frame: x_min, x_max, y_min, y_max."""
 
 
 class ROI:
@@ -24,7 +30,7 @@ class ROI:
 
     Parameters
     ----------
-    size : tuple of float
+    size : Tuple[float, float]
         Size of the region of interest.
 
         If both tuple's values are grater than 1 then they are rounded
@@ -85,7 +91,10 @@ class ROI:
     """Center initialization mode for the ROI"""
 
     def __init__(
-        self, size: tuple, init_mode: str = MANUAL_INIT_MODE, scale: float = 1
+        self,
+        size: Tuple[float, float],
+        init_mode: str = MANUAL_INIT_MODE,
+        scale: float = 1,
     ):
 
         if size[0] <= 0 or size[1] <= 0:
@@ -107,12 +116,12 @@ class ROI:
         self.width, self.height = size
         self.init_mode = init_mode
         self.scale = scale
-        self._prev_cXY: Centroid
-        self._cXY: Centroid
+
+        self._prev_centroid: Centroid
+        self._centroid: Centroid
         self._global_height: int
         self._global_width: int
 
-    # This repr could change
     def __repr__(self):
         return (
             "ROI: size=({self.width}, {self.height}) "
@@ -127,30 +136,25 @@ class ROI:
         ----------
         centroid : tuple of int
             New center of the ROI.
-
-        Returns
-        -------
-        cX, cY : int
-            Center of the ROI.
         """
 
         # Get the centroid refered to the roi
         if centroid is not None:
-            cX_roi, cY_roi = centroid
+            roi_cx, roi_cy = centroid
 
             # Get the centroid refered to the full image
-            cX = self._prev_cXY[0] - int(self.width / 2) + cX_roi
-            cY = self._prev_cXY[1] - int(self.height / 2) + cY_roi
+            c_x = self._prev_centroid[0] - int(self.width / 2) + roi_cx
+            c_y = self._prev_centroid[1] - int(self.height / 2) + roi_cy
 
-            cX = min(cX, self._global_width)
-            cX = max(cX, 0)
-            cY = min(cY, self._global_height)
-            cY = max(cY, 0)
+            c_x = min(c_x, self._global_width)
+            c_x = max(c_x, 0)
+            c_y = min(c_y, self._global_height)
+            c_y = max(c_y, 0)
 
-            self._cXY = cX, cY
+            self._centroid = (c_x, c_y)
 
         else:
-            self._cXY = self._prev_cXY
+            self._centroid = self._prev_centroid
 
     def _get_bounds(self, prev: bool = False) -> Bounds:
         """
@@ -177,15 +181,15 @@ class ROI:
         """
 
         if prev:
-            cX, cY = self._prev_cXY
+            c_x, c_y = self._prev_centroid
         else:
-            cX, cY = self._cXY
+            c_x, c_y = self._centroid
 
         half_width, half_height = int(self.width / 2), int(self.height / 2)
-        xmin = max(cX - half_width, 0)
-        xmax = min(cX + half_width, self._global_width)
-        ymin = max(cY - half_height, 0)
-        ymax = min(cY + half_height, self._global_height)
+        xmin = max(c_x - half_width, 0)
+        xmax = min(c_x + half_width, self._global_width)
+        ymin = max(c_y - half_height, 0)
+        ymax = min(c_y + half_height, self._global_height)
         return xmin, xmax, ymin, ymax
 
     def _center_init(self, frame: np.ndarray) -> Centroid:
@@ -204,8 +208,8 @@ class ROI:
         """
 
         self._global_height, self._global_width = frame.shape[:2]
-        self._cXY = self._global_width // 2, self._global_height // 2
-        return self._cXY
+        self._centroid = self._global_width // 2, self._global_height // 2
+        return self._centroid
 
     # TODO: check for 'win2_name' utility. Maybe it should be 'ROI' as
     # Default so there is no need to pass it as a parameter
@@ -226,8 +230,11 @@ class ROI:
             Center of the ROI.
         """
 
-        win1_name = f"Initialization of trackers: Click on the initial position of: {name.upper()}"
-        logging.info(f"Open the video window to select {name}'s center")
+        win1_name = (
+            "Initialization of trackers: Click on the initial "
+            f"position of: {name.upper()}"
+        )
+        logging.info("Open the video window to select %s's center", name)
 
         self._global_height, self._global_width = frame.shape[:2]
 
@@ -239,7 +246,7 @@ class ROI:
         def on_click(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
                 # Global roi center coordinates
-                self._cXY = int(x / self.scale), int(y / self.scale)
+                self._centroid = int(x / self.scale), int(y / self.scale)
 
                 # Copy of true frame and its resized version
                 img_ = frame_.copy()
@@ -268,11 +275,12 @@ class ROI:
             cv2.waitKey(0)
             logging.info(
                 "Waiting for ROI initialization. Please "
-                f"click on the center of the {name}'s ROI on "
-                "the video window."
+                "click on the center of the %s's ROI on "
+                "the video window.",
+                name,
             )
 
-        return self._cXY
+        return self._centroid
 
     def _check_roi_init(self, name: str) -> bool:
         """
@@ -289,13 +297,13 @@ class ROI:
             Whether or not the ROI is initialized.
         """
 
-        if not self._prev_cXY[0]:
-            logging.error(f"ROI was not initialized in {name}")
+        if not self._prev_centroid[0]:
+            logging.error("ROI was not initialized in %s", name)
             return False
-        else:
-            cv2.destroyAllWindows()
-            logging.info(f"ROI initialized in {name}")
-            return True
+
+        cv2.destroyAllWindows()
+        logging.info("ROI initialized in %s", name)
+        return True
 
     def _initialize(self, name: str, first_frame: np.ndarray) -> bool:
         """
@@ -325,11 +333,11 @@ class ROI:
 
         # Initialize ROI coordinates manually by user input
         if self.init_mode == ROI.MANUAL_INIT_MODE:
-            self._cXY = self._manual_init(first_frame, name)
+            self._centroid = self._manual_init(first_frame, name)
         else:
-            self._cXY = self._center_init(first_frame)
+            self._centroid = self._center_init(first_frame)
 
-        self._prev_cXY = self._cXY
+        self._prev_centroid = self._centroid
         return self._check_roi_init(name)
 
     def _crop(self, frame: np.ndarray, prev: bool = False) -> np.ndarray:
@@ -430,7 +438,7 @@ class ObjectTracker:
         self.roi._recenter(centroid)
 
         # Update data
-        self.history.append(self.roi._cXY)
+        self.history.append(self.roi._centroid)
 
 
 class CameraTracker:
@@ -448,12 +456,12 @@ class CameraTracker:
     roi : ROI
         Region of interest where the background changes will be
         detected.
-    history : List[Centroid]
-        ROI's position in every frame of the video.
+    affine_params_history : List[AffineParams]
+        History of all the affine parameters
     """
 
     def __init__(self, roi: ROI):
-        self.history: List[Centroid] = []
+        self.affine_params_history: List[AffineParams] = []
         self.mse: List[float] = []
         self.roi = roi
         self.features: Any
@@ -463,7 +471,7 @@ class CameraTracker:
 
     # Track the floor
     def _track(
-        self, prev_frame: np.ndarray, frame: np.ndarray, ignored_regions: list
+        self, prev_frame: np.ndarray, frame: np.ndarray, ignored_regions: List[Bounds]
     ) -> bool:
         """
         Tracks the camera movements according to the changing background
@@ -473,7 +481,7 @@ class CameraTracker:
         ----------
         prev_frame, frame : np.ndarray
             Frames used to detect background movement.
-        igonerd_regions : list of tuple
+        igonerd_regions : List[Bounds]
             Tracked object's boundaries.
 
             Tracked object's does not form part of the background so
@@ -494,7 +502,7 @@ class CameraTracker:
         for x_0, x_f, y_0, y_f in ignored_regions:
             mask[y_0:y_f, x_0:x_f] = 0
 
-        p_good, aff_params, err = _get_affine(
+        p_good, affine_params, err = _get_affine(
             img1=prev_frame, img2=frame, region=self.roi._get_bounds(), mask=mask
         )
         self.features = p_good[1:]
@@ -502,7 +510,7 @@ class CameraTracker:
         if err is None:
             return False
 
-        self.history.append(aff_params)
+        self.affine_params_history.append(affine_params)
         self.mse.append(err)
 
         return True
@@ -573,11 +581,11 @@ class TrackingScenario:
         self.cap: Any
         self.frame_count: int
         self.fps: int
-        self.w: int
-        self.h: int
+        self.width: int
+        self.height: int
         self.dim: Tuple[int, int]
         self.prev_frame: np.ndarray
-        self.first_frame: Optional[int] = None
+        self.first_frame: int
         self.last_frame: Optional[int] = None
 
     def _digest_video_path(self, video_path):
@@ -595,12 +603,12 @@ class TrackingScenario:
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
 
         # Frame width
-        self.w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 
         # Frame height
-        self.h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-        self.dim = (self.w, self.h)
+        self.dim = (self.width, self.height)
 
         self.first_frame = 0
 
@@ -615,84 +623,90 @@ class TrackingScenario:
 
         # Draw region in which features are detected
         if self.camera_tracker:
-            x0, xf, y0, yf = self.camera_tracker.roi._get_bounds()
+            x_0, x_f, y_0, y_f = self.camera_tracker.roi._get_bounds()
 
             cv2.putText(
-                frame,
-                "Camera Tracking region",
-                (x0 + 5, yf - 5),
-                cv2.FONT_HERSHEY_COMPLEX_SMALL,
-                1.2,
-                (0, 0, 255),
-                1,
-                cv2.LINE_AA,
+                img=frame,
+                text="Camera Tracking region",
+                org=(x_0 + 5, y_f - 5),
+                fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                fontScale=1.2,
+                color=(0, 0, 255),
+                thickness=1,
+                lineType=cv2.LINE_AA,
             )
 
-            cv2.rectangle(frame, (x0, y0), (xf, yf), (0, 0, 255), 2)
-            p2, p3 = self.camera_tracker.features
+            cv2.rectangle(frame, (x_0, y_0), (x_f, y_f), (0, 0, 255), 2)
+            p_2, p_3 = self.camera_tracker.features
             # Draw detected and estimated features
-            for p2_, p3_ in zip(p2, p3):
-                x2, y2 = np.rint(p2_).astype(np.int32)
-                x3, y3 = np.rint(p3_).astype(np.int32)
+            for p2_, p3_ in zip(p_2, p_3):
+                x_2, y_2 = np.rint(p2_).astype(np.int32)
+                x_3, y_3 = np.rint(p3_).astype(np.int32)
 
-                cv2.circle(frame, (x2, y2), 3, (0, 0, 0), -1)
-                cv2.circle(frame, (x3, y3), 3, (0, 255, 0), -1)
+                cv2.circle(frame, (x_2, y_2), 3, (0, 0, 0), -1)
+                cv2.circle(frame, (x_3, y_3), 3, (0, 255, 0), -1)
 
-        for otrack in self.object_trackers:
+        for obj_tracker in self.object_trackers:
             # TODO: Do this better:
             # Alter the blue channel in ant-related pixels
-            window = otrack.roi._crop(frame, prev=True)
-            if otrack.mask is not None:
-                window[:, :, 0] = otrack.mask
+            window = obj_tracker.roi._crop(frame, prev=True)
+            if obj_tracker.mask is not None:
+                window[:, :, 0] = obj_tracker.mask
 
             # Draw a point over the roi center and draw bounds
-            x1, x2, y1, y2 = otrack.roi._get_bounds()
-            cv2.circle(frame, otrack.roi._cXY, 5, (255, 255, 255), -1)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
+            x_1, x_2, y_1, y_2 = obj_tracker.roi._get_bounds()
+            cv2.circle(frame, obj_tracker.roi._centroid, 5, (255, 255, 255), -1)
+            cv2.rectangle(frame, (x_1, y_1), (x_2, y_2), (0, 255, 255), 2)
             cv2.putText(
-                frame,
-                otrack.name,
-                (x1 + 5, y2 - 5),
-                cv2.FONT_HERSHEY_COMPLEX_SMALL,
-                1.2,
-                (0, 255, 255),
-                1,
-                cv2.LINE_AA,
+                img=frame,
+                text=obj_tracker.name,
+                org=(x_1 + 5, y_2 - 5),
+                fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                fontScale=1.2,
+                color=(0, 255, 255),
+                thickness=1,
+                lineType=cv2.LINE_AA,
             )
 
         if show_frame_id:
-            h, w = frame.shape[:2]
+            height, weight = frame.shape[:2]
             frame_id = self._iteration_counter + self.first_frame
-            x_, y_ = 0.02, 0.05
-            x, y = int(x_ * w), int(y_ * h)
+            x, y = int(0.02 * weight), int(0.05 * height)
             cv2.putText(
-                frame,
-                str(frame_id),
-                (x, y),
-                cv2.FONT_HERSHEY_COMPLEX_SMALL,
-                1.2,
-                (0, 255, 255),
-                1,
-                cv2.LINE_AA,
+                img=frame,
+                text=str(frame_id),
+                org=(x, y),
+                fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                fontScale=1.2,
+                color=(0, 255, 255),
+                thickness=1,
+                lineType=cv2.LINE_AA,
             )
 
         frame = _resize_frame(frame, self.preview_scale)
         cv2.imshow("yupi processing window", frame)
-        # Return frame
 
-    def _create_ui(self, img, t_name, current_tracker, total_trackers, roi):
+    def _create_ui(
+        self,
+        img: np.ndarray,
+        t_name: str,
+        current_tracker: int,
+        total_trackers: int,
+        roi: ROI,
+    ):
         imgc = img.copy()
         imgc = _resize_frame(imgc, roi.scale)
-        shape = img.shape
-        h = shape[0] * roi.scale
-        w = shape[1] * roi.scale
+        height = img.shape[0] * roi.scale
+        weight = img.shape[1] * roi.scale
         h_pad = 0.2
         w_pad = 0.15
 
         imgc = cv2.blur(imgc, (5, 5))
 
         box = imgc[
-            int(h * h_pad) : int(h - h * h_pad), int(w * w_pad) : int(w - w * w_pad), :
+            int(height * h_pad) : int(height - height * h_pad),
+            int(weight * w_pad) : int(weight - weight * w_pad),
+            :,
         ]
         threshold = 180
 
@@ -705,44 +719,32 @@ class TrackingScenario:
 
         # Text
         font = cv2.FONT_HERSHEY_SIMPLEX
-        fontScale = 0.0008333 * w + 0.0333333
+        font_scale = 0.0008333 * weight + 0.0333333
         color = (50, 50, 50)
-        thickness = int(fontScale + 1)
+        thickness = int(font_scale + 1)
 
-        text1 = "Your tracking scenario is almost ready"
-        text2 = "Let's initialize your trackers"
-        text3 = "Next, you will have to click on the initial"
-        text4 = f"position of the tracker {t_name.upper()}"
-        text5 = "Press any key to continue..."
-        text6 = f"Trackers Initialized: {current_tracker}/{total_trackers}"
+        text_lines = [
+            "Your tracking scenario is almost ready",
+            "Let's initialize your trackers",
+            "Next, you will have to click on the initial",
+            f"position of the tracker {t_name.upper()}",
+            "Press any key to continue...",
+            f"Trackers Initialized: {current_tracker}/{total_trackers}",
+        ]
 
         l = int(0.0396825 * boxw + 2.222222)
-        box = cv2.putText(
-            box, text1, (l, l + l), font, fontScale, color, thickness, cv2.LINE_AA
-        )
 
-        box = cv2.putText(
-            box, text2, (l, l + 2 * l), font, fontScale, color, thickness, cv2.LINE_AA
-        )
+        def put_text(img: np.ndarray, text: str, pos: Tuple[float, float]):
+            return cv2.putText(
+                img, text, pos, font, font_scale, color, thickness, cv2.LINE_AA
+            )
 
-        box = cv2.putText(
-            box, text3, (l, l + 4 * l), font, fontScale, color, thickness, cv2.LINE_AA
-        )
-
-        box = cv2.putText(
-            box, text4, (l, l + 5 * l), font, fontScale, color, thickness, cv2.LINE_AA
-        )
-
-        box = cv2.putText(
-            box, text5, (l, l + 7 * l), font, fontScale, color, thickness, cv2.LINE_AA
-        )
-
-        box = cv2.putText(
-            box, text6, (l, boxh - l), font, fontScale, color, thickness, cv2.LINE_AA
-        )
-
-        # box = cv2.putText(box, text6, (boxw-4*l,boxh-l), font,
-        # fontScale, color, thickness, cv2.LINE_AA)
+        box = put_text(box, text_lines[0], (l, l + l))
+        box = put_text(box, text_lines[1], (l, l + 2 * l))
+        box = put_text(box, text_lines[2], (l, l + 4 * l))
+        box = put_text(box, text_lines[3], (l, l + 5 * l))
+        box = put_text(box, text_lines[4], (l, l + 7 * l))
+        box = put_text(box, text_lines[5], (l, boxh - l))
         return imgc
 
     def _first_iteration(self, start_frame):
@@ -758,24 +760,24 @@ class TrackingScenario:
         self.prev_frame = self._undistort(prev_frame)
 
         # Initialize the roi of all the trackers
-        for i, otrack in enumerate(self.object_trackers):
-            if otrack.roi.init_mode == "manual":
-                tracker_name = otrack.name
+        for i, obj_tracker in enumerate(self.object_trackers):
+            if obj_tracker.roi.init_mode == "manual":
+                tracker_name = obj_tracker.name
                 ui = self._create_ui(
                     self.prev_frame,
                     tracker_name,
                     i,
                     len(self.object_trackers),
-                    otrack.roi,
+                    obj_tracker.roi,
                 )
                 cv2.imshow(
-                    f"Initialization of trackers: Press any key to start with "
-                    "tracker: {tracker_name.upper()}",
+                    "Initialization of trackers: Press any key to start with "
+                    f"tracker: {tracker_name.upper()}",
                     ui,
                 )
                 cv2.waitKey(-1)
                 cv2.destroyAllWindows()
-            retval = otrack._init_roi(self.prev_frame)
+            retval = obj_tracker._init_roi(self.prev_frame)
             if not retval:
                 return retval
 
@@ -793,14 +795,14 @@ class TrackingScenario:
         # Keyboard events
         wait_key = 0 if not self.auto_mode else 10
 
-        k = cv2.waitKey(wait_key) & 0xFF
-        if k == ord("m"):
+        key = cv2.waitKey(wait_key) & 0xFF
+        if key == ord("m"):
             self.auto_mode = not self.auto_mode
 
-        elif k == ord("q"):
+        elif key == ord("q"):
             self._enabled = False
 
-        elif k == ord("e"):
+        elif key == ord("e"):
             exit()
 
     def _regular_iteration(self):
@@ -841,7 +843,7 @@ class TrackingScenario:
         self._show_frame(frame)
 
         for otrack in self.object_trackers:
-            otrack.roi._prev_cXY = otrack.roi._cXY
+            otrack.roi._prev_centroid = otrack.roi._centroid
 
         # Save current frame and ROI center as previous for next iteration
         self.prev_frame = frame.copy()
@@ -868,19 +870,21 @@ class TrackingScenario:
 
     def _export_trajectories(self, pix_per_m):
         t_list = []
+        reference = None
         # Extract camera reference
         if self.camera_tracker:
-            affine_params = np.array(self.camera_tracker.history)
-            theta, tx, ty, _ = affine_params.T
-            tx, ty = tx / pix_per_m, ty / pix_per_m
+            affine_params = np.array(self.camera_tracker.affine_params_history)
+            theta, t_x, t_y, _ = affine_params.T
+            t_x, t_y = t_x / pix_per_m, t_y / pix_per_m
             # Invert axis
             theta *= -1
-            ty *= -1
-            reference = theta, tx, ty
+            t_y *= -1
+            reference = theta, t_x, t_y
         # Output the trajectory of each tracker
         for otrack in self.object_trackers:
             t = self._tracker2trajectory(otrack, pix_per_m)
             if self.camera_tracker:
+                assert reference is not None
                 t = add_moving_FoR(t, reference, new_traj_id=t.traj_id)
             t_list.append(t)
         return t_list
@@ -889,9 +893,9 @@ class TrackingScenario:
         self,
         video_path: str,
         start_frame: int = 0,
-        end_frame: int = None,
+        end_frame: Optional[int] = None,
         pix_per_m: int = 1,
-    ):
+    ) -> Tuple[bool, Optional[List[Trajectory]]]:
         """
         Starts the tracking process.
 
@@ -901,7 +905,7 @@ class TrackingScenario:
             Path of the video used to track the objects.
         start_frame : int, optional
             Initial frame in which starts the processing, by default 0.
-        end_frame : int, optional
+        end_frame : Optional[int]
             Last frame being processed, if nothing is passed all frames
             until the end of the video will be processed, by default
             None.
@@ -915,7 +919,7 @@ class TrackingScenario:
         -------
         bool
             Whether or not the tracking process ended succefully.
-        list
+        List[Trajectory]
             List of all the trajectories extracted in the tracking
             process.
         """
@@ -926,6 +930,7 @@ class TrackingScenario:
         self._digest_video_path(video_path)
 
         end = False
+        retval = False
         if self._iteration_counter == 0:
             retval = self._first_iteration(start_frame)
             if not retval:
