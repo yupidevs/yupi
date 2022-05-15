@@ -9,7 +9,18 @@ import json
 import os
 import warnings
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Tuple, Union, cast
+from typing import (
+    Any,
+    Collection,
+    Dict,
+    Iterator,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 import numpy as np
 
@@ -19,6 +30,12 @@ from yupi.features import Features
 from yupi.vector import Vector
 
 _THRESHOLD = 1e-12
+
+Axis = Collection[float]
+"""Represents the data for a single axis."""
+
+Point = Collection[float]
+"""Represents a single point."""
 
 
 class TrajectoryPoint(NamedTuple):
@@ -51,19 +68,19 @@ class Trajectory:
 
     Parameters
     ----------
-    x : Optional[Union[np.ndarray, list]]
+    x : Optional[Axis]
         Array containing position data of X axis, by default None
-    y : Optional[Union[np.ndarray, list]]
+    y : Optional[Axis]
         Array containing position data of Y axis, by default None.
-    z : Optional[Union[np.ndarray, list]]
+    z : Optional[Axis]
         Array containing position data of X axis, by default None.
-    points : Optional[Union[np.ndarray, list]]
+    points : Optional[Collection[Point]]
         Array containing position data as a list of points, by default
         None
-    axes : Optional[Union[np.ndarray, list]]
+    axes : Optional[Collection[Axis]]
         Array containing position data as a list of axis, by default
         None
-    t : Optional[Union[np.ndarray, list]]
+    t : Optional[Collection[float]]
         Array containing time data, by default None.
     ang : Optional[Union[np.ndarray, list]]
         Array containing angle data, by default None.
@@ -78,7 +95,7 @@ class Trajectory:
     lazy : bool
         Defines if the velocity vector is not recalculated every time
         is asked. By default False.
-    vel_est : dict
+    vel_est : Dict[str, Any]
         Dictionary containing the parameters for the velocity estimation
         method.
 
@@ -146,18 +163,18 @@ class Trajectory:
 
     def __init__(
         self,
-        x: Optional[Union[np.ndarray, list]] = None,
-        y: Optional[Union[np.ndarray, list]] = None,
-        z: Optional[Union[np.ndarray, list]] = None,
-        points: Optional[Union[np.ndarray, list]] = None,
-        axes: Optional[Union[np.ndarray, list]] = None,
-        t: Optional[Union[np.ndarray, list]] = None,
-        ang: Optional[Union[np.ndarray, list]] = None,
+        x: Optional[Axis] = None,
+        y: Optional[Axis] = None,
+        z: Optional[Axis] = None,
+        points: Optional[Collection[Point]] = None,
+        axes: Optional[Collection[Axis]] = None,
+        t: Optional[Collection[float]] = None,
+        ang: Optional[Union[List[float], np.ndarray]] = None,
         dt: Optional[float] = None,
         t_0: float = 0.0,
         traj_id: Optional[str] = None,
         lazy: Optional[bool] = False,
-        vel_est: Optional[dict] = None,
+        vel_est: Optional[Dict[str, Any]] = None,
         t0: Optional[float] = None,  # pylint: disable=invalid-name
     ):  # pylint: disable=too-many-arguments
 
