@@ -104,7 +104,7 @@ def test_checkers():
     simple_traj = Trajectory(points=points)
     non_equal_dt_traj = Trajectory(points=points, dt=2)
     non_equal_spacing_traj = Trajectory(points=points, t=[0, 0.1, 0.3, 0.35])
-    non_equal_t0_traj = Trajectory(points=points, t0=1)
+    non_equal_t0_traj = Trajectory(points=points, t_0=1)
     non_equal_dim_traj = Trajectory(points=[p + [0] for p in points])
 
     # Exact dimension checker

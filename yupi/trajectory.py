@@ -70,7 +70,7 @@ class Trajectory:
     dt : float
         If no time data is given this represents the time between each
         position data value.
-    t0 : float
+    t_0 : float
         If no time data is given this represents the initial time value,
         by default 0.
     traj_id : str
@@ -154,10 +154,11 @@ class Trajectory:
         t: Optional[Union[np.ndarray, list]] = None,
         ang: Optional[Union[np.ndarray, list]] = None,
         dt: Optional[float] = None,
-        t0: float = 0.0,
+        t_0: float = 0.0,
         traj_id: Optional[str] = None,
         lazy: Optional[bool] = False,
         vel_est: Optional[dict] = None,
+        t0: Optional[float] = None,  # pylint: disable=invalid-name
     ):  # pylint: disable=too-many-arguments
 
         # Position data validation
@@ -194,8 +195,16 @@ class Trajectory:
         if len(self.r) < 2:
             raise ValueError("The trajectory must contain at least 2 points.")
 
+        if t0 is not None:
+            t_0 = t0
+            warnings.warn(
+                "'t0' is deprecated and will be removed in version 1.0.0, "
+                "use 't_0' instead.",
+                DeprecationWarning,
+            )
+
         self.__dt = dt
-        self.__t0 = t0
+        self.__t_0 = t_0
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
         self.ang = None if ang is None else Vector(ang, dtype=float, copy=True)
         self.traj_id = traj_id
@@ -227,9 +236,9 @@ class Trajectory:
                 raise ValueError(
                     "You are giving 'dt' and 't' but 't' is " "not uniformly spaced."
                 )
-            if abs(self.__t[0] - t0) > _THRESHOLD:
+            if abs(self.__t[0] - t_0) > _THRESHOLD:
                 raise ValueError(
-                    "You are giving 'dt' and 't' but 't0' is not "
+                    "You are giving 'dt' and 't' but 't_0' is not "
                     "the same as the first value of 't'."
                 )
 
@@ -324,7 +333,7 @@ class Trajectory:
 
             # Time
             data[3] = (
-                self.t[index] if self.__t is not None else self.__t0 + index * self.dt
+                self.t[index] if self.__t is not None else self.__t_0 + index * self.dt
             )
 
             r, ang, v, t = data
@@ -339,12 +348,12 @@ class Trajectory:
                 new_ang = self.ang[start:stop:step]
             if self.uniformly_spaced:
                 new_dt = self.dt * step
-                new_t0 = self.__t0 + start * self.dt
+                new_t0 = self.__t_0 + start * self.dt
                 return Trajectory(
                     points=new_points,
                     ang=new_ang,
                     dt=new_dt,
-                    t0=new_t0,
+                    t_0=new_t0,
                     vel_est=self.vel_est,
                 )
             new_t = self.t[start:stop:step]
@@ -430,7 +439,7 @@ class Trajectory:
     def t(self) -> Vector:
         """Vector : Time vector"""
         if self.__t is None:
-            self.__t = Vector([self.__t0 + self.dt * i for i in range(len(self))])
+            self.__t = Vector([self.__t_0 + self.dt * i for i in range(len(self))])
         return self.__t
 
     @property
