@@ -1,3 +1,9 @@
+"""
+This contains styling utilities for the library plots.
+"""
+
+from typing import Optional
+
 import matplotlib.pyplot as plt
 
 LINE = "-"
@@ -42,11 +48,11 @@ def _plot_basic_properties(func):
         grid: bool = False,
         show: bool = True,
         legend: bool = False,
-        xscale: str = None,
-        yscale: str = None,
-        xlim: tuple = None,
-        ylim: tuple = None,
-        **kwargs
+        xscale: Optional[str] = None,
+        yscale: Optional[str] = None,
+        xlim: Optional[tuple] = None,
+        ylim: Optional[tuple] = None,
+        **kwargs,
     ):
         func(*args, **kwargs)
         plt.grid(grid)

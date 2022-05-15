@@ -1,5 +1,10 @@
+"""
+This contains the Vector structure used across the library to store data.
+"""
+
 from __future__ import annotations
 
+import warnings
 from typing import Union
 
 import numpy as np
@@ -9,13 +14,19 @@ from numpy.linalg.linalg import norm as nrm
 class Vector(np.ndarray):
     """Represents a vector"""
 
+    def __new__(cls, arr, dtype=None, copy=False):
+        vec = np.asarray(arr, dtype=dtype)
+        if copy:
+            vec = vec.copy()
+        return vec.view(cls)
+
     @property
     def norm(self) -> Union[Vector, float]:
         """Vector : Calculates the norm of the vector. If the vector
         is alist of vectors then the norm of each item is calculated"""
         if len(self.shape) < 2:
             return float(nrm(self))
-        return Vector.create([nrm(p) for p in self])
+        return Vector([nrm(p) for p in self])
 
     @property
     def delta(self) -> Vector:
@@ -24,21 +35,21 @@ class Vector(np.ndarray):
             new_vec = []
             for i in range(self.shape[1]):
                 new_vec.append(np.ediff1d(self[:, i]))
-            return Vector.create(new_vec).T
-        return Vector.create(np.ediff1d(self))
+            return Vector(new_vec).T
+        return Vector(np.ediff1d(self))
 
     @property
-    def x(self) -> Vector:  # pylint: disable=invalid-name
+    def x(self) -> Vector:
         """Vector : X component of all vector items"""
         return self.component(0)
 
     @property
-    def y(self) -> Vector:  # pylint: disable=invalid-name
+    def y(self) -> Vector:
         """Vector : Y component of all vector items"""
         return self.component(1)
 
     @property
-    def z(self) -> Vector:  # pylint: disable=invalid-name
+    def z(self) -> Vector:
         """Vector : Z component of all vector items"""
         return self.component(2)
 
@@ -67,7 +78,7 @@ class Vector(np.ndarray):
 
         Examples
         --------
-        >>> v = Vector.create([[1,2],[0,2],[3,0]])
+        >>> v = Vector([[1,2],[0,2],[3,0]])
         >>> v.component(0)
         Vector([1, 0, 3])
         >>> v.component(1)
@@ -85,6 +96,10 @@ class Vector(np.ndarray):
     @staticmethod
     def create(*args, **kwargs) -> Vector:
         """
+        .. deprecated::
+            :func:`Vector.create` will be removed in version 1.0.0, use
+            :class:`Vector` constructor instead.
+
         Creates a new vector.
 
         Returns
@@ -93,5 +108,9 @@ class Vector(np.ndarray):
             Vector created
         """
 
-        arr = np.array(*args, **kwargs)
-        return arr.view(Vector)
+        warnings.warn(
+            "Vector.create is deprecated and it will be removed in version 1.0.0, "
+            "use Vector constructor instead.",
+            DeprecationWarning,
+        )
+        return np.array(*args, **kwargs).view(Vector)

@@ -1,11 +1,12 @@
 import abc
 import logging
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
 
 Bounds = Tuple[int, int, int, int]
+"""Bounds of a frame: x_min, x_max, y_min, y_max."""
 
 
 def _resize_frame(frame: np.ndarray, scale: float = 1):
@@ -17,13 +18,14 @@ def _resize_frame(frame: np.ndarray, scale: float = 1):
     return short_frame
 
 
-def _change_colorspace(image, color_space):
+def _change_colorspace(image, color_space: str) -> np.ndarray:
     if color_space == "BGR":
         return image
     if color_space == "GRAY":
         return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     if color_space == "HSV":
         return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    raise ValueError(f"Unsuported color space: {color_space}")
 
 
 class BackgroundEstimator:
@@ -97,14 +99,14 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
         """
 
         # Calculate moments
-        M = cv2.moments(bin_img)
+        moments = cv2.moments(bin_img)
 
         # Check if something was over the threshold
-        if M["m00"] != 0:
+        if moments["m00"] != 0:
             # Calculate x,y coordinate of center
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            return cX, cY
+            c_x = int(moments["m10"] / moments["m00"])
+            c_y = int(moments["m01"] / moments["m00"])
+            return c_x, c_y
         logging.warning(
             "Nothing was over threshold. Algorithm: %s", type(self).__name__
         )
@@ -149,7 +151,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
         frame: np.ndarray,
         roi_bound: Optional[Bounds] = None,
         preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[np.ndarray, Optional[Tuple[int, int]]]:
+    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
         """
         Abstract method that is implemented on inheriting classes.
         It should compute the location (in the image ``frame``)
@@ -198,10 +200,10 @@ class ColorMatching(TrackingAlgorithm):
 
     def __init__(
         self,
-        lower_bound=(0, 0, 0),
-        upper_bound=(255, 255, 255),
-        color_space="BGR",
-        max_pixels=None,
+        lower_bound: Union[Tuple[int, int, int], int] = (0, 0, 0),
+        upper_bound: Union[Tuple[int, int, int], int] = (255, 255, 255),
+        color_space: str = "BGR",
+        max_pixels: Optional[int] = None,
     ):
         super().__init__()
         self.lower_bound = lower_bound
@@ -214,7 +216,7 @@ class ColorMatching(TrackingAlgorithm):
         frame: np.ndarray,
         roi_bound: Optional[Bounds] = None,
         preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[np.ndarray, Optional[Tuple[int, int]]]:
+    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
         """
         Identifies the tracked object in the image ``frame``
         by thresholding it using the bound parameters defined when
@@ -238,11 +240,11 @@ class ColorMatching(TrackingAlgorithm):
 
         Returns
         -------
-        np.ndarray
+        Optional[np.ndarray]
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        tuple
+        Optional[Tuple[int, int]]
             x, y coordinates of the centroid of the object in the image.
         """
 
@@ -280,7 +282,7 @@ class FrameDifferencing(TrackingAlgorithm):
         frame: np.ndarray,
         roi_bound: Optional[Bounds] = None,
         preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[np.ndarray, Optional[Tuple[int, int]]]:
+    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
         """
         Identifies the tracked object in the image ``frame``
         by comparing the difference with the previous frames. All the
@@ -305,11 +307,11 @@ class FrameDifferencing(TrackingAlgorithm):
 
         Returns
         -------
-        np.ndarray
+        Optional[np.ndarray]
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        tuple
+        Otional[Tuple[int, int]]
             x, y coordinates of the centroid of the object in the image.
         """
 
@@ -365,7 +367,7 @@ class BackgroundSubtraction(TrackingAlgorithm):
         frame: np.ndarray,
         roi_bound: Optional[Bounds] = None,
         preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[np.ndarray, Optional[Tuple[int, int]]]:
+    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
         """
         Identifies the tracked object in the image ``frame``
         by comparing the difference with the background. All the pixels
@@ -390,11 +392,11 @@ class BackgroundSubtraction(TrackingAlgorithm):
 
         Returns
         -------
-        np.ndarray
+        Optional[np.ndarray]
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        tuple
+        Optional[Tuple[int, int]]
             x, y coordinates of the centroid of the object in the image.
         """
 
@@ -438,14 +440,14 @@ class TemplateMatching(TrackingAlgorithm):
         self.template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         self.threshold = threshold
 
-        self.w, self.h = self.template.shape[::-1]
+        self.width, self.height = self.template.shape[::-1]
 
     def detect(
         self,
         frame: np.ndarray,
         roi_bound: Optional[Bounds] = None,
         preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[np.ndarray, Optional[Tuple[int, int]]]:
+    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
         """
         Identifies the tracked object in the image ``frame``
         by comparing each region with a template. The region with higher
@@ -470,11 +472,11 @@ class TemplateMatching(TrackingAlgorithm):
 
         Returns
         -------
-        np.ndarray
+        Optional[np.ndarray]
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        tuple
+        Optional[Tuple[int, int]]
             x, y coordinates of the centroid of the object in the image.
         """
 
@@ -493,7 +495,7 @@ class TemplateMatching(TrackingAlgorithm):
         # Compute the centroid of the region with max correlation
         centroid = None
         if res[pt] > self.threshold:
-            centroid = (int(pt[1] + self.w / 2), int(pt[0] + self.h / 2))
+            centroid = (int(pt[1] + self.width / 2), int(pt[0] + self.height / 2))
 
         # Convert the grayscale image to binary image
         mask = None
@@ -521,7 +523,7 @@ class OpticalFlow(TrackingAlgorithm):
     def __init__(self, threshold: float, buffer_size: int = 1):
         super().__init__()
         self.threshold = threshold
-        self.previous_frames = []
+        self.previous_frames: List[np.ndarray] = []
 
         assert buffer_size > 0
 
@@ -532,7 +534,7 @@ class OpticalFlow(TrackingAlgorithm):
         frame: np.ndarray,
         roi_bound: Optional[Bounds] = None,
         preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[np.ndarray, Optional[Tuple[int, int]]]:
+    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
         """
         Identifies the tracked object in the image ``frame``
         by tracking the motion of a region using optical flow.
@@ -559,7 +561,7 @@ class OpticalFlow(TrackingAlgorithm):
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        tuple
+        Optional[Tuple[int, int]]
             x, y coordinates of the centroid of the object in the image.
         """
 

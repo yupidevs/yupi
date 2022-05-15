@@ -1,6 +1,6 @@
 """
 This module constains a set of functions dadicated to plot
-trajectories and extracted statistical data from ``yupi.stats``
+trajectories and extracted statistical data from ``yupi.stats``.
 
 All the resources of this module should be imported directly
 from ``yupi.graphics``.

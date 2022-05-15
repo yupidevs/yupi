@@ -61,7 +61,7 @@ def test_creation_with_time():
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], dt=0.1)
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 0.1, 0.2], dt=0.1)
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0.4, 0.5, 0.6])
-    Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0.4, 0.5, 0.6], dt=0.1, t0=0.4)
+    Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0.4, 0.5, 0.6], dt=0.1, t_0=0.4)
 
     with pytest.raises(ValueError):
         Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 1])
@@ -77,7 +77,7 @@ def test_creation_general():
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 1, 2], traj_id="test")
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], dt=0.5, traj_id="test")
     Trajectory(points=[[1, 2], [2, 3], [3, 6]], dt=0.5, traj_id="test")
-    Trajectory(axes=[[1, 2, 4], [2, 3, 6]], dt=0.5, t=[1, 1.5, 2], t0=1, traj_id="test")
+    Trajectory(axes=[[1, 2, 4], [2, 3, 6]], dt=0.5, t=[1, 1.5, 2], t_0=1, traj_id="test")
 
 
 def test_velocity_estimation_methods():

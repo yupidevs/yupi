@@ -1,4 +1,9 @@
-from typing import List
+"""
+This contains the Features class which is used to store the features of a
+given trajectory.
+"""
+
+from typing import List, Optional
 
 import numpy as np
 
@@ -33,16 +38,18 @@ class Features:
         traj = self.traj
         return sum(traj.delta_r.norm)
 
-    def as_dict(self, only: List[str] = None, remove: List[str] = None) -> dict:
+    def as_dict(
+        self, only: Optional[List[str]] = None, remove: Optional[List[str]] = None
+    ) -> dict:
         """
         Get all the features as dictionary.
 
         Parameters
         ----------
-        only : List[str], optional
+        only : Optional[List[str]]
             Filters the features by giving the ones named in the list,
             by default None.
-        remove : List[str], optional
+        remove : Optional[List[str]]
             Filters the features by removing the ones named in the list,
             by default None.
 

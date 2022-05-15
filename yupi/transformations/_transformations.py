@@ -6,7 +6,59 @@ from yupi import Trajectory
 from yupi.transformations._affine_estimator import _affine_matrix
 
 
-def add_moving_FoR(
+def _affine2camera(
+    theta: np.ndarray, t_x: np.ndarray, t_y: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+    x_cam2lab, y_cam2lab, theta_cam2lab = np.zeros((3, theta.shape[0] + 1))
+    theta_cam2lab[1:] = np.cumsum(theta)
+
+    for i in range(theta.size):
+        affine_mat = _affine_matrix(
+            theta_cam2lab[i + 1], x_cam2lab[i], y_cam2lab[i], inverse=True
+        )
+        shift_vec = [-t_x[i], -t_y[i], 1]
+        x_cam2lab[i + 1], y_cam2lab[i + 1] = affine_mat @ shift_vec
+
+    return x_cam2lab[1:], y_cam2lab[1:], theta_cam2lab[1:]
+
+
+def _camera2obj(
+    x_obj2cam: np.ndarray,
+    y_obj2cam: np.ndarray,
+    x_cam2lab: np.ndarray,
+    y_cam2lab: np.ndarray,
+    theta_cam2lab: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
+
+    x_obj2lab, y_obj2lab = np.empty((2, x_obj2cam.size))
+
+    for i in range(x_obj2cam.size):
+        affine_mat = _affine_matrix(
+            theta_cam2lab[i], x_cam2lab[i], y_cam2lab[i], inverse=True
+        )
+        shift_vec = [x_obj2cam[i], y_obj2cam[i], 1]
+        x_obj2lab[i], y_obj2lab[i] = affine_mat @ shift_vec
+
+    return x_obj2lab, y_obj2lab
+
+
+def _affine2obj(
+    theta: np.ndarray,
+    t_x: np.ndarray,
+    t_y: np.ndarray,
+    x_obj2cam: np.ndarray,
+    y_obj2cam: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
+
+    x_cam2lab, y_cam2lab, theta_cam2lab = _affine2camera(theta, t_x, t_y)
+    x_obj2lab, y_obj2lab = _camera2obj(
+        x_obj2cam, y_obj2cam, x_cam2lab, y_cam2lab, theta_cam2lab
+    )
+    return x_obj2lab, y_obj2lab
+
+
+def add_moving_FoR(  # pylint: disable=invalid-name
     traj: Trajectory,
     reference: Tuple[np.ndarray, np.ndarray, np.ndarray],
     start_at_origin: bool = True,
@@ -37,34 +89,8 @@ def add_moving_FoR(
         Output trajectory in the lab frame of reference.
     """
 
-    def affine2camera(theta, tx, ty):
-        x_cl, y_cl, theta_cl = np.zeros((3, theta.size + 1))
-        theta_cl[1:] = np.cumsum(theta)
-
-        for i in range(theta.size):
-            A = _affine_matrix(theta_cl[i + 1], x_cl[i], y_cl[i], R_inv=True)
-            x_cl[i + 1], y_cl[i + 1] = A @ [-tx[i], -ty[i], 1]
-
-        x_cl, y_cl, theta_cl = x_cl[1:], y_cl[1:], theta_cl[1:]
-        return x_cl, y_cl, theta_cl
-
-    def camera2obj(x_ac, y_ac, x_cl, y_cl, theta_cl):
-        x_al, y_al = np.empty((2, x_ac.size))
-
-        for i in range(x_ac.size):
-            A = _affine_matrix(theta_cl[i], x_cl[i], y_cl[i], R_inv=True)
-            x_al[i], y_al[i] = A @ [x_ac[i], y_ac[i], 1]
-
-        return x_al, y_al
-
-    def affine2obj(theta, tx, ty, x_ac, y_ac):
-        x_cl, y_cl, theta_cl = affine2camera(theta, tx, ty)
-        x_al, y_al = camera2obj(x_ac, y_ac, x_cl, y_cl, theta_cl)
-        return x_al, y_al
-
-    theta, tx, ty = reference
-
-    x_al, y_al = affine2obj(theta, tx, ty, traj.r.x, traj.r.y)
+    theta, t_x, t_y = reference
+    x_al, y_al = _affine2obj(theta, t_x, t_y, traj.r.x, traj.r.y)
 
     if start_at_origin:
         x_al = x_al - x_al[0]
