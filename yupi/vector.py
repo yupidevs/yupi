@@ -26,17 +26,12 @@ class Vector(np.ndarray):
         is alist of vectors then the norm of each item is calculated"""
         if len(self.shape) < 2:
             return float(nrm(self))
-        return Vector([nrm(p) for p in self])
+        return Vector(nrm(self, axis=1))
 
     @property
     def delta(self) -> Vector:
         """Vector : Calculates the differnece between each item"""
-        if len(self.shape) > 1:
-            new_vec = []
-            for i in range(self.shape[1]):
-                new_vec.append(np.ediff1d(self[:, i]))
-            return Vector(new_vec).T
-        return Vector(np.ediff1d(self))
+        return Vector(np.diff(self, axis=0))
 
     @property
     def x(self) -> Vector:
@@ -96,7 +91,7 @@ class Vector(np.ndarray):
     @staticmethod
     def create(*args, **kwargs) -> Vector:
         """
-        .. deprecated::
+        .. deprecated:: 0.10.0
             :func:`Vector.create` will be removed in version 1.0.0, use
             :class:`Vector` constructor instead.
 
