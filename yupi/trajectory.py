@@ -324,18 +324,14 @@ class Trajectory:
             return starts_at_zero and std_is_zero
         return True
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.r.shape[0]
 
     def __getitem__(self, index) -> Union[Trajectory, TrajectoryPoint]:
         if isinstance(index, int):
-            # *dim, v, t
+            # r, v, t
             data = [self.r[index], None, None]
-
-            # Velocity
             data[1] = self.v[index - 1] if index > 0 else Vector([0] * self.dim)
-
-            # Time
             data[2] = (
                 self.t[index] if self.__t is not None else self.__t_0 + index * self.dt
             )
@@ -345,7 +341,6 @@ class Trajectory:
 
         if isinstance(index, slice):
             start, stop, step = index.indices(len(self))
-
             new_points = self.r[start:stop:step]
             if self.uniformly_spaced:
                 new_dt = self.dt * step
@@ -357,9 +352,7 @@ class Trajectory:
                     vel_est=self.vel_est,
                 )
             new_t = self.t[start:stop:step]
-            return Trajectory(
-                points=new_points, t=new_t, vel_est=self.vel_est
-            )
+            return Trajectory(points=new_points, t=new_t, vel_est=self.vel_est)
         raise TypeError("Index must be an integer or a slice.")
 
     def __iter__(self) -> Iterator[TrajectoryPoint]:
@@ -497,13 +490,13 @@ class Trajectory:
         )
         self.rotate_2d(angle)
 
-    def rotate_3d(self, angle: float, vector: Union[list, np.ndarray]):
+    def rotate_3d(self, angle: float, vector: Collection[float]):
         """
         Rotates the trajectory around a given vector.
 
         Parameters
         ----------
-        vector : Vector
+        vector : Collection[float]
             Vector to rotate the trajectory around.
         angle : float
             Angle in radians to rotate the trajectory.
@@ -512,6 +505,8 @@ class Trajectory:
         ------
         TypeError
             If the trajectory is not 3 dimensional.
+        ValueError
+            If the vector has shape different than (3,).
         """
         if self.dim != 3:
             raise TypeError(
@@ -519,8 +514,8 @@ class Trajectory:
             )
 
         vec = Vector(vector)
-        if len(vec) != 3:
-            raise ValueError("The vector must have 3 components")
+        if vec.shape != (3,):
+            raise ValueError("The vector must have shape (3,)")
 
         vec = vec / vec.norm
         v_x, v_y, v_z = vec[0], vec[1], vec[2]
@@ -591,16 +586,15 @@ class Trajectory:
             vel_est=self.vel_est,
         )
 
-    def _operable_with(self, other: Trajectory, threshold=None) -> bool:
-        if threshold is None:
-            threshold = _THRESHOLD
-
+    def _operable_with(
+        self, other: Trajectory, threshold: Optional[float] = None
+    ) -> bool:
         if self.r.shape != other.r.shape:
             return False
 
+        threshold = _THRESHOLD if threshold is None else threshold
         self_time = self.t
         other_time = other.t
-
         diff = np.abs(np.subtract(self_time, other_time))
         return all(diff < threshold)
 
@@ -674,7 +668,6 @@ class Trajectory:
         if isinstance(other, (int, float)):
             self.r *= other
             return self
-
         raise TypeError(
             "unsoported operation (*) between 'Trajectory' and "
             f"'{type(other).__name__}'"
@@ -747,7 +740,6 @@ class Trajectory:
         def convert_to_list(vec: Optional[Vector]):
             if vec is None:
                 return vec
-
             if len(vec.shape) == 1:
                 return list(vec)
             return {d: list(v) for d, v in enumerate(vec)}
@@ -891,9 +883,7 @@ class Trajectory:
                 vel_est["method"] = v_est.VelocityMethod(vel_est["method"])
                 vel_est["window_type"] = v_est.WindowType(vel_est["window_type"])
 
-            return Trajectory(
-                axes=axes, t=t, dt=dt, traj_id=traj_id, vel_est=vel_est
-            )
+            return Trajectory(axes=axes, t=t, dt=dt, traj_id=traj_id, vel_est=vel_est)
 
     @staticmethod
     def _load_csv(path: str):
@@ -931,9 +921,7 @@ class Trajectory:
 
                 t.append(float(row[-1]))
 
-            return Trajectory(
-                axes=r, t=t, dt=dt, traj_id=traj_id, vel_est=vel_est
-            )
+            return Trajectory(axes=r, t=t, dt=dt, traj_id=traj_id, vel_est=vel_est)
 
     @staticmethod
     def load(file_path: str):
