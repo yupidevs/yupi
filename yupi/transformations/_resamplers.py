@@ -1,7 +1,13 @@
+"""
+This constains resampling functions for trajectories.
+"""
+
+from typing import Optional
+
 from yupi import Trajectory
 
 
-def subsample(traj: Trajectory, step=1, new_traj_id: str = None):
+def subsample(traj: Trajectory, step: int = 1, new_traj_id: Optional[str] = None):
     """
     Sample the trajectory ``traj`` by removing evenly spaced
     points according to ``step``.
@@ -12,6 +18,9 @@ def subsample(traj: Trajectory, step=1, new_traj_id: str = None):
         Input trajectory.
     step : int, optional
         Number of sample points or period. By default 1.
+    new_traj_id : Optional[str]
+        New trajectory ID. By default None.
+
     Returns
     -------
     Trajectory
