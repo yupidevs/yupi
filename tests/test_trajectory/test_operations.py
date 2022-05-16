@@ -13,13 +13,8 @@ def points():
 
 
 @fixture
-def angles():
-    return np.array([0, 1, 2, 1, 1.5], dtype=float)
-
-
-@fixture
-def traj(points, angles):
-    return Trajectory(points=points, ang=angles)
+def traj(points):
+    return Trajectory(points=points)
 
 
 @fixture
@@ -28,8 +23,8 @@ def time():
 
 
 @fixture
-def timed_traj(points, angles, time):
-    return Trajectory(points=points, ang=angles, t=time)
+def timed_traj(points, time):
+    return Trajectory(points=points, t=time)
 
 
 @fixture
@@ -48,21 +43,18 @@ def test_copy(traj):
     assert traj.dt == approx(copy_traj.dt, APPROX_REL_TOLERANCE)
     assert traj.t == approx(copy_traj.t, APPROX_REL_TOLERANCE)
     assert traj.v == approx(copy_traj.v, APPROX_REL_TOLERANCE)
-    assert traj.ang == approx(copy_traj.ang, APPROX_REL_TOLERANCE)
     assert traj.vel_est == copy_traj.vel_est
 
 
-def test_iteration(points, angles, traj):
+def test_iteration(points, traj):
     time = traj.t
 
     for i, tp in enumerate(traj):
         point = points[i]
-        ang = angles[i]
         t = time[i]
 
         assert point == approx(tp.r, APPROX_REL_TOLERANCE)  # Position
         assert t == approx(tp.t, APPROX_REL_TOLERANCE)  # Time
-        assert ang == approx(tp.ang, APPROX_REL_TOLERANCE)  # Angle
 
 
 def test_rotation(simple_traj):

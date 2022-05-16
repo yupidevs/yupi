@@ -99,7 +99,6 @@ def add_moving_FoR(  # pylint: disable=invalid-name
     moved_traj = Trajectory(
         x=x_al,
         y=y_al,
-        ang=traj.ang,
         t=traj.t,
         traj_id=new_traj_id,
         vel_est=traj.vel_est,

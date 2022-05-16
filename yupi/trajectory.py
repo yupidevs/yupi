@@ -46,8 +46,6 @@ class TrajectoryPoint(NamedTuple):
     ----------
     r : Vector
         Positional data.
-    ang : Vector
-        Angular data.
     v : Vector
         Velocity data.
     t : float
@@ -55,7 +53,6 @@ class TrajectoryPoint(NamedTuple):
     """
 
     r: Vector
-    ang: Vector
     v: Vector
     t: float
 
@@ -82,8 +79,6 @@ class Trajectory:
         None
     t : Optional[Collection[float]]
         Array containing time data, by default None.
-    ang : Optional[Union[np.ndarray, list]]
-        Array containing angle data, by default None.
     dt : float
         If no time data is given this represents the time between each
         position data value.
@@ -103,8 +98,6 @@ class Trajectory:
     ----------
     r : Vector
         Position vector.
-    ang : Vector
-        Angle vector.
     dt_mean : float
         Mean of the time data delta.
     dt_std : float
@@ -147,8 +140,8 @@ class Trajectory:
     ValueError
         If no positional data is given.
     ValueError
-        If all the given input data (``x``, ``y``, ``z``, ``t``,
-        ``ang``) does not have the same shape.
+        If all the given input data (``x``, ``y``, ``z``, ``t``)
+        does not have the same length.
     ValueError
         If ``t`` and ``dt`` given but ``t`` is not uniformly spaced.
     ValueError
@@ -169,7 +162,6 @@ class Trajectory:
         points: Optional[Collection[Point]] = None,
         axes: Optional[Collection[Axis]] = None,
         t: Optional[Collection[float]] = None,
-        ang: Optional[Union[List[float], np.ndarray]] = None,
         dt: Optional[float] = None,
         t_0: float = 0.0,
         traj_id: Optional[str] = None,
@@ -190,7 +182,7 @@ class Trajectory:
             )
 
         # Set position data
-        lengths = [len(item) for item in [t, ang] if item is not None]
+        lengths = [len(t)] if t is not None else []
 
         # xyz data is converted to axes
         if from_xyz:
@@ -208,7 +200,7 @@ class Trajectory:
 
         # Check if all the given data has the same shape
         if lengths.count(lengths[0]) != len(lengths):
-            raise ValueError("All input arrays must have the same shape.")
+            raise ValueError("All input arrays must have the same lenght.")
         if len(self.r) < 2:
             raise ValueError("The trajectory must contain at least 2 points.")
 
@@ -223,7 +215,6 @@ class Trajectory:
         self.__dt = dt
         self.__t_0 = t_0
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
-        self.ang = None if ang is None else Vector(ang, dtype=float, copy=True)
         self.traj_id = traj_id
         self.lazy = lazy
 
@@ -338,44 +329,36 @@ class Trajectory:
 
     def __getitem__(self, index) -> Union[Trajectory, TrajectoryPoint]:
         if isinstance(index, int):
-            # *dim, *ang, v, t
-            data = [self.r[index], [], None, None]
-
-            # Angle
-            if self.ang is not None:
-                data[1] = self.ang[index]
+            # *dim, v, t
+            data = [self.r[index], None, None]
 
             # Velocity
-            data[2] = self.v[index - 1] if index > 0 else Vector([0] * self.dim)
+            data[1] = self.v[index - 1] if index > 0 else Vector([0] * self.dim)
 
             # Time
-            data[3] = (
+            data[2] = (
                 self.t[index] if self.__t is not None else self.__t_0 + index * self.dt
             )
 
-            r, ang, v, t = data
-            return TrajectoryPoint(r=r, ang=ang, v=v, t=t)
+            r, v, t = data
+            return TrajectoryPoint(r=r, v=v, t=t)
 
         if isinstance(index, slice):
             start, stop, step = index.indices(len(self))
 
             new_points = self.r[start:stop:step]
-            new_ang = None
-            if self.ang is not None:
-                new_ang = self.ang[start:stop:step]
             if self.uniformly_spaced:
                 new_dt = self.dt * step
                 new_t0 = self.__t_0 + start * self.dt
                 return Trajectory(
                     points=new_points,
-                    ang=new_ang,
                     dt=new_dt,
                     t_0=new_t0,
                     vel_est=self.vel_est,
                 )
             new_t = self.t[start:stop:step]
             return Trajectory(
-                points=new_points, ang=new_ang, t=new_t, vel_est=self.vel_est
+                points=new_points, t=new_t, vel_est=self.vel_est
             )
         raise TypeError("Index must be an integer or a slice.")
 
@@ -410,14 +393,6 @@ class Trajectory:
         """Vector: Difference between each couple of consecutive sample
         in the velocity vector of the Trajectory."""
         return self.v.delta
-
-    @property
-    def delta_ang(self) -> Union[Vector, None]:
-        """Union[Vector, None] : Difference between each couple of
-        consecutive samples in the ``ang`` vector of the Trajectory."""
-        if self.ang is not None:
-            return self.ang.delta
-        return None
 
     def recalculate_velocity(self) -> Vector:
         """
@@ -458,14 +433,6 @@ class Trajectory:
         if self.__t is None:
             self.__t = Vector([self.__t_0 + self.dt * i for i in range(len(self))])
         return self.__t
-
-    @property
-    def ang_velocity(self) -> Union[Vector, None]:
-        """Union[Vector, None] : Computes the angular velocity from the
-        ``ang`` vector of the Trajectory."""
-        if self.ang is not None:
-            return (self.ang.delta / self.dt).view(Vector)
-        return None
 
     def add_polar_offset(self, radius: float, angle: float) -> None:
         """
@@ -619,7 +586,6 @@ class Trajectory:
         return Trajectory(
             points=self.r,
             t=self.__t,
-            ang=self.ang,
             dt=self.__dt,
             lazy=self.lazy,
             vel_est=self.vel_est,
@@ -786,8 +752,6 @@ class Trajectory:
                 return list(vec)
             return {d: list(v) for d, v in enumerate(vec)}
 
-        ang = None if self.ang is None else self.ang.T
-
         default_vel_est_method = v_est.VelocityMethod.LINEAR_DIFF
         default_vel_est_window = v_est.WindowType.CENTRAL
         default_vel_est_accuracy = 1
@@ -801,7 +765,6 @@ class Trajectory:
             "id": self.traj_id,
             "dt": self.__dt,
             "r": convert_to_list(self.r.T),
-            "ang": convert_to_list(ang),
             "t": convert_to_list(self.__t),
             "vel_est": vel_est,
         }
@@ -811,8 +774,7 @@ class Trajectory:
     def _save_csv(self, path: Union[str, Path]) -> None:
         with open(str(path), "w", newline="", encoding="utf-8") as traj_file:
             writer = csv.writer(traj_file, delimiter=",")
-            ang_shape = 0 if self.ang is None else self.ang.shape[1]
-            writer.writerow([self.traj_id, self.__dt, self.dim, ang_shape])
+            writer.writerow([self.traj_id, self.__dt, self.dim])
 
             default_vel_est_method = v_est.VelocityMethod.LINEAR_DIFF
             default_vel_est_window = v_est.WindowType.CENTRAL
@@ -824,7 +786,7 @@ class Trajectory:
             writer.writerow([method, window, accuracy])
 
             for t_p in self:
-                row = np.hstack([t_p.r, t_p.ang, t_p.t])
+                row = np.hstack([t_p.r, t_p.t])
                 writer.writerow(row)
 
     def save(
@@ -921,12 +883,6 @@ class Trajectory:
 
             traj_id = data["id"]
             t, dt = data["t"], data["dt"]
-            ang = None
-
-            if data["ang"] is not None:
-                ang_values = list(data["ang"].values())
-                ang = Vector(ang_values).T
-
             axes = list(data["r"].values())
             vel_est = data.get("vel_est", None)
             if vel_est is None:
@@ -936,7 +892,7 @@ class Trajectory:
                 vel_est["window_type"] = v_est.WindowType(vel_est["window_type"])
 
             return Trajectory(
-                axes=axes, t=t, ang=ang, dt=dt, traj_id=traj_id, vel_est=vel_est
+                axes=axes, t=t, dt=dt, traj_id=traj_id, vel_est=vel_est
             )
 
     @staticmethod
@@ -950,9 +906,8 @@ class Trajectory:
 
             r: List[List[float]] = []
             t: List[float] = []
-            ang = []
             traj_id: Optional[str] = None
-            dt, dim, ang_dim = 1.0, 1, 1
+            dt, dim = 1.0, 1
             vel_est = Trajectory.__vel_est
 
             for i, row in enumerate(csv.reader(traj_file)):
@@ -960,9 +915,7 @@ class Trajectory:
                     traj_id = row[0] if row[0] != "" else None
                     dt = check_empty_val(row[1])
                     dim = int(row[2])
-                    ang_dim = int(row[3])
                     r = [[] for _ in range(dim)]
-                    ang = [[] for _ in range(ang_dim)]
                     continue
 
                 if i == 1:
@@ -976,18 +929,10 @@ class Trajectory:
                 for j in range(dim):
                     r[j].append(float(row[j]))
 
-                for j, k in enumerate(range(dim, dim + ang_dim)):
-                    ang[j][k - dim] = check_empty_val(row[k])
-
                 t.append(float(row[-1]))
 
-            if not ang:
-                ang = None
-            elif ang_dim == 1:
-                ang = np.array(ang).T
-
             return Trajectory(
-                axes=r, t=t, ang=ang, dt=dt, traj_id=traj_id, vel_est=vel_est
+                axes=r, t=t, dt=dt, traj_id=traj_id, vel_est=vel_est
             )
 
     @staticmethod

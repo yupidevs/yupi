@@ -19,13 +19,11 @@ def subsample(traj: Trajectory, step=1, new_traj_id: str = None):
     """
 
     points = traj.r[::step]
-    ang = traj.ang[::step] if traj.ang is not None else None
     t = traj.t[::step] if traj.t is not None else None
 
     subsampled_traj = Trajectory(
         points=points,
         t=t,
-        ang=ang,
         dt=step * traj.dt,
         traj_id=new_traj_id,
         vel_est=traj.vel_est,
