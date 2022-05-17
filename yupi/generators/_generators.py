@@ -3,7 +3,7 @@ from typing import Callable, Optional, Tuple
 
 import numpy as np
 
-from yupi import Trajectory, VelocityMethod, WindowType
+from yupi import Trajectory, DiffMethod, WindowType
 
 
 class Generator(metaclass=abc.ABCMeta):
@@ -173,8 +173,8 @@ class RandomWalkGenerator(Generator):
                     dt=self.dt,
                     t=self.t,
                     traj_id=f"{self.traj_id} {i + 1}",
-                    vel_est={
-                        "method": VelocityMethod.LINEAR_DIFF,
+                    diff_est={
+                        "method": DiffMethod.LINEAR_DIFF,
                         "window_type": WindowType.FORWARD,
                     },
                 )

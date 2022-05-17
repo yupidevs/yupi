@@ -101,6 +101,6 @@ def add_moving_FoR(  # pylint: disable=invalid-name
         y=y_al,
         t=traj.t,
         traj_id=new_traj_id,
-        vel_est=traj.vel_est,
+        diff_est=traj.diff_est,
     )
     return moved_traj

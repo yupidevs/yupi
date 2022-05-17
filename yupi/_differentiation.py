@@ -1,5 +1,6 @@
 """
-This contains the methods to estimate the velocity of a trajectory.
+This contains the differentiation methods used to estimate the velocity
+of a trajectory.
 """
 
 import enum
@@ -10,7 +11,7 @@ import numpy as np
 from yupi.vector import Vector
 
 
-class VelocityMethod(enum.Enum):
+class DiffMethod(enum.Enum):
     """Enum to define the method to calculate the velocity."""
 
     LINEAR_DIFF = enum.auto()
@@ -59,9 +60,9 @@ def _get_coeff(x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None
 
 def _validate_traj(traj, method, window_type, accuracy):
     length = len(traj)
-    if method == VelocityMethod.LINEAR_DIFF:
+    if method == DiffMethod.LINEAR_DIFF:
         return length >= 3 if window_type == WindowType.CENTRAL else length >= 2
-    if method == VelocityMethod.FORNBERG_DIFF:
+    if method == DiffMethod.FORNBERG_DIFF:
         return length >= accuracy + 1
     raise ValueError("Invalid method to estimate the velocity.")
 
@@ -132,7 +133,7 @@ def _fornberg_diff_central(traj, n):  # pylint: disable=invalid-name
 
 def estimate_velocity(
     traj,
-    method: VelocityMethod,
+    method: DiffMethod,
     window_type: WindowType = WindowType.CENTRAL,
     accuracy: int = 1,
 ) -> Vector:
@@ -163,9 +164,9 @@ def estimate_velocity(
     if not _validate_traj(traj, method, window_type, accuracy):
         raise ValueError("Trajectory is too short to estimate the velocity.")
 
-    if method == VelocityMethod.LINEAR_DIFF:
+    if method == DiffMethod.LINEAR_DIFF:
         return _linear_diff(traj, window_type)
-    if method == VelocityMethod.FORNBERG_DIFF:
+    if method == DiffMethod.FORNBERG_DIFF:
         if window_type == WindowType.FORWARD:
             return _fornberg_diff_forward(traj, accuracy)
         if window_type == WindowType.BACKWARD:

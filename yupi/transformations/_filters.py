@@ -39,6 +39,6 @@ def exp_convolutional_filter(
         new_r[i + 1] = new_r[i] - gamma * (new_r[i] - r[i]) * dt[i]
 
     smooth_traj = Trajectory(
-        points=new_r, t=traj.t, traj_id=new_traj_id, vel_est=traj.vel_est
+        points=new_r, t=traj.t, traj_id=new_traj_id, diff_est=traj.diff_est
     )
     return smooth_traj

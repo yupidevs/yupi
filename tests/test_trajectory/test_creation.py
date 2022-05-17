@@ -1,5 +1,5 @@
 import pytest
-from yupi import Trajectory, VelocityMethod, WindowType
+from yupi import Trajectory, DiffMethod, WindowType
 
 APPROX_REL_TOLERANCE = 1e-10
 
@@ -83,13 +83,13 @@ def test_creation_general():
 def test_velocity_estimation_methods():
     x = [1, 2, 4, 8, 16]
 
-    Trajectory.global_vel_method(VelocityMethod.LINEAR_DIFF, WindowType.FORWARD)
+    Trajectory.global_diff_method(DiffMethod.LINEAR_DIFF, WindowType.FORWARD)
     traj = Trajectory(x=x)
 
     assert traj.v == pytest.approx([1, 2, 4, 8, 8], rel=APPROX_REL_TOLERANCE)
 
-    Trajectory.global_vel_method(VelocityMethod.LINEAR_DIFF)
-    traj.set_vel_method(VelocityMethod.LINEAR_DIFF, WindowType.BACKWARD)
+    Trajectory.global_diff_method(DiffMethod.LINEAR_DIFF)
+    traj.set_diff_method(DiffMethod.LINEAR_DIFF, WindowType.BACKWARD)
 
     assert traj.v == pytest.approx([1, 1, 2, 4, 8], rel=APPROX_REL_TOLERANCE)
 
@@ -98,18 +98,18 @@ def test_velocity_estimation_methods():
     assert traj.v == pytest.approx([3 / 2, 3 / 2, 3, 6, 6], rel=APPROX_REL_TOLERANCE)
 
     vel_est = {
-        "method": VelocityMethod.FORNBERG_DIFF,
+        "method": DiffMethod.FORNBERG_DIFF,
         "window_type": WindowType.CENTRAL,
         "accuracy": 2,
     }
 
-    traj = Trajectory(x=x, vel_est=vel_est)
+    traj = Trajectory(x=x, diff_est=vel_est)
 
     vel_est["accuracy"] = 3
 
     with pytest.raises(ValueError):
-        traj.set_vel_method(**vel_est)
+        traj.set_diff_method(**vel_est)
 
     vel_est["accuracy"] = 2
 
-    traj = Trajectory(x=x, y=[i**2 for i in x], vel_est=vel_est)
+    traj = Trajectory(x=x, y=[i**2 for i in x], diff_est=vel_est)

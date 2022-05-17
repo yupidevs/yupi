@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from yupi import Trajectory, VelocityMethod, WindowType
+from yupi import Trajectory, DiffMethod, WindowType
 from yupi.stats import *
 
 APPROX_REL_TOLERANCE = 1e-10
@@ -12,8 +12,8 @@ def traj():
     points = [[0, 0], [1, 0], [1, 1], [2, 1]]
     return Trajectory(
         points=points,
-        vel_est={
-            "method": VelocityMethod.LINEAR_DIFF,
+        diff_est={
+            "method": DiffMethod.LINEAR_DIFF,
             "window_type": WindowType.FORWARD,
         },
     )
@@ -25,8 +25,8 @@ def traj1():
     return Trajectory(
         x=x,
         dt=2,
-        vel_est={
-            "method": VelocityMethod.LINEAR_DIFF,
+        diff_est={
+            "method": DiffMethod.LINEAR_DIFF,
             "window_type": WindowType.FORWARD,
         },
     )
@@ -38,8 +38,8 @@ def traj2():
     return Trajectory(
         x=x,
         dt=2,
-        vel_est={
-            "method": VelocityMethod.LINEAR_DIFF,
+        diff_est={
+            "method": DiffMethod.LINEAR_DIFF,
             "window_type": WindowType.FORWARD,
         },
     )

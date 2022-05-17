@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import csv
 import json
+import logging
 import os
 import warnings
 from pathlib import Path
@@ -24,7 +25,7 @@ from typing import (
 
 import numpy as np
 
-import yupi._vel_estimators as v_est
+import yupi._differentiation as diff
 from yupi.exceptions import LoadTrajectoryError
 from yupi.features import Features
 from yupi.vector import Vector
@@ -90,9 +91,9 @@ class Trajectory:
     lazy : bool
         Defines if the velocity vector is not recalculated every time
         is asked. By default False.
-    vel_est : Dict[str, Any]
-        Dictionary containing the parameters for the velocity estimation
-        method.
+    diff_est : Dict[str, Any]
+        Dictionary containing the parameters for the differentiation
+        estimation method used to calculate velocity.
 
     Attributes
     ----------
@@ -107,9 +108,9 @@ class Trajectory:
     lazy : bool
         Defines if the velocity vector is not recalculated every time
         is asked.
-    vel_est : dict
-        Dictionary containing the parameters for the velocity estimation
-        method.
+    diff_est : dict
+        Dictionary containing the parameters for the differentiation
+        estimation method used to calculate velocity.
 
     Examples
     --------
@@ -149,9 +150,9 @@ class Trajectory:
         values delta.
     """
 
-    __vel_est: Dict[str, Any] = {
-        "method": v_est.VelocityMethod.LINEAR_DIFF,
-        "window_type": v_est.WindowType.CENTRAL,
+    __diff_est: Dict[str, Any] = {
+        "method": diff.DiffMethod.LINEAR_DIFF,
+        "window_type": diff.WindowType.CENTRAL,
     }
 
     def __init__(
@@ -166,6 +167,7 @@ class Trajectory:
         t_0: float = 0.0,
         traj_id: Optional[str] = None,
         lazy: Optional[bool] = False,
+        diff_est: Optional[Dict[str, Any]] = None,
         vel_est: Optional[Dict[str, Any]] = None,
         t0: Optional[float] = None,  # pylint: disable=invalid-name
     ):  # pylint: disable=too-many-arguments
@@ -227,10 +229,17 @@ class Trajectory:
             self.dt_mean = np.mean(np.array(self.__t.delta))
             self.dt_std = np.std(np.array(self.__t.delta))
 
-        # Velocity estimation
-        self.vel_est = Trajectory.__vel_est.copy()
+        # Differentiation method
         if vel_est is not None:
-            self.vel_est.update(vel_est)
+            diff_est = vel_est
+            warnings.warn(
+                "'vel_est' is deprecated and will be removed in version 1.0.0, "
+                "use 'diff_est' instead.",
+                DeprecationWarning,
+            )
+        self.diff_est = Trajectory.__diff_est.copy()
+        if diff_est is not None:
+            self.diff_est.update(diff_est)
 
         # Time parameters validation
         if self.__t is not None and dt is not None:
@@ -251,58 +260,94 @@ class Trajectory:
 
         self.features = Features(self)
 
-    def set_vel_method(
+    def set_diff_method(
         self,
-        method: v_est.VelocityMethod,
-        window_type: v_est.WindowType = v_est.WindowType.CENTRAL,
+        method: diff.DiffMethod,
+        window_type: diff.WindowType = diff.WindowType.CENTRAL,
         accuracy: int = 1,
     ):
         """
-        Set the method to calculate the velocity.
+        Set the local diferentiation method.
 
         Parameters
         ----------
-        method : VelocityMethod
-            Method to calculate the velocity.
+        method : DiffMethod
+            Method used to differentiate.
         window_type : WindowType
-            Type of window to use to calculate the velocity. By default,
+            Type of window used in the differentiation method. By default,
             the central window is used.
         accuracy : int
-            Accuracy of the velocity estimation (only valid for
+            Accuracy of the differentiation method (only valid for
             FORNBERG_DIFF method). By default, the accuracy is 1.
         """
-        self.vel_est = {
+        self.diff_est = {
             "method": method,
             "window_type": window_type,
             "accuracy": accuracy,
         }
         self.recalculate_velocity()
 
-    @staticmethod
-    def global_vel_method(
-        method: v_est.VelocityMethod,
-        window_type: v_est.WindowType = v_est.WindowType.CENTRAL,
+    def set_vel_method(
+        self,
+        method: diff.DiffMethod,
+        window_type: diff.WindowType = diff.WindowType.CENTRAL,
         accuracy: int = 1,
     ):
         """
-        Set the method to calculate the velocity.
+        .. deprecated:: 0.10.0
+            :func:`set_vel_method` is deprecated and will be removed in
+            version 1.0.0, use :func:`set_diff_method` instead.
+        """
+        warnings.warn(
+            "'set_vel_method' is deprecated and will be removed in version 1.0.0, "
+            "use 'set_diff_method' instead.",
+            DeprecationWarning,
+        )
+        self.set_diff_method(method, window_type, accuracy)
+
+    @staticmethod
+    def global_diff_method(
+        method: diff.DiffMethod,
+        window_type: diff.WindowType = diff.WindowType.CENTRAL,
+        accuracy: int = 1,
+    ):
+        """
+        Set the global diferentiation method.
 
         Parameters
         ----------
-        method : VelocityMethod
-            Method to calculate the velocity.
+        method : DiffMethod
+            Method used to differentiate.
         window_type : WindowType
-            Type of window to use to calculate the velocity. By default,
+            Type of window used in the differentiation method. By default,
             the central window is used.
         accuracy : int
-            Accuracy of the velocity estimation (only valid for
-            FORNBERG method). By default, the accuracy is 1.
+            Accuracy of the differentiation method (only valid for
+            FORNBERG_DIFF method). By default, the accuracy is 1.
         """
-        Trajectory.__vel_est = {
+        Trajectory.__diff_est = {
             "method": method,
             "window_type": window_type,
             "accuracy": accuracy,
         }
+
+    @staticmethod
+    def global_vel_method(
+        method: diff.DiffMethod,
+        window_type: diff.WindowType = diff.WindowType.CENTRAL,
+        accuracy: int = 1,
+    ):
+        """
+        .. deprecated:: 0.10.0
+            :func:`global_vel_method` is deprecated and will be removed in
+            version 1.0.0, use :func:`global_diff_method` instead.
+        """
+        warnings.warn(
+            "'global_vel_method' is deprecated and will be removed in "
+            "version 1.0.0, use 'global_diff_method' instead.",
+            DeprecationWarning,
+        )
+        Trajectory.global_diff_method(method, window_type, accuracy)
 
     @property
     def dt(self) -> float:
@@ -348,10 +393,10 @@ class Trajectory:
                     points=new_points,
                     dt=new_dt,
                     t_0=new_t0,
-                    vel_est=self.vel_est,
+                    diff_est=self.diff_est,
                 )
             new_t = self.t[start:stop:step]
-            return Trajectory(points=new_points, t=new_t, vel_est=self.vel_est)
+            return Trajectory(points=new_points, t=new_t, diff_est=self.diff_est)
         raise TypeError("Index must be an integer or a slice.")
 
     def __iter__(self) -> Iterator[TrajectoryPoint]:
@@ -396,7 +441,7 @@ class Trajectory:
         Vector
             Velocity vector.
         """
-        self.__v = v_est.estimate_velocity(self, **self.vel_est)
+        self.__v = diff.estimate_velocity(self, **self.diff_est)
         return self.__v
 
     @property
@@ -461,13 +506,6 @@ class Trajectory:
         .. deprecated:: 0.10.0
             :func:`rotate2d` will be removed in version 1.0.0, use
             :func:`rotate_2d` instead.
-
-        Rotates the trajectory around the center coordinates [0,0]
-
-        Parameters
-        ----------
-        angle : float
-            Angle in radians to rotate the trajectory.
         """
         warnings.warn(
             "rotate2d is deprecated and will be removed in version 1.0.0, "
@@ -533,20 +571,6 @@ class Trajectory:
         .. deprecated:: 0.10.0
             :func:`rotate3d` will be removed in version 1.0.0, use
             :func:`rotate_3d` instead.
-
-        Rotates the trajectory around a given vector.
-
-        Parameters
-        ----------
-        vector : Vector
-            Vector to rotate the trajectory around.
-        angle : float
-            Angle in radians to rotate the trajectory.
-
-        Raises
-        ------
-        TypeError
-            If the trajectory is not 3 dimensional.
         """
         warnings.warn(
             "rotate3d is deprecated and will be removed in version 1.0.0, "
@@ -569,7 +593,7 @@ class Trajectory:
             t=self.__t,
             dt=self.__dt,
             lazy=self.lazy,
-            vel_est=self.vel_est,
+            diff_est=self.diff_est,
         )
 
     def _operable_with(
@@ -730,13 +754,13 @@ class Trajectory:
                 return list(vec)
             return {d: list(v) for d, v in enumerate(vec)}
 
-        default_vel_est_method = v_est.VelocityMethod.LINEAR_DIFF
-        default_vel_est_window = v_est.WindowType.CENTRAL
-        default_vel_est_accuracy = 1
-        vel_est = {
-            "method": self.vel_est.get("method", default_vel_est_method).value,
-            "window_type": self.vel_est.get("window", default_vel_est_window).value,
-            "accuracy": self.vel_est.get("accuracy", default_vel_est_accuracy),
+        default_diff_method = diff.DiffMethod.LINEAR_DIFF
+        default_diff_window = diff.WindowType.CENTRAL
+        default_diff_accuracy = 1
+        diff_est = {
+            "method": self.diff_est.get("method", default_diff_method).value,
+            "window_type": self.diff_est.get("window", default_diff_window).value,
+            "accuracy": self.diff_est.get("accuracy", default_diff_accuracy),
         }
 
         json_dict = {
@@ -744,7 +768,7 @@ class Trajectory:
             "dt": self.__dt,
             "r": convert_to_list(self.r.T),
             "t": convert_to_list(self.__t),
-            "vel_est": vel_est,
+            "diff_est": diff_est,
         }
         with open(str(path), "w", encoding="utf-8") as traj_file:
             json.dump(json_dict, traj_file)
@@ -754,13 +778,12 @@ class Trajectory:
             writer = csv.writer(traj_file, delimiter=",")
             writer.writerow([self.traj_id, self.__dt, self.dim])
 
-            default_vel_est_method = v_est.VelocityMethod.LINEAR_DIFF
-            default_vel_est_window = v_est.WindowType.CENTRAL
-            default_vel_est_accuracy = 1
-            method = self.vel_est.get("method", default_vel_est_method).value
-            window = self.vel_est.get("window", default_vel_est_window).value
-            accuracy = self.vel_est.get("accuracy", default_vel_est_accuracy)
-            print(method, window, accuracy)
+            default_diff_method = diff.DiffMethod.LINEAR_DIFF
+            default_diff_window = diff.WindowType.CENTRAL
+            default_diff_accuracy = 1
+            method = self.diff_est.get("method", default_diff_method).value
+            window = self.diff_est.get("window", default_diff_window).value
+            accuracy = self.diff_est.get("accuracy", default_diff_accuracy)
             writer.writerow([method, window, accuracy])
 
             for t_p in self:
@@ -862,14 +885,14 @@ class Trajectory:
             traj_id = data["id"]
             t, dt = data["t"], data["dt"]
             axes = list(data["r"].values())
-            vel_est = data.get("vel_est", None)
-            if vel_est is None:
-                vel_est = Trajectory.__vel_est
+            diff_est = data.get("diff_est", None)
+            if diff_est is None:
+                diff_est = Trajectory.__diff_est
             else:
-                vel_est["method"] = v_est.VelocityMethod(vel_est["method"])
-                vel_est["window_type"] = v_est.WindowType(vel_est["window_type"])
+                diff_est["method"] = diff.DiffMethod(diff_est["method"])
+                diff_est["window_type"] = diff.WindowType(diff_est["window_type"])
 
-            return Trajectory(axes=axes, t=t, dt=dt, traj_id=traj_id, vel_est=vel_est)
+            return Trajectory(axes=axes, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
 
     @staticmethod
     def _load_csv(path: str):
@@ -884,7 +907,7 @@ class Trajectory:
             t: List[float] = []
             traj_id: Optional[str] = None
             dt, dim = 1.0, 1
-            vel_est = Trajectory.__vel_est
+            diff_est = Trajectory.__diff_est
 
             for i, row in enumerate(csv.reader(traj_file)):
                 if i == 0:
@@ -895,9 +918,9 @@ class Trajectory:
                     continue
 
                 if i == 1:
-                    vel_est = {
-                        "method": v_est.VelocityMethod(int(row[0])),
-                        "window_type": v_est.WindowType(int(row[1])),
+                    diff_est = {
+                        "method": diff.DiffMethod(int(row[0])),
+                        "window_type": diff.WindowType(int(row[1])),
                         "accuracy": int(row[2]),
                     }
                     continue
@@ -907,7 +930,7 @@ class Trajectory:
 
                 t.append(float(row[-1]))
 
-            return Trajectory(axes=r, t=t, dt=dt, traj_id=traj_id, vel_est=vel_est)
+            return Trajectory(axes=r, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
 
     @staticmethod
     def load(file_path: str):
@@ -977,7 +1000,7 @@ class Trajectory:
                 try:
                     trajs.append(Trajectory.load(path))
                 except LoadTrajectoryError as load_exception:
-                    print(f"Ignoring: {load_exception.path}")
+                    logging.warning("Ignoring: '%s'", load_exception.path)
             if not recursively:
                 break
         return trajs

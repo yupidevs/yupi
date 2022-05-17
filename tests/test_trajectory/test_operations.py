@@ -29,7 +29,7 @@ def timed_traj(points, time):
 
 @fixture
 def simple_traj():
-    return Trajectory(x=[0, 1], y=[0, 1], vel_est={"window_type": WindowType.FORWARD})
+    return Trajectory(x=[0, 1], y=[0, 1], diff_est={"window_type": WindowType.FORWARD})
 
 
 def test_length(points, traj):
@@ -43,7 +43,7 @@ def test_copy(traj):
     assert traj.dt == approx(copy_traj.dt, APPROX_REL_TOLERANCE)
     assert traj.t == approx(copy_traj.t, APPROX_REL_TOLERANCE)
     assert traj.v == approx(copy_traj.v, APPROX_REL_TOLERANCE)
-    assert traj.vel_est == copy_traj.vel_est
+    assert traj.diff_est == copy_traj.diff_est
 
 
 def test_iteration(points, traj):
@@ -71,7 +71,7 @@ def test_rotation(simple_traj):
 
 def test_rotation_3d():
     traj = Trajectory(
-        x=[0, 1], y=[0, 0], z=[0, 0], vel_est={"window_type": WindowType.FORWARD}
+        x=[0, 1], y=[0, 0], z=[0, 0], diff_est={"window_type": WindowType.FORWARD}
     )
 
     traj.rotate_3d(-np.pi / 2, [0, 0, 3])
