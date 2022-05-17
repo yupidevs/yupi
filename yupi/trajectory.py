@@ -215,6 +215,7 @@ class Trajectory:
         self.__dt = dt
         self.__t_0 = t_0
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
+        self.__v: Optional[Vector] = None
         self.traj_id = traj_id
         self.lazy = lazy
 
@@ -230,8 +231,6 @@ class Trajectory:
         self.vel_est = Trajectory.__vel_est.copy()
         if vel_est is not None:
             self.vel_est.update(vel_est)
-
-        self.recalculate_velocity()
 
         # Time parameters validation
         if self.__t is not None and dt is not None:
@@ -403,20 +402,7 @@ class Trajectory:
     @property
     def v(self) -> Vector:
         """Vector : Velocity vector"""
-        if self.__v is None:
-            method = self.vel_est["method"]
-            win_type = self.vel_est.get("window_type", v_est.WindowType.CENTRAL)
-            acc = self.vel_est.get("accuracy", 1)
-            acc_text = (
-                f" and accuracy {acc}"
-                if method == v_est.VelocityMethod.FORNBERG_DIFF
-                else ""
-            )
-            raise ValueError(
-                f"Trajectory velocity can not be estimated using {method.name} "
-                f"method with window type {win_type.name}{acc_text}."
-            )
-        if self.lazy:
+        if self.lazy and self.__v is not None:
             return self.__v
         return self.recalculate_velocity()
 
