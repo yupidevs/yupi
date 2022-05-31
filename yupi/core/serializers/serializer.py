@@ -1,3 +1,7 @@
+"""
+This contains the base class for all serializers.
+"""
+
 from __future__ import annotations
 
 import abc
