@@ -150,7 +150,7 @@ class Trajectory:
         values delta.
     """
 
-    __diff_est: Dict[str, Any] = {
+    general_diff_est: Dict[str, Any] = {
         "method": diff.DiffMethod.LINEAR_DIFF,
         "window_type": diff.WindowType.CENTRAL,
     }
@@ -215,7 +215,7 @@ class Trajectory:
             )
 
         self.__dt = dt
-        self.__t_0 = t_0
+        self.t_0 = t_0
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
         self.__v: Optional[Vector] = None
         self.traj_id = traj_id
@@ -237,7 +237,7 @@ class Trajectory:
                 "use 'diff_est' instead.",
                 DeprecationWarning,
             )
-        self.diff_est = Trajectory.__diff_est.copy()
+        self.diff_est = Trajectory.general_diff_est.copy()
         if diff_est is not None:
             self.diff_est.update(diff_est)
 
@@ -325,7 +325,7 @@ class Trajectory:
             Accuracy of the differentiation method (only valid for
             FORNBERG_DIFF method). By default, the accuracy is 1.
         """
-        Trajectory.__diff_est = {
+        Trajectory.general_diff_est = {
             "method": method,
             "window_type": window_type,
             "accuracy": accuracy,
@@ -377,7 +377,7 @@ class Trajectory:
             data = [self.r[index], None, None]
             data[1] = self.v[index - 1] if index > 0 else Vector([0] * self.dim)
             data[2] = (
-                self.t[index] if self.__t is not None else self.__t_0 + index * self.dt
+                self.t[index] if self.__t is not None else self.t_0 + index * self.dt
             )
 
             r, v, t = data
@@ -388,7 +388,7 @@ class Trajectory:
             new_points = self.r[start:stop:step]
             if self.uniformly_spaced:
                 new_dt = self.dt * step
-                new_t0 = self.__t_0 + start * self.dt
+                new_t0 = self.t_0 + start * self.dt
                 return Trajectory(
                     points=new_points,
                     dt=new_dt,
@@ -455,7 +455,7 @@ class Trajectory:
     def t(self) -> Vector:
         """Vector : Time vector"""
         if self.__t is None:
-            self.__t = Vector([self.__t_0 + self.dt * i for i in range(len(self))])
+            self.__t = Vector([self.t_0 + self.dt * i for i in range(len(self))])
         return self.__t
 
     def add_polar_offset(self, radius: float, angle: float) -> None:
@@ -754,13 +754,10 @@ class Trajectory:
                 return list(vec)
             return {d: list(v) for d, v in enumerate(vec)}
 
-        default_diff_method = diff.DiffMethod.LINEAR_DIFF
-        default_diff_window = diff.WindowType.CENTRAL
-        default_diff_accuracy = 1
         diff_est = {
-            "method": self.diff_est.get("method", default_diff_method).value,
-            "window_type": self.diff_est.get("window", default_diff_window).value,
-            "accuracy": self.diff_est.get("accuracy", default_diff_accuracy),
+            "method": self.diff_est.get("method", diff.DiffMethod.LINEAR_DIFF).value,
+            "window_type": self.diff_est.get("window", diff.WindowType.CENTRAL).value,
+            "accuracy": self.diff_est.get("accuracy", 1),
         }
 
         json_dict = {
@@ -798,6 +795,10 @@ class Trajectory:
         overwrite: bool = True,
     ):
         """
+        .. deprecated:: 0.10.0
+            :func:`save` will be removed in version 1.0.0, use a Serializer
+            from ``yupi.core`` instead (e.g., JSONSerializer).
+
         Saves the trajectory to disk.
 
         Parameters
@@ -827,12 +828,18 @@ class Trajectory:
         >>> t = Trajectory(x=[0.37, 1.24, 1.5])
         >>> t.save('my_track')
         """
+        warnings.warn(
+            "`save` is deprecated and will be removed in version 1.0.0, use a "
+            "Serializer from `yupi.core` instead (e.g., JSONSerializer).",
+            DeprecationWarning,
+        )
+
         # Build full path
         full_path = Path(path) / Path(f"{file_name}.{file_type}")
 
         # Check file existance
         if not overwrite and full_path.exists():
-            raise ValueError(f"File '{str(full_path)}' already exist")
+            raise FileExistsError(f"File '{str(full_path)}' already exist")
 
         if file_type == "json":
             self._save_json(full_path)
@@ -887,7 +894,7 @@ class Trajectory:
             axes = list(data["r"].values())
             diff_est = data.get("diff_est", None)
             if diff_est is None:
-                diff_est = Trajectory.__diff_est
+                diff_est = Trajectory.general_diff_est
             else:
                 diff_est["method"] = diff.DiffMethod(diff_est["method"])
                 diff_est["window_type"] = diff.WindowType(diff_est["window_type"])
@@ -907,7 +914,7 @@ class Trajectory:
             t: List[float] = []
             traj_id: Optional[str] = None
             dt, dim = 1.0, 1
-            diff_est = Trajectory.__diff_est
+            diff_est = Trajectory.general_diff_est
 
             for i, row in enumerate(csv.reader(traj_file)):
                 if i == 0:
@@ -935,6 +942,10 @@ class Trajectory:
     @staticmethod
     def load(file_path: str):
         """
+        .. deprecated:: 0.10.0
+            :func:`load` will be removed in version 1.0.0, use a Serializer
+            from ``yupi.core`` instead (e.g., JSONSerializer).
+
         Loads a trajectory
 
         Parameters
@@ -956,8 +967,14 @@ class Trajectory:
         ValueError
             If ``file_path`` extension is not ``json`` or ```csv``.
         """
-        path = Path(file_path)
 
+        warnings.warn(
+            "`load` is deprecated and will be removed in version 1.0.0, use a "
+            "Serializer from `yupi.core` instead (e.g., JSONSerializer).",
+            DeprecationWarning,
+        )
+
+        path = Path(file_path)
         # Check valid path
         if not path.exists():
             raise ValueError("Path does not exist.")
@@ -973,7 +990,7 @@ class Trajectory:
                 return Trajectory._load_csv(file_path)
             raise ValueError("Invalid file type.")
         except (json.JSONDecodeError, KeyError, ValueError, IndexError) as exc:
-            raise LoadTrajectoryError(path) from exc
+            raise LoadTrajectoryError(str(path)) from exc
 
     @staticmethod
     def load_folder(folder_path=".", recursively: bool = False):
