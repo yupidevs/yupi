@@ -5,8 +5,6 @@ CSV traj serializer
 from __future__ import annotations
 
 import csv
-import logging
-from typing import Collection, Optional
 
 import numpy as np
 
