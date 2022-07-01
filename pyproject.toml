@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yupi"
-version = "0.9.2"
+version = "0.10.0"
 description = "A package for tracking and analysing objects trajectories"
 authors = [
     "Gustavo Viera-López <gvieralopez@gmail.com>",
@@ -10,6 +10,9 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/yupidevs/yupi"
+documentation = "https://yupi.readthedocs.io"
+keywords = ["trajectory", "analysis", "tracking"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -19,8 +22,36 @@ nudged = ">=0.3.1"
 matplotlib = ">=3.2.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.2"
-pylint = "^2.7.2"
+pytest = ">=6.2.2"
+pylint = ">=2.7.2"
+isort = ">=5.10.1"
+black = ">=22.3.0"
+
+[tool.isort]
+profile = "black"
+known_first_party = ["yupi"]
+
+[tool.black]
+target-version = ["py37"]
+
+[tool.pylint."MESSAGES CONTROL"]
+extension-pkg-whitelist = ["cv2"]
+max-line-length = 88
+good-names = [
+	"x",   # Data from x axis
+	"y",   # Data from y axis
+	"z",   # Data from z axis
+	"t",   # Time vector
+	"r",   # Position vector
+	"v",   # Velocity vector
+	"dt",  # Time spacing (delta time)
+	"i",   # Usual iteration variable
+	"j",   # Usual iteration variable
+	"k",   # Usual iteration variable
+	"ax",  # Matplotlib Axes
+	"T",   # Total time
+	"N"    # Number of trajectories
+]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

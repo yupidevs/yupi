@@ -1,8 +1,14 @@
-from typing import List
+"""
+This contains the Features class which is used to store the features of a
+given trajectory.
+"""
+
+from typing import List, Optional
+
 import numpy as np
 
 
-class Features():
+class Features:
     """
     Extracts useful information from a trajectory.
 
@@ -32,17 +38,18 @@ class Features():
         traj = self.traj
         return sum(traj.delta_r.norm)
 
-    def as_dict(self, only: List[str] = None,
-                remove: List[str] = None) -> dict:
+    def as_dict(
+        self, only: Optional[List[str]] = None, remove: Optional[List[str]] = None
+    ) -> dict:
         """
         Get all the features as dictionary.
 
         Parameters
         ----------
-        only : List[str], optional
+        only : Optional[List[str]]
             Filters the features by giving the ones named in the list,
             by default None.
-        remove : List[str], optional
+        remove : Optional[List[str]]
             Filters the features by removing the ones named in the list,
             by default None.
 
@@ -53,11 +60,11 @@ class Features():
         """
 
         _dict = dict(self.__class__.__dict__)
-        _dict = {k:v for k,v in _dict.items() if isinstance(v, property)}
-        _keys = _dict.keys()
+        _dict = {k: v for k, v in _dict.items() if isinstance(v, property)}
+        _keys = list(_dict.keys())
         if remove is not None:
             _keys = [k for k in _keys if k not in remove]
         if only is not None:
             _keys = [k for k in _keys if k in only]
-        _dict = {k:v.__get__(self) for k,v in _dict.items() if k in _keys}
+        _dict = {k: v.__get__(self) for k, v in _dict.items() if k in _keys}
         return _dict

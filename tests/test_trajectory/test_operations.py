@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from pytest import approx, fixture
+
 from yupi import Trajectory, WindowType
 
 APPROX_REL_TOLERANCE = 1e-12
@@ -12,13 +13,8 @@ def points():
 
 
 @fixture
-def angles():
-    return np.array([0, 1, 2, 1, 1.5], dtype=float)
-
-
-@fixture
-def traj(points, angles):
-    return Trajectory(points=points, ang=angles)
+def traj(points):
+    return Trajectory(points=points)
 
 
 @fixture
@@ -27,13 +23,13 @@ def time():
 
 
 @fixture
-def timed_traj(points, angles, time):
-    return Trajectory(points=points, ang=angles, t=time)
+def timed_traj(points, time):
+    return Trajectory(points=points, t=time)
 
 
 @fixture
 def simple_traj():
-    return Trajectory(x=[0, 1], y=[0, 1], vel_est={"window_type": WindowType.FORWARD})
+    return Trajectory(x=[0, 1], y=[0, 1], diff_est={"window_type": WindowType.FORWARD})
 
 
 def test_length(points, traj):
@@ -47,21 +43,18 @@ def test_copy(traj):
     assert traj.dt == approx(copy_traj.dt, APPROX_REL_TOLERANCE)
     assert traj.t == approx(copy_traj.t, APPROX_REL_TOLERANCE)
     assert traj.v == approx(copy_traj.v, APPROX_REL_TOLERANCE)
-    assert traj.ang == approx(copy_traj.ang, APPROX_REL_TOLERANCE)
-    assert traj.vel_est == copy_traj.vel_est
+    assert traj.diff_est == copy_traj.diff_est
 
 
-def test_iteration(points, angles, traj):
+def test_iteration(points, traj):
     time = traj.t
 
     for i, tp in enumerate(traj):
         point = points[i]
-        ang = angles[i]
         t = time[i]
 
         assert point == approx(tp.r, APPROX_REL_TOLERANCE)  # Position
         assert t == approx(tp.t, APPROX_REL_TOLERANCE)  # Time
-        assert ang == approx(tp.ang, APPROX_REL_TOLERANCE)  # Angle
 
 
 def test_rotation(simple_traj):
@@ -70,7 +63,7 @@ def test_rotation(simple_traj):
 
     # [0, 0] -> [0,       0]
     # [1, 1] -> [0, sqrt(2)]
-    simple_traj.rotate2d(ang)
+    simple_traj.rotate_2d(ang)
 
     assert simple_traj.r[0] == approx([0, 0], APPROX_REL_TOLERANCE)
     assert simple_traj.r[1] == approx([0, np.sqrt(2)], APPROX_REL_TOLERANCE)
@@ -78,15 +71,15 @@ def test_rotation(simple_traj):
 
 def test_rotation_3d():
     traj = Trajectory(
-        x=[0, 1], y=[0, 0], z=[0, 0], vel_est={"window_type": WindowType.FORWARD}
+        x=[0, 1], y=[0, 0], z=[0, 0], diff_est={"window_type": WindowType.FORWARD}
     )
 
-    traj.rotate3d(-np.pi / 2, [0, 0, 3])
+    traj.rotate_3d(-np.pi / 2, [0, 0, 3])
 
     assert traj.r[0] == approx([0, 0, 0], APPROX_REL_TOLERANCE)
     assert traj.r[1] == approx([0, 1, 0], APPROX_REL_TOLERANCE)
 
-    traj.rotate3d(np.pi, [1, 0, 0])
+    traj.rotate_3d(np.pi, [1, 0, 0])
 
     assert traj.r[1] == approx([0, -1, 0], APPROX_REL_TOLERANCE)
 
@@ -172,7 +165,7 @@ def test_slicing(traj, timed_traj):
     slice_3 = timed_traj[:-2]
     slice_4 = timed_traj[1:4]
     slice_5 = traj[::2]
-    slice_6 = traj[1:4:2]
+    slice_6 = traj[0:5:2]
 
     # Test lengths
     assert len(slice_1) == len(timed_traj)
@@ -180,7 +173,7 @@ def test_slicing(traj, timed_traj):
     assert len(slice_3) == len(timed_traj) - 2
     assert len(slice_4) == 3
     assert len(slice_5) == 3
-    assert len(slice_6) == 2
+    assert len(slice_6) == 3
 
     # Test points
     assert slice_1.r == approx(timed_traj.r[:], APPROX_REL_TOLERANCE)
@@ -188,7 +181,7 @@ def test_slicing(traj, timed_traj):
     assert slice_3.r == approx(timed_traj.r[:-2], APPROX_REL_TOLERANCE)
     assert slice_4.r == approx(timed_traj.r[1:4], APPROX_REL_TOLERANCE)
     assert slice_5.r == approx(traj.r[::2], APPROX_REL_TOLERANCE)
-    assert slice_6.r == approx(traj.r[1:4:2], APPROX_REL_TOLERANCE)
+    assert slice_6.r == approx(traj.r[0:5:2], APPROX_REL_TOLERANCE)
 
     # Test time
     assert slice_1.t == approx(timed_traj.t[:], APPROX_REL_TOLERANCE)
@@ -196,15 +189,7 @@ def test_slicing(traj, timed_traj):
     assert slice_3.t == approx(timed_traj.t[:-2], APPROX_REL_TOLERANCE)
     assert slice_4.t == approx(timed_traj.t[1:4], APPROX_REL_TOLERANCE)
     assert slice_5.t == approx(traj.t[::2], APPROX_REL_TOLERANCE)
-    assert slice_6.t == approx(traj.t[1:4:2], APPROX_REL_TOLERANCE)
-
-    # Test angle
-    assert slice_1.ang == approx(timed_traj.ang[:], APPROX_REL_TOLERANCE)
-    assert slice_2.ang == approx(timed_traj.ang[2:], APPROX_REL_TOLERANCE)
-    assert slice_3.ang == approx(timed_traj.ang[:-2], APPROX_REL_TOLERANCE)
-    assert slice_4.ang == approx(timed_traj.ang[1:4], APPROX_REL_TOLERANCE)
-    assert slice_5.ang == approx(traj.ang[::2], APPROX_REL_TOLERANCE)
-    assert slice_6.ang == approx(traj.ang[1:4:2], APPROX_REL_TOLERANCE)
+    assert slice_6.t == approx(traj.t[0:5:2], APPROX_REL_TOLERANCE)
 
     # Test dt
     assert slice_5.dt == approx(traj.dt * 2, APPROX_REL_TOLERANCE)

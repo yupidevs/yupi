@@ -2,7 +2,8 @@ import abc
 from typing import Callable, Optional, Tuple
 
 import numpy as np
-from yupi import Trajectory, VelocityMethod, WindowType
+
+from yupi import Trajectory, DiffMethod, WindowType
 
 
 class Generator(metaclass=abc.ABCMeta):
@@ -102,7 +103,7 @@ class RandomWalkGenerator(Generator):
         dim: int = 1,
         N: int = 1,
         dt: float = 1,
-        actions_prob: np.ndarray = None,
+        actions_prob: Optional[np.ndarray] = None,
         step_length_func: Callable[[Tuple], np.ndarray] = np.ones,
         seed: Optional[int] = None,
         **step_length_kwargs,
@@ -140,21 +141,21 @@ class RandomWalkGenerator(Generator):
     # Compute vector position as a function of time for
     # All the walkers of the ensemble
     def _get_r(self):
-        # Get movements for every space coordinates according
-        # To the sample space of probabilities in self.actions_prob
-        dr = [
+        # Get displacement for every coordinates according
+        # to the probabilities in self.actions_prob
+        delta_r = [
             self.rng.choice(self.actions, p=p, size=(self.n - 1, self.N))
             for p in self.actions_prob
         ]
 
         # Set time/coordinates as the first/second axis
-        dr = np.swapaxes(dr, 0, 1)
+        delta_r = np.swapaxes(delta_r, 0, 1)
 
         # Scale displacements according to the jump length statistics
-        dr = dr * self.step_length
+        delta_r = delta_r * self.step_length
 
         # Integrate displacements to get position vectors
-        self.r[1:] = np.cumsum(dr, axis=0)
+        self.r[1:] = np.cumsum(delta_r, axis=0)
         return self.r
 
     # Get position vectors and generate RandomWalk object
@@ -172,8 +173,8 @@ class RandomWalkGenerator(Generator):
                     dt=self.dt,
                     t=self.t,
                     traj_id=f"{self.traj_id} {i + 1}",
-                    vel_est={
-                        "method": VelocityMethod.LINEAR_DIFF,
+                    diff_est={
+                        "method": DiffMethod.LINEAR_DIFF,
                         "window_type": WindowType.FORWARD,
                     },
                 )
@@ -190,8 +191,8 @@ class _LangevinGenerator(Generator):
         dt: float = 1.0,
         gamma: float = 1.0,
         sigma: float = 1.0,
-        v0: np.ndarray = None,
-        r0: np.ndarray = None,
+        v0: Optional[np.ndarray] = None,
+        r0: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
     ):
 
@@ -216,7 +217,7 @@ class _LangevinGenerator(Generator):
 
     # Intrinsic reference parameters
     def _set_scaling_params(self):
-        self.t_scale = self.gamma ** -1  # Time scale
+        self.t_scale = self.gamma**-1  # Time scale
         self.v_scale = self.sigma * np.sqrt(self.t_scale)  # Speed scale
         self.r_scale = self.v_scale * self.t_scale  # Length scale
 
@@ -317,17 +318,17 @@ class LangevinGenerator(_LangevinGenerator):
         Drag parameter or inverse of the persistence time, by default 1.
     sigma : float, optional
         Noise intensity (i.e., scale parameter of noise pdf), by default 1.
-    bounds: np.ndarray, optional
+    bounds: Optional[np.ndarray]
         Lower and upper reflecting boundaries that confine the trajectories.
         If None is passed, trajectories are simulated in a free space.
         By default None.
-    bounds_extent: np.ndarray, optional
+    bounds_extent: Optional[np.ndarray]
         Decay length of boundary forces, by default None.
-    bounds_strength: np.ndarray, optional
+    bounds_strength: Optional[np.ndarray]
         Boundaries strength, by default None.
-    v0 : np.ndarray, optional
+    v0 : Optional[np.ndarray]
         Initial velocities, by default None.
-    r0 : np.ndarray, optional
+    r0 : Optional[np.ndarray]
         Initial positions, by default None.
     """
 
@@ -339,11 +340,11 @@ class LangevinGenerator(_LangevinGenerator):
         dt: float = 1.0,
         gamma: float = 1.0,
         sigma: float = 1.0,
-        bounds: np.ndarray = None,
-        bounds_extent: np.ndarray = None,
-        bounds_strength: np.ndarray = None,
-        v0: np.ndarray = None,
-        r0: np.ndarray = None,
+        bounds: Optional[np.ndarray] = None,
+        bounds_extent: Optional[np.ndarray] = None,
+        bounds_strength: Optional[np.ndarray] = None,
+        v0: Optional[np.ndarray] = None,
+        r0: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
     ):
 
@@ -364,32 +365,33 @@ class LangevinGenerator(_LangevinGenerator):
         self.bounds_ext = np.float32(self.bounds_ext) * ones
         self.bounds_stg = np.float32(self.bounds_stg) * ones
 
-    # # Set dimensionless bounds properties
+    # Set dimensionless bounds properties
     def _dimless_bounds(self):
         self.bounds = self.bounds / self.r_scale
         self.bounds_ext = self.bounds_ext / self.r_scale
-        self.bounds_stg = self.bounds_stg / (self.r_scale / self.t_scale ** 2)
+        self.bounds_stg = self.bounds_stg / (self.r_scale / self.t_scale**2)
 
     # Check if all initial positions are whithin boundaries
     def _check_r0(self):
         # Unpack lower and upper bounds
-        lb, ub = self.bounds
+        assert self.bounds is not None
+        lower_bound, upper_bound = self.bounds
 
         # Find axes without boundaries
-        idx_lb = np.where(np.isnan(lb))
-        idx_ub = np.where(np.isnan(ub))
+        idx_lb = np.where(np.isnan(lower_bound))
+        idx_ub = np.where(np.isnan(upper_bound))
 
         # Ignore position components when no boundaries are specified
         r_lb = np.delete(self.r[0], idx_lb, axis=0)
         r_ub = np.delete(self.r[0], idx_ub, axis=0)
 
         # Same for bounds
-        lb = np.delete(lb, idx_lb)
-        ub = np.delete(ub, idx_ub)
+        lower_bound = np.delete(lower_bound, idx_lb)
+        upper_bound = np.delete(upper_bound, idx_ub)
 
         # Check if all positions are within both type of boundaries
-        is_above_lb = np.all(lb[:, None] <= r_lb)
-        is_bellow_ub = np.all(ub[:, None] >= r_ub)
+        is_above_lb = np.all(lower_bound[:, None] <= r_lb)
+        is_bellow_ub = np.all(upper_bound[:, None] >= r_ub)
 
         if not is_above_lb:
             raise ValueError("Initial positions must be above lower bounds.")
@@ -420,24 +422,24 @@ class LangevinGenerator(_LangevinGenerator):
         r = r.T
 
         # Lower and upper bound limits, extents and strengths
-        lb, ub = self.bounds
+        lower_bound, upper_bound = self.bounds
         ext_lb, ext_ub = self.bounds_ext
         stg_lb, stg_ub = self.bounds_stg
 
         # Get distance from the bounds and scale
         # by the bound extent parameter
-        dr_lb = (r - lb) / ext_lb
-        dr_ub = (r - ub) / ext_ub
+        dr_lb = (r - lower_bound) / ext_lb
+        dr_ub = (r - upper_bound) / ext_ub
 
         # An exponential models the force from the wall.
         # Get zero force if there is no bound or the particle
         # is far enough.
         force_lb = np.where(
-            np.isnan(lb) | (dr_lb > tolerance), 0.0, stg_lb * np.exp(-dr_lb)
+            np.isnan(lower_bound) | (dr_lb > tolerance), 0.0, stg_lb * np.exp(-dr_lb)
         )
 
         force_ub = np.where(
-            np.isnan(ub) | (-dr_ub > tolerance), 0.0, -stg_ub * np.exp(dr_ub)
+            np.isnan(upper_bound) | (-dr_ub > tolerance), 0.0, -stg_ub * np.exp(dr_ub)
         )
 
         # Adding boundary effects and transpose to recover
@@ -472,7 +474,7 @@ class _DiffDiffGenerator(Generator):
         tau: float = 1.0,
         sigma: float = 1.0,
         dim_aux: int = 1,
-        r0: np.ndarray = None,
+        r0: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
     ):
 
@@ -497,9 +499,9 @@ class _DiffDiffGenerator(Generator):
         # Dynamic variables
         self.t = np.arange(self.n, dtype=np.float32)  # Time array
         self.r = np.empty(self.shape)  # Position array
-        self.Y = np.empty((dim_aux, N))  # Aux variable: square of diffusivity
-        self.noise_r = None  # Noise for position (filled in _set_noise method)
-        self.noise_Y = None  # Aux variable (filled in _set_noise method)
+        self.aux_var = np.empty((dim_aux, N))  # Square of diffusivity
+        self.noise_r: np.ndarray  # Noise for position (filled in _set_noise method)
+        self.noise_Y: np.ndarray  # Aux variable (filled in _set_noise method)
 
         # Initial conditions
         self.r0 = r0  # Initial position
@@ -507,10 +509,10 @@ class _DiffDiffGenerator(Generator):
 
     # Set initial conditions
     def _set_init_cond(self):
-        self.Y = self.rng.normal(
+        self.aux_var = self.rng.normal(
             size=(self.dim_aux, self.N)
         )  # Initial aux variable configuration
-        self.D = np.sum(self.Y ** 2, axis=0)  # Initial diffusivity configuration
+        self.D = np.sum(self.aux_var**2, axis=0)  # Initial diffusivity configuration
 
         if self.r0 is None:
             self.r[0] = np.zeros((self.dim, self.N))  # Default initial positions
@@ -536,10 +538,10 @@ class _DiffDiffGenerator(Generator):
             self.r[i + 1] = self.r[i] + np.sqrt(2 * self.D * self.dt) * self.noise_r[i]
 
             # Solving for auxiliary variable
-            self.Y += -self.Y * self.dt + +self.noise_Y[i] * sqrt_dt
+            self.aux_var += -self.aux_var * self.dt + +self.noise_Y[i] * sqrt_dt
 
             # Updating the diffusivities
-            self.D = np.sum(self.Y ** 2, axis=0)
+            self.D = np.sum(self.aux_var**2, axis=0)
 
     # Scale by intrinsic reference quantities
     def _set_scale(self):
@@ -588,15 +590,15 @@ class DiffDiffGenerator(_DiffDiffGenerator):
     dim_aux: int, optional
         Dimension of the auxiliary process, which is the square of
         the diffusivity, by default 1.
-    bounds: np.ndarray, optional
+    bounds: Optional[np.ndarray], optional
         Lower and upper reflecting boundaries that confine the trajectories.
         If None is passed, trajectories are simulated in a free space.
         By default None.
-    bounds_extent: np.ndarray, optional
+    bounds_extent: Optional[np.ndarray]
         Decay length of boundary forces, by default None.
-    bounds_strength: np.ndarray, optional
+    bounds_strength: Optional[np.ndarray]
         Boundaries strength, by default None.
-    r0 : np.ndarray, optional
+    r0 : Optional[np.ndarray]
         Initial positions, by default None.
     """
 
@@ -609,10 +611,10 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         tau: float = 1.0,
         sigma: float = 1.0,
         dim_aux: int = 1,
-        bounds: np.ndarray = None,
-        bounds_extent: np.ndarray = None,
-        bounds_strength: np.ndarray = None,
-        r0: np.ndarray = None,
+        bounds: Optional[np.ndarray] = None,
+        bounds_extent: Optional[np.ndarray] = None,
+        bounds_strength: Optional[np.ndarray] = None,
+        r0: Optional[np.ndarray] = None,
         seed: Optional[int] = None,
     ):
 
@@ -628,7 +630,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
             self.bounds = self.bounds * ones / self.r_scale
             self.bounds_ext = np.float32(bounds_extent) * ones / self.r_scale
             self.bounds_stg = (
-                np.float32(bounds_strength) * ones * (self.t_scale ** 2 / self.r_scale)
+                np.float32(bounds_strength) * ones * (self.t_scale**2 / self.r_scale)
             )
 
             # Check is initial positions are within bounds
@@ -637,23 +639,24 @@ class DiffDiffGenerator(_DiffDiffGenerator):
     # Check if all initial positions are inside boundaries
     def _check_r0(self):
         # Unpack lower and upper bounds
-        lb, ub = self.bounds
+        assert self.bounds is not None
+        upper_bound, upper_bound = self.bounds
 
         # Find axes without boundaries
-        idx_lb = np.where(np.isnan(lb))
-        idx_ub = np.where(np.isnan(ub))
+        idx_lb = np.where(np.isnan(upper_bound))
+        idx_ub = np.where(np.isnan(upper_bound))
 
         # Ignore position components when no boundaries are specified
         r_lb = np.delete(self.r[0], idx_lb, axis=0)
         r_ub = np.delete(self.r[0], idx_ub, axis=0)
 
         # Same for bounds
-        lb = np.delete(lb, idx_lb)
-        ub = np.delete(ub, idx_ub)
+        upper_bound = np.delete(upper_bound, idx_lb)
+        upper_bound = np.delete(upper_bound, idx_ub)
 
         # Check if all positions are within both type of boundaries
-        is_above_lb = np.all(lb[:, None] <= r_lb)
-        is_bellow_ub = np.all(ub[:, None] >= r_ub)
+        is_above_lb = np.all(upper_bound[:, None] <= r_lb)
+        is_bellow_ub = np.all(upper_bound[:, None] >= r_ub)
 
         if not is_above_lb:
             raise ValueError("Initial positions must be above lower bounds.")
@@ -671,24 +674,25 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         r = r.T
 
         # Lower and upper bound limits, extents and strengths
-        lb, ub = self.bounds
+        assert self.bounds is not None
+        lower_bound, upper_bound = self.bounds
         ext_lb, ext_ub = self.bounds_ext
         stg_lb, stg_ub = self.bounds_stg
 
         # Get distance from the bounds and scale
         # by the bound extent parameter
-        dr_lb = (r - lb) / ext_lb
-        dr_ub = (r - ub) / ext_ub
+        dr_lb = (r - lower_bound) / ext_lb
+        dr_ub = (r - upper_bound) / ext_ub
 
         # An exponential models the force from the wall.
         # Get zero force if there is no bound or the particle
         # is far enough.
         force_lb = np.where(
-            np.isnan(lb) | (dr_lb > tolerance), 0.0, stg_lb * np.exp(-dr_lb)
+            np.isnan(lower_bound) | (dr_lb > tolerance), 0.0, stg_lb * np.exp(-dr_lb)
         )
 
         force_ub = np.where(
-            np.isnan(ub) | (-dr_ub > tolerance), 0.0, -stg_ub * np.exp(dr_ub)
+            np.isnan(upper_bound) | (-dr_ub > tolerance), 0.0, -stg_ub * np.exp(dr_ub)
         )
 
         # Adding boundary effects and transpose to recover
@@ -708,7 +712,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
             )
 
             # Solving for auxiliary variable
-            self.Y += -self.Y * self.dt + self.noise_Y[i] * sqrt_dt
+            self.aux_var += -self.aux_var * self.dt + self.noise_Y[i] * sqrt_dt
 
             # Updating the diffusivities
-            self.D = np.sum(self.Y ** 2, axis=0)
+            self.D = np.sum(self.aux_var**2, axis=0)

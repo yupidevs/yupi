@@ -1,12 +1,25 @@
+"""
+This contains the plotting functions of the statistical observables.
+"""
+
 import itertools
-from typing import List
+from typing import List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from yupi.graphics._style import (GREEN, LIGHT_BLUE, LIGHT_GREEN, LIGHT_ORANGE,
-                                  LIGHT_YELLOW, RED, YUPI_COLORS,
-                                  YUPI_LIGHT_COLORS, _plot_basic_properties)
+
+from yupi.graphics._style import (
+    GREEN,
+    LIGHT_BLUE,
+    LIGHT_GREEN,
+    LIGHT_ORANGE,
+    LIGHT_YELLOW,
+    RED,
+    YUPI_COLORS,
+    YUPI_LIGHT_COLORS,
+    _plot_basic_properties,
+)
 
 
 def _validate_units(units):
@@ -34,8 +47,8 @@ def plot_hist(values: np.ndarray, **kwargs):
 @_plot_basic_properties
 def plot_hists(
     values_list: List[np.ndarray],
-    kwargs_list: List[dict] = None,
-    labels: List[str] = None,
+    kwargs_list: Optional[List[dict]] = None,
+    labels: Optional[List[str]] = None,
     filled: bool = False,
     **general_kwargs,
 ):
@@ -46,11 +59,12 @@ def plot_hists(
     ----------
     values_list : List[np.ndarray]
         Collection of values.
-    kwargs_list : List[dict], optional
+    kwargs_list : Optional[List[dict]]
         kwargs of each plot, by default []
 
         If given, the length must be the same as the length of
         ``values``.
+
     """
 
     if kwargs_list and len(kwargs_list) != len(values_list):
@@ -64,22 +78,15 @@ def plot_hists(
     colors = [cycle.__next__() for _ in values_list]
 
     for i, vals in enumerate(values_list):
-        color = colors[i]
-        alpha = 0.3 if filled else 1
         kwargs = kwargs_list[i]
         kwargs = kwargs if len(kwargs) != 0 else general_kwargs
-        lw = 1.5
+        color = kwargs.get("color", colors[i])
+        alpha = kwargs.get("alpha", 0.3 if filled else 1)
+        lw = kwargs.get("lw", 1.5)  #pylint: disable=invalid-name
         if labels is not None:
             kwargs["label"] = labels[i]
         if "histtype" in kwargs:
             kwargs.pop("histtype")
-        if "color" in kwargs:
-            color = kwargs["color"]
-        if "lw" in kwargs:
-            lw = kwargs["lw"]
-        if "alpha" not in kwargs:
-            kwargs["alpha"] = alpha
-        alpha = kwargs.pop("alpha", alpha)
 
         plt.hist(vals, histtype="step", color=color, lw=lw, **kwargs)
 

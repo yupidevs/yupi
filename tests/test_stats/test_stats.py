@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
-from yupi import Trajectory, VelocityMethod, WindowType
+
+from yupi import Trajectory, DiffMethod, WindowType
 from yupi.stats import *
 
 APPROX_REL_TOLERANCE = 1e-10
@@ -11,8 +12,8 @@ def traj():
     points = [[0, 0], [1, 0], [1, 1], [2, 1]]
     return Trajectory(
         points=points,
-        vel_est={
-            "method": VelocityMethod.LINEAR_DIFF,
+        diff_est={
+            "method": DiffMethod.LINEAR_DIFF,
             "window_type": WindowType.FORWARD,
         },
     )
@@ -24,8 +25,8 @@ def traj1():
     return Trajectory(
         x=x,
         dt=2,
-        vel_est={
-            "method": VelocityMethod.LINEAR_DIFF,
+        diff_est={
+            "method": DiffMethod.LINEAR_DIFF,
             "window_type": WindowType.FORWARD,
         },
     )
@@ -37,8 +38,8 @@ def traj2():
     return Trajectory(
         x=x,
         dt=2,
-        vel_est={
-            "method": VelocityMethod.LINEAR_DIFF,
+        diff_est={
+            "method": DiffMethod.LINEAR_DIFF,
             "window_type": WindowType.FORWARD,
         },
     )
@@ -103,7 +104,7 @@ def test_checkers():
     simple_traj = Trajectory(points=points)
     non_equal_dt_traj = Trajectory(points=points, dt=2)
     non_equal_spacing_traj = Trajectory(points=points, t=[0, 0.1, 0.3, 0.35])
-    non_equal_t0_traj = Trajectory(points=points, t0=1)
+    non_equal_t0_traj = Trajectory(points=points, t_0=1)
     non_equal_dim_traj = Trajectory(points=[p + [0] for p in points])
 
     # Exact dimension checker

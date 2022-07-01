@@ -1,6 +1,11 @@
+"""
+This contains the undistorter structures.
+"""
+
 import abc
-import numpy as np
+
 import cv2
+import numpy as np
 
 
 class Undistorter(metaclass=abc.ABCMeta):
@@ -20,7 +25,9 @@ class Undistorter(metaclass=abc.ABCMeta):
     Then you can save the matrix and other parameters in an npz file
     using numpy:
 
-    >>> np.savez("camera_file.npz", h=h, w=w, mtx=mtx, dist=dist, newcameramtx=newcameramtx)
+    >>> np.savez(
+    ...     "camera_file.npz", h=h, w=w, mtx=mtx, dist=dist, newcameramtx=newcameramtx
+    ... )
 
     Parameters
     ----------
@@ -36,17 +43,17 @@ class Undistorter(metaclass=abc.ABCMeta):
         is False.
     """
 
-    def __init__(self, camera_file, turn=False):
+    def __init__(self, camera_file: str, turn: bool = False):
         # Read camera undistort matrix
-        npzfile = np.load(camera_file)
+        self.cam_file = np.load(camera_file)
 
         # Initialize camera parameters
-        self.c_h = npzfile['h']
-        self.c_w = npzfile['w']
-        size=(int(self.c_w), int(self.c_h))
-        self.c_mtx = npzfile['mtx']
-        self.c_dist = npzfile['dist']
-        self.c_newcameramtx = npzfile['newcameramtx']
+        c_h = self.cam_file["h"]
+        c_w = self.cam_file["w"]
+        size = (int(c_w), int(c_h))
+        self.c_mtx = self.cam_file["mtx"]
+        self.c_dist = self.cam_file["dist"]
+        self.c_newcameramtx = self.cam_file["newcameramtx"]
         self.turn = turn
         c_map = cv2.initUndistortRectifyMap(
             cameraMatrix=self.c_mtx,
@@ -54,14 +61,14 @@ class Undistorter(metaclass=abc.ABCMeta):
             R=None,
             newCameraMatrix=self.c_newcameramtx,
             size=size,
-            m1type=5
+            m1type=5,
         )
         self.c_mapx, self.c_mapy = c_map
         self.mask = None
         self.background = None
 
     @abc.abstractmethod
-    def undistort(self, frame):
+    def undistort(self, frame: np.ndarray) -> np.ndarray:
         """
         Abstract method that is implemented on inheriting classes. It
         should compute an undistorted version of frame using the given
@@ -70,7 +77,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         """
 
     # Turn the image if required
-    def _rotate(self, frame, _input=True):
+    def _rotate(self, frame: np.ndarray, _input=True) -> np.ndarray:
         if self.turn:
             direction = cv2.ROTATE_90_COUNTERCLOCKWISE
             if _input:
@@ -78,8 +85,20 @@ class Undistorter(metaclass=abc.ABCMeta):
             frame = cv2.rotate(frame, direction)
         return frame
 
-    # Method to be called to fix the distortion
-    def fix(self, frame):
+    def fix(self, frame: np.ndarray) -> np.ndarray:
+        """
+        Fix the distortion.
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Frame to be fixed.
+
+        Returns
+        -------
+        np.ndarray
+            Fixed frame.
+        """
         frame = self._rotate(frame, _input=True)
         if self.mask is None:
             self._create_mask(frame)
@@ -87,7 +106,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         return self.masked(corrected)
 
     # Create a mask with the distortion pattern
-    def _create_mask(self, frame):
+    def _create_mask(self, frame: np.ndarray):
         empty_frame = 255 * np.ones(frame.shape, dtype=np.uint8)
         corrected = self.undistort(empty_frame)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
@@ -95,10 +114,22 @@ class Undistorter(metaclass=abc.ABCMeta):
         self.mask = cv2.bitwise_not(self.mask)
         self.background = np.full(frame.shape, 130, dtype=np.uint8)
 
-    # Apply the mask to a frame to adjust border colors
-    def masked(self, frame):
+    def masked(self, frame: np.ndarray) -> np.ndarray:
+        """
+        Apply the mask to a frame to adjust border colors.
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Frame to be adjusted.
+
+        Returns
+        -------
+        np.ndarray
+            Adjusted frame.
+        """
         frame = cv2.bitwise_or(frame, self.mask)
-        return  self._rotate(frame, _input=False)
+        return self._rotate(frame, _input=False)
 
 
 class ClassicUndistorter(Undistorter):
@@ -119,7 +150,7 @@ class ClassicUndistorter(Undistorter):
         is False.
     """
 
-    def undistort(self, frame):
+    def undistort(self, frame: np.ndarray) -> np.ndarray:
         """
         Computes the undistorted version of ``frame`` using
         ``cv2.undistort``.
@@ -135,7 +166,7 @@ class ClassicUndistorter(Undistorter):
             cameraMatrix=self.c_mtx,
             distCoeffs=self.c_dist,
             dst=None,
-            newCameraMatrix=self.c_newcameramtx
+            newCameraMatrix=self.c_newcameramtx,
         )
 
 
@@ -157,7 +188,7 @@ class RemapUndistorter(Undistorter):
         is False.
     """
 
-    def undistort(self, frame):
+    def undistort(self, frame: np.ndarray) -> np.ndarray:
         """
         Computes the undistorted version of ``frame`` using
         ``cv2.remap``.
