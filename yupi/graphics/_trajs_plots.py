@@ -153,7 +153,7 @@ def plot_2D(  # pylint: disable=invalid-name
 ):
     """
     .. deprecated:: 0.10.0
-        :func:`plot_2D` will be removed in version 1.0.0, use
+        :func:`plot_2D` will be removed in a future version, use
         :func:`plot_2d` instead.
 
     Plot all the points of trajectories from ``trajs`` in a 2D plane.
@@ -350,7 +350,7 @@ def plot_3D(  # pylint: disable=invalid-name
 ):
     """
     .. deprecated:: 0.10.0
-        :func:`plot_3D` will be removed in version 1.0.0, use
+        :func:`plot_3D` will be removed in a future version, use
         :func:`plot_3d` instead.
 
     Plot all the points of trajectories from ``trajs`` in a 3D space.

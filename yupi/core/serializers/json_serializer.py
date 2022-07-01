@@ -96,7 +96,7 @@ class JSONSerializer(Serializer):
                     "Trajectory '%s' will be loaded but it seems to "
                     "be saved in an old format. Please consider updating it"
                     "by using the JSONSerializer.save method. Older format "
-                    "won't be supported for version 1.0.0",
+                    "won't be supported in a future.",
                     file_name,
                 )
                 axes = list(data["r"].values())

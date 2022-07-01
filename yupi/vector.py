@@ -92,7 +92,7 @@ class Vector(np.ndarray):
     def create(*args, **kwargs) -> Vector:
         """
         .. deprecated:: 0.10.0
-            :func:`Vector.create` will be removed in version 1.0.0, use
+            :func:`Vector.create` will be removed in a future version, use
             :class:`Vector` constructor instead.
 
         Creates a new vector.
@@ -104,7 +104,7 @@ class Vector(np.ndarray):
         """
 
         warnings.warn(
-            "Vector.create is deprecated and it will be removed in version 1.0.0, "
+            "Vector.create is deprecated and it will be removed in a future version, "
             "use Vector constructor instead.",
             DeprecationWarning,
         )

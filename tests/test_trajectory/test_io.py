@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from yupi import Trajectory
-from yupi.core.serializers import JSONSerializer, CSVSerializer
+from yupi.core.serializers import CSVSerializer, JSONSerializer
 
 APPROX_REL_TOLERANCE = 1e-10
 
@@ -83,6 +83,7 @@ def test_json_serializer(traj):
     loaded_traj = JSONSerializer.load("t1.json")
     compare_trajectories(traj, loaded_traj)
     os.remove("t1.json")
+
 
 @pytest.mark.parametrize("traj", trajectories())
 def test_csv_serializer(traj):

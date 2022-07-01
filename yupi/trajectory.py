@@ -209,7 +209,7 @@ class Trajectory:
         if t0 is not None:
             t_0 = t0
             warnings.warn(
-                "'t0' is deprecated and will be removed in version 1.0.0, "
+                "'t0' is deprecated and will be removed in a future version, "
                 "use 't_0' instead.",
                 DeprecationWarning,
             )
@@ -233,7 +233,7 @@ class Trajectory:
         if vel_est is not None:
             diff_est = vel_est
             warnings.warn(
-                "'vel_est' is deprecated and will be removed in version 1.0.0, "
+                "'vel_est' is deprecated and will be removed in a future version, "
                 "use 'diff_est' instead.",
                 DeprecationWarning,
             )
@@ -250,7 +250,7 @@ class Trajectory:
                 )
             if abs(self.dt_std - 0) > _THRESHOLD:
                 raise ValueError(
-                    "You are giving 'dt' and 't' but 't' is " "not uniformly spaced."
+                    "You are giving 'dt' and 't' but 't' is not uniformly spaced."
                 )
             if abs(self.__t[0] - t_0) > _THRESHOLD:
                 raise ValueError(
@@ -299,7 +299,7 @@ class Trajectory:
             version 1.0.0, use :func:`set_diff_method` instead.
         """
         warnings.warn(
-            "'set_vel_method' is deprecated and will be removed in version 1.0.0, "
+            "'set_vel_method' is deprecated and will be removed in a future version, "
             "use 'set_diff_method' instead.",
             DeprecationWarning,
         )
@@ -476,7 +476,7 @@ class Trajectory:
         """
         if self.dim != 2:
             raise TypeError(
-                "Polar offsets can only be applied on 2 " "dimensional trajectories"
+                "Polar offsets can only be applied on 2 dimensional trajectories"
             )
 
         # From cartesian to polar
@@ -504,11 +504,11 @@ class Trajectory:
     def rotate2d(self, angle: float):
         """
         .. deprecated:: 0.10.0
-            :func:`rotate2d` will be removed in version 1.0.0, use
+            :func:`rotate2d` will be removed in a future version, use
             :func:`rotate_2d` instead.
         """
         warnings.warn(
-            "rotate2d is deprecated and will be removed in version 1.0.0, "
+            "rotate2d is deprecated and will be removed in a future version, "
             "use rotate_2d instead",
             DeprecationWarning,
         )
@@ -569,11 +569,11 @@ class Trajectory:
     def rotate3d(self, angle: float, vector: Union[list, np.ndarray]):
         """
         .. deprecated:: 0.10.0
-            :func:`rotate3d` will be removed in version 1.0.0, use
+            :func:`rotate3d` will be removed in a future version, use
             :func:`rotate_3d` instead.
         """
         warnings.warn(
-            "rotate3d is deprecated and will be removed in version 1.0.0, "
+            "rotate3d is deprecated and will be removed in a future version, "
             "use rotate_3d instead",
             DeprecationWarning,
         )
@@ -642,7 +642,7 @@ class Trajectory:
             offset = np.array(other, dtype=float)
             if len(offset) != self.dim:
                 raise ValueError(
-                    "Offset must be the same shape as the other " "trajectory points"
+                    "Offset must be the same shape as the other trajectory points"
                 )
             self.r -= offset
             return self
@@ -796,7 +796,7 @@ class Trajectory:
     ):
         """
         .. deprecated:: 0.10.0
-            :func:`save` will be removed in version 1.0.0, use a Serializer
+            :func:`save` will be removed in a future version, use a Serializer
             from ``yupi.core`` instead (e.g., JSONSerializer).
 
         Saves the trajectory to disk.
@@ -829,7 +829,7 @@ class Trajectory:
         >>> t.save('my_track')
         """
         warnings.warn(
-            "`save` is deprecated and will be removed in version 1.0.0, use a "
+            "`save` is deprecated and will be removed in a future version, use a "
             "Serializer from `yupi.core` instead (e.g., JSONSerializer).",
             DeprecationWarning,
         )
@@ -943,7 +943,7 @@ class Trajectory:
     def load(file_path: str):
         """
         .. deprecated:: 0.10.0
-            :func:`load` will be removed in version 1.0.0, use a Serializer
+            :func:`load` will be removed in a future version, use a Serializer
             from ``yupi.core`` instead (e.g., JSONSerializer).
 
         Loads a trajectory
@@ -969,7 +969,7 @@ class Trajectory:
         """
 
         warnings.warn(
-            "`load` is deprecated and will be removed in version 1.0.0, use a "
+            "`load` is deprecated and will be removed in a future version, use a "
             "Serializer from `yupi.core` instead (e.g., JSONSerializer).",
             DeprecationWarning,
         )
