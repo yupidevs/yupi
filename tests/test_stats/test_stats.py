@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from yupi import Trajectory, DiffMethod, WindowType
+from yupi import DiffMethod, Trajectory, WindowType
 from yupi.stats import *
 
 APPROX_REL_TOLERANCE = 1e-10

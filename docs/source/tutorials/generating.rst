@@ -1,10 +1,10 @@
 Generating artificial Trajectory objects
 ----------------------------------------
 
-If you want to generate :py:class:`~yupi.Trajectory` objects based on some
+If you want to generate :py:class:`~trajectory.Trajectory` objects based on some
 statistical constrains, you can use one of the available
 :py:class:`~generators.Generator` to construct a list of
-:py:class:`~yupi.Trajectory` objects.
+:py:class:`~trajectory.Trajectory` objects.
 
 Random Walk Generator
 =====================
@@ -57,15 +57,15 @@ given variables and call its generate method:
    tr = rw.generate()
 
 In the variable ``tr`` we will have a list of **N**
-:py:class:`~yupi.Trajectory` objects generated using the given configuration.
+:py:class:`~trajectory.Trajectory` objects generated using the given configuration.
 
 The generated trajectories can be inspected using the
-:py:func:`~graphics.plot_2D` function:
+:py:func:`~graphics.plot_2d` function:
 
 .. code-block:: python
 
-   from yupi.graphics import plot_2D
-   plot_2D(tr, legend=None)
+   from yupi.graphics import plot_2d
+   plot_2d(tr, legend=None)
 
 
 .. figure:: /images/tutorial007.png
@@ -78,7 +78,7 @@ Langevin Generator
 ==================
 
 The :py:class:`~generators.LangevinGenerator` simulates trajectories governed
-by the Langevin Equation. It allows to produce :py:class:`~yupi.Trajectory`
+by the Langevin Equation. It allows to produce :py:class:`~trajectory.Trajectory`
 objects that quantitatively emulate several systems.
 
 To use it, we first need to define the general parameters for a generator:
@@ -106,12 +106,12 @@ Finally, the generator is created and the trajectories can be generated:
    trajectories = lg.generate()
 
 The generated trajectories can be inspected using the
-:py:func:`~graphics.plot_2D` function:
+:py:func:`~graphics.plot_2d` function:
 
 .. code-block:: python
 
-   from yupi.graphics import plot_2D
-   plot_2D(trajectories, legend=None)
+   from yupi.graphics import plot_2d
+   plot_2d(trajectories, legend=None)
 
 .. figure:: /images/tutorial008.png
    :alt: Distribution in submodules
@@ -129,7 +129,7 @@ Diffusing Diffusivity Generator
 
 The :py:class:`~generators.DiffDiffGenerator` simulates trajectories governed by a 
 diffusion process with fluctuating diffusivity. It allows to produce 
-:py:class:`~yupi.Trajectory` objects that quantitatively emulate different systems.
+:py:class:`~trajectory.Trajectory` objects that quantitatively emulate different systems.
 
 To use it, we first need to define the general parameters for a generator:
 
@@ -156,12 +156,12 @@ The generator is created and the trajectories can be generated:
    trajs = dd.generate()
 
 The generated trajectories can be inspected using the
-:py:func:`~graphics.plot_2D` function:
+:py:func:`~graphics.plot_2d` function:
 
 .. code-block:: python
 
-   from yupi.graphics import plot_2D
-   plot_2D(trajs, legend=None)
+   from yupi.graphics import plot_2d
+   plot_2d(trajs, legend=None)
 
 .. figure:: /images/tutorial010.png
    :alt: Diff diff generator

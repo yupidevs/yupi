@@ -82,7 +82,7 @@ def plot_hists(
         kwargs = kwargs if len(kwargs) != 0 else general_kwargs
         color = kwargs.get("color", colors[i])
         alpha = kwargs.get("alpha", 0.3 if filled else 1)
-        lw = kwargs.get("lw", 1.5)  #pylint: disable=invalid-name
+        lw = kwargs.get("lw", 1.5)  # pylint: disable=invalid-name
         if labels is not None:
             kwargs["label"] = labels[i]
         if "histtype" in kwargs:

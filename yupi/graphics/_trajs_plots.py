@@ -189,7 +189,11 @@ def plot_2D(  # pylint: disable=invalid-name
         color).
     """
 
-    warnings.warn("plot_2D is deprecated, use plot_2d instead", DeprecationWarning)
+    warnings.warn(
+        "plot_2D is deprecated and will be removed in a future version, "
+        "use plot_2d instead",
+        DeprecationWarning,
+    )
     plot_2d(
         trajs,
         line_style,
@@ -385,7 +389,11 @@ def plot_3D(  # pylint: disable=invalid-name
         trajectories are colored automatically (not with the same
         color).
     """
-    warnings.warn("plot_3D is deprecated, use plot_3d instead", DeprecationWarning)
+    warnings.warn(
+        "plot_3D is deprecated and will be removed in a future version, "
+        "use plot_3d instead",
+        DeprecationWarning,
+    )
     plot_3d(
         trajs,
         line_style,

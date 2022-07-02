@@ -41,18 +41,18 @@ This operation can be made in-place when using the operator ``*=``.
 Rotation
 ========
 
-Rotation can be made using the :py:func:`~yupi.Trajectory.rotate` method:
+Rotation can be made using the :py:func:`~trajectory.Trajectory.rotate` method:
 
 .. code-block:: python
 
     traj_2 = Trajectory(points=[[0,0], [1,0]])
-    traj_2.rotate2d(-np.pi / 2)   # traj_2 points: [[0,0], [0,1]]
+    traj_2.rotate_2d(-np.pi / 2)   # traj_2 points: [[0,0], [0,1]]
 
 
 Indexing and slicing
 ====================
 
-:py:class:`~yupi.Trajectory` objects can also be indexing and obtain the *i-th* :py:class:`~yupi.TrajectoryPoint`:
+:py:class:`~trajectory.Trajectory` objects can also be indexing and obtain the *i-th* :py:class:`~trajectory.TrajectoryPoint`:
 
 .. code-block:: python
 
@@ -73,7 +73,7 @@ Slicing is possible too and it is used to obtain a subtrajectory. All variance o
 Filtering
 =========
 
-:py:class:`~yupi.Trajectory` objects can be filtered in different ways. By 
+:py:class:`~trajectory.Trajectory` objects can be filtered in different ways. By 
 default, yupi offers an Exponential Convolutional Filter, typically used in
 the context of animal trajectory analysis:
 

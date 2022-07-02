@@ -38,7 +38,7 @@ Import all the dependencies:
    from yupi.tracking import ColorMatching, FrameDifferencing
    from yupi.tracking import BackgroundEstimator, BackgroundSubtraction
    from yupi.tracking import TemplateMatching, OpticalFlow
-   from yupi.graphics import plot_2D
+   from yupi.graphics import plot_2d
 
 Set up the path to multimedia resources:
 
@@ -145,7 +145,7 @@ of all methods.
 
 .. code-block:: python
 
-   plot_2D(tl)
+   plot_2d(tl)
 
 .. figure:: /images/example2.png
    :alt: Output of example6
@@ -159,7 +159,7 @@ own estimation of the likely next position.
 
 .. _References 6:
 
-4. References
---------------------------
+4. References 6
+---------------
 
 | [1] Frayle-Pérez, S., et al. "Chasing insects: a survey of tracking algorithms." Revista Cubana de Fisica 34.1 (2017): 44-47.

@@ -43,7 +43,7 @@ Import all the dependencies:
    from yupi.tracking.trackers import ROI, ObjectTracker, TrackingScenario
    from yupi.tracking.undistorters import RemapUndistorter
    from yupi.tracking.algorithms import ColorMatching
-   from yupi.graphics import plot_2D
+   from yupi.graphics import plot_2d
 
 Set up the path to multimedia resources:
 
@@ -97,7 +97,7 @@ scaling factor (pix_per_m) and the frame to start the processing:
 .. code-block:: python
 
    retval, tl = scenario.track(video_path, pix_per_m=2826, start_frame=200)
-   plot_2D(tl)
+   plot_2d(tl)
 
 .. figure:: /images/example4-1.png
    :alt: Output of example4
@@ -114,8 +114,8 @@ effect of gravity:
 
 .. code-block:: python
 
-   tl[0].rotate2d(- pi / 2)
-   tl[1].rotate2d(- pi / 2)
+   tl[0].rotate_2d(- pi / 2)
+   tl[1].rotate_2d(- pi / 2)
 
 
 Next, we update the coordinate system to place it at the initial position of
@@ -136,7 +136,7 @@ Now, we can produce a plot quite similar to the one of the original paper [1]:
 
 .. code-block:: python
 
-   plot_2D(tl, line_style='-o', connected=True)
+   plot_2d(tl, line_style='-o', connected=True)
 
 
 .. figure:: /images/example4-2.png

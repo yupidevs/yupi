@@ -1,5 +1,6 @@
 import pytest
-from yupi import Trajectory, DiffMethod, WindowType
+
+from yupi import DiffMethod, Trajectory, WindowType
 
 APPROX_REL_TOLERANCE = 1e-10
 
@@ -77,7 +78,9 @@ def test_creation_general():
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 1, 2], traj_id="test")
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], dt=0.5, traj_id="test")
     Trajectory(points=[[1, 2], [2, 3], [3, 6]], dt=0.5, traj_id="test")
-    Trajectory(axes=[[1, 2, 4], [2, 3, 6]], dt=0.5, t=[1, 1.5, 2], t_0=1, traj_id="test")
+    Trajectory(
+        axes=[[1, 2, 4], [2, 3, 6]], dt=0.5, t=[1, 1.5, 2], t_0=1, traj_id="test"
+    )
 
 
 def test_velocity_estimation_methods():
