@@ -35,7 +35,7 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~stats.kurtosis`
           * :py:func:`~stats.vacf`
        * Graphics:
-          * :py:func:`~graphics.plot_2D`
+          * :py:func:`~graphics.plot_2d`
           * :py:func:`~graphics.plot_speed_hist`
           * :py:func:`~graphics.plot_angles_hist`
           * :py:func:`~graphics.plot_msd`
@@ -53,7 +53,7 @@ In this table you can easily find the examples that better suits you.
        | The position is subsequently compared to the ideal
        | position assuming it does not slip or sink.
      - * Graphics:
-          * :py:func:`~graphics.plot_2D`
+          * :py:func:`~graphics.plot_2d`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
           * :py:func:`~tracking.trackers.ObjectTracker`
@@ -65,7 +65,7 @@ In this table you can easily find the examples that better suits you.
        | Tracking an intruder while penetrating a granular
        | material in a quasi 2D environment.
      - * Graphics:
-          * :py:func:`~graphics.plot_2D`
+          * :py:func:`~graphics.plot_2d`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
           * :py:func:`~tracking.trackers.ObjectTracker`
@@ -78,7 +78,7 @@ In this table you can easily find the examples that better suits you.
        | capturing its movement with the reconstruction of the
        | trajectory of the ant respect its initial position.
      - * Graphics:
-          * :py:func:`~graphics.plot_2D`
+          * :py:func:`~graphics.plot_2d`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
           * :py:func:`~tracking.trackers.ObjectTracker`
@@ -92,7 +92,7 @@ In this table you can easily find the examples that better suits you.
        | same input video where the camera is fixed at a constant
        | distance from the plane where an ant moves.
      - * Graphics:
-          * :py:func:`~graphics.plot_2D`
+          * :py:func:`~graphics.plot_2d`
        * Tracking:
           * :py:func:`~tracking.trackers.ROI`
           * :py:func:`~tracking.trackers.ObjectTracker`

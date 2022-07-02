@@ -1,9 +1,9 @@
 Analysis of Trajectory objects
 ------------------------------
 
-There are several tools you can use to analyze :py:class:`~yupi.Trajectory`
+There are several tools you can use to analyze :py:class:`~trajectory.Trajectory`
 objects. To illustrate the capabilities of yupi, let us consider a list of
-:py:class:`~yupi.Trajectory` objects  generated with a Langevin Generator (See
+:py:class:`~trajectory.Trajectory` objects  generated with a Langevin Generator (See
 dedicated tutorial of :ref:`Langevin Generator` for a more detailed explanation
 of the parameters.)
 
@@ -19,14 +19,14 @@ Two-dimensional spatial projections
 ===================================
 
 The most basic analysis tool is the plot of the trajectories in the space. If
-you have a list of :py:class:`~yupi.Trajectory` objects, like the ones you get
+you have a list of :py:class:`~trajectory.Trajectory` objects, like the ones you get
 from a generator, you can  plot them with:
 
 
 .. code-block:: python
 
-    from yupi.graphics import plot_2D
-    plot_2D(trajs[:10], legend=False)
+    from yupi.graphics import plot_2d
+    plot_2d(trajs[:10], legend=False)
   
 
 .. figure:: /images/tutorial001.png
@@ -55,8 +55,8 @@ Then, we can plot them using:
 
 .. code-block:: python
 
-    from yupi.graphics import plot_3D
-    plot_3D(trajs3D, legend=False)
+    from yupi.graphics import plot_3d
+    plot_3d(trajs3D, legend=False)
 
 
 .. figure:: /images/tutorial011.png
@@ -111,7 +111,7 @@ Mean Squared Displacement
 The Mean Square Displacement (MSD) is a typical indicator to classify processes
 away from normal diffusion. The MSD of a normal diffusive trajectory arises as
 a linear function of time. To estimate the MSD of a list of
-:py:class:`~yupi.Trajectory` objects, you can use:
+:py:class:`~trajectory.Trajectory` objects, you can use:
 
 .. code-block:: python
 

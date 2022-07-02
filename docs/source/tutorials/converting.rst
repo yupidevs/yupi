@@ -1,13 +1,13 @@
 Converting your data into Trajectory objects
 --------------------------------------------
 
-Yupi stores data using an efficient internal representation based on numpy arrays. If you already have some trajectory data, convert it is possible to convert it into a yupi :py:class:`~yupi.Trajectory`. Next, we show how to create the same trajectory in different ways.
+Yupi stores data using an efficient internal representation based on numpy arrays. If you already have some trajectory data, convert it is possible to convert it into a yupi :py:class:`~trajectory.Trajectory`. Next, we show how to create the same trajectory in different ways.
 
 
 Creating trajectories with x, y and z information
 =================================================
 
-When the data belongs to trajectories of dimensions within 1 and 3, it is possible to create a :py:class:`~yupi.Trajectory` by assigning each axis data directly:
+When the data belongs to trajectories of dimensions within 1 and 3, it is possible to create a :py:class:`~trajectory.Trajectory` by assigning each axis data directly:
 
 .. code-block:: python
 
@@ -41,7 +41,7 @@ An extension to the previous case, that can be useful for trajectories of higher
 Creating trajectories with independent samples
 ==============================================
 
-There is also a third way of convert your data into a :py:class:`~yupi.Trajectory`. It requires to pass a list of d-dimensional data points:
+There is also a third way of convert your data into a :py:class:`~trajectory.Trajectory`. It requires to pass a list of d-dimensional data points:
 
 .. code-block:: python
 

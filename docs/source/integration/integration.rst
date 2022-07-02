@@ -25,8 +25,8 @@ traja
 
 The `Traja Python package <https://traja.readthedocs.io/en/latest/index.html>`_ is a toolkit for the numerical characterization and analysis of the trajectories of moving animals. It provides several machine learning tools that are not yet implemented in yupi. Even when it is limited to two-dimensional trajectories, there are many resources that traja can offer when dealing with 2D Trajectories in `yupi`_.
 
-Converting a yupi :py:class:`~yupi.Trajectory` into a *traja DataFrame*
-***********************************************************************
+Converting a yupi :py:class:`~trajectory.Trajectory` into a *traja DataFrame*
+*****************************************************************************
 
 Let's create a trajectory with yupi:
 
@@ -48,12 +48,12 @@ We can convert it to a traja DataFrame simply by:
   traja_track = yupi2traja(track)
 
 
-⚠️ Only yupi :py:class:`~yupi.Trajectory` objects with two dimensions can be converted to *traja DataFrame* due to traja limitations.
+⚠️ Only yupi :py:class:`~trajectory.Trajectory` objects with two dimensions can be converted to *traja DataFrame* due to traja limitations.
 
-Converting a *traja DataFrame* into a yupi :py:class:`~yupi.Trajectory`
-***********************************************************************
+Converting a *traja DataFrame* into a yupi :py:class:`~trajectory.Trajectory`
+*****************************************************************************
 
-If you have a *traja DataFrame* you can always convert it to a yupi :py:class:`~yupi.Trajectory` by using:
+If you have a *traja DataFrame* you can always convert it to a yupi :py:class:`~trajectory.Trajectory` by using:
 
 .. code-block:: python
 
@@ -66,8 +66,8 @@ Tracktable
 
 `Tracktable <https://github.com/sandialabs/tracktable>`_ provides a set of tools for handling 2D and 3D trajectories as well as Terrain trajectories. The core data structures and algorithms on this package are implemented in C++ for speed and more efficient memory use.
 
-Converting a yupi :py:class:`~yupi.Trajectory` into a tracktable trajectory
-***************************************************************************
+Converting a yupi :py:class:`~trajectory.Trajectory` into a tracktable trajectory
+*********************************************************************************
 
 Let's create a trajectory with yupi:
 
@@ -100,14 +100,14 @@ We can convert these tracks to tracktable trajectories simply by:
   tracktable_track_3 = yupi2tracktable(track_3)
  
 
-⚠️ If a 3D yupi :py:class:`~yupi.Trajectory` is converted to a tracktable trajectory with ``is_terrestrial=True`` then the ``z`` axis values are stored as a property called ``'altitude'`` for each point.
+⚠️ If a 3D yupi :py:class:`~trajectory.Trajectory` is converted to a tracktable trajectory with ``is_terrestrial=True`` then the ``z`` axis values are stored as a property called ``'altitude'`` for each point.
 
-⚠️ Only yupi :py:class:`~yupi.Trajectory` objects with two or three dimensions can be converted to tracktable trajectories due to tracktable limitations.
+⚠️ Only yupi :py:class:`~trajectory.Trajectory` objects with two or three dimensions can be converted to tracktable trajectories due to tracktable limitations.
 
-Converting a tracktable trajectory into a yupi :py:class:`~yupi.Trajectory`
-***************************************************************************
+Converting a tracktable trajectory into a yupi :py:class:`~trajectory.Trajectory`
+*********************************************************************************
 
-If you have a tracktable trajectory you can always convert it to a yupi :py:class:`~yupi.Trajectory` by using:
+If you have a tracktable trajectory you can always convert it to a yupi :py:class:`~trajectory.Trajectory` by using:
 
 .. code-block:: python
 

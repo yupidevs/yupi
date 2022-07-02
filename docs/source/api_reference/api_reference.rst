@@ -2,8 +2,9 @@ API Reference
 =============
 
 The API of yupi is divided into seven modules:
-  * :doc:`yupi`: General classes defining concepts used by all the other modules
-  * :doc:`tracking/tracking`: Tools to extract trajectories from image sequences
+  * :doc:`yupi`: Principal classes defining concepts used by all the other modules.
+  * :doc:`core/core`: General tools.
+  * :doc:`tracking/tracking`: Tools to extract trajectories from image sequences.
   * :doc:`generators/generators`: Models to generate trajectories with given statistical constrains.
   * :doc:`transformations/transformations`: Tools to transform trajectories (resamplers, filters, etc.).
   * :doc:`stats/stats`: Tools to extract statistical data from a set of trajectories.
@@ -19,6 +20,7 @@ The API of yupi is divided into seven modules:
    :hidden:
   
    yupi
+   core/core
    tracking/tracking
    generators/generators
    transformations/transformations

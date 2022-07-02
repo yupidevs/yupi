@@ -40,7 +40,7 @@ Import all the dependencies:
       kurtosis_reference
    )
    from yupi.graphics import (
-      plot_2D,
+      plot_2d,
       plot_angles_hist,
       plot_kurtosis,
       plot_msd,
@@ -127,7 +127,7 @@ Plot spacial trajectories
 .. code-block:: python
 
    plt.subplot(231)
-   plot_2D(trajs[:5], legend=False, show=False)
+   plot_2d(trajs[:5], legend=False, show=False)
 
 Plot speed histogram
 

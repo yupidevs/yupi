@@ -16,7 +16,7 @@ Let's begin
 ===========
 
 Let us first create a fake ensemble of just two (for the sake of illustration)
-trajectories using the :py:class:`~yupi.Trajectory` class from `yupi`.
+trajectories using the :py:class:`~trajectory.Trajectory` class from `yupi`.
 
 .. code-block:: python
 

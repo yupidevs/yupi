@@ -16,7 +16,7 @@ If the input is a video where the color of the object you want to track is quite
    </video>
    </center>
 
-You can exploit this fact to capture the whole trajectory using the :py:class:`~yupi.ColorMatching` algorithm implemented in yupi:
+You can exploit this fact to capture the whole trajectory using the :py:class:`~tracking.algorithms.ColorMatching` algorithm implemented in yupi:
 
 .. code-block:: python
 
@@ -47,7 +47,7 @@ Finally, the tracker is passed to the :py:class:`~tracking.trackers.TrackingScen
    from yupi.tracking import TrackingScenario
    scenario = TrackingScenario([blue_ball])
 
-The track method of a :py:class:`~tracking.trackers.TrackingScenario` object, will produce a list of all the :py:class:`~yupi.Trajectory` objects the :py:class:`~tracking.trackers.TrackingScenario` tracked among all the frames of the video:
+The track method of a :py:class:`~tracking.trackers.TrackingScenario` object, will produce a list of all the :py:class:`~trajectory.Trajectory` objects the :py:class:`~tracking.trackers.TrackingScenario` tracked among all the frames of the video:
 
 .. code-block:: python
 
