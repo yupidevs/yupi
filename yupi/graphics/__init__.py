@@ -17,7 +17,7 @@ from yupi.graphics._stats_plots import (
     plot_vacf,
 )
 from yupi.graphics._style import DOTTED, LINE, LINE_DOTTED
-from yupi.graphics._trajs_plots import plot_2D, plot_3D
+from yupi.graphics._trajs_plots import plot_2D, plot_3D, plot_2d, plot_3d
 
 __all__ = [
     "plot_angles_hist",
@@ -27,6 +27,8 @@ __all__ = [
     "plot_speed_hist",
     "plot_2D",
     "plot_3D",
+    "plot_2d",
+    "plot_3d",
     "plot_psd",
     "plot_hist",
     "plot_hists",
