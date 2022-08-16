@@ -26,12 +26,13 @@ class WindowType(enum.Enum):
     CENTRAL = enum.auto()
 
 
-def _get_coeff(x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None):
+def _get_coeff(
+    x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None, M: int = 2
+):
     # pylint: disable=invalid-name
     # The variables where named as in the original algorithm.
 
     N = len(a)
-    M = 2  # Fixed to the second derivative.
 
     if coeff_arr is None:
         coeff_arr = np.zeros((M, N, N))
