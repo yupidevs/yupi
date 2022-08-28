@@ -1,7 +1,7 @@
 """
 This constains resampling functions for trajectories.
 """
-from typing import Collection, Optional, Union
+from typing import Collection, List, Optional, Union
 
 import numpy as np
 
@@ -39,77 +39,26 @@ def _interpolate_axis(axis_data, old_t, new_t, order):
     return new_dim
 
 
-def resample_by_dt(
-    traj: Trajectory,
-    new_dt: float,
-    new_traj_id: Optional[str] = None,
-    order: int = 1,
-):
-    """
-    Resamples a trajectory to a new dt.
-
-    Parameters
-    ----------
-    traj : Trajectory
-        Input trajectory.
-    new_dt : float
-        New sample rate.
-    new_traj_id : Optional[str]
-        New trajectory ID. By default None.
-    order : int, optional
-        How many points to use for the interpolation of each value. By default 2.
-
-    Returns
-    -------
-    Union[Trajectory, List[Trajectory]]
-        Output trajectory.
-    """
-    return resample(traj, new_dt, new_traj_id, order)
-
-
-def resample_by_time(
-    traj: Trajectory,
-    new_t: Collection[float],
-    new_traj_id: Optional[str] = None,
-    order: int = 1,
-):
-    """
-    Resamples a trajectory to a new array of time.
-
-    Parameters
-    ----------
-    traj : Trajectory
-        Input trajectory.
-    new_t : Collection[float]
-        New array of time.
-    new_traj_id : Optional[str]
-        New trajectory ID. By default None.
-    order : int, optional
-        How many points to use for the interpolation of each value. By default 2.
-
-    Returns
-    -------
-    Trajectory
-        Output trajectory.
-    """
-    return resample(traj, new_t, new_traj_id, order)
-
-
 def resample(
     traj: Trajectory,
-    new_sample: Union[float, Collection[float]],
+    new_dt: Optional[float] = None,
+    new_t: Optional[Collection[float]] = None,
     new_traj_id: Optional[str] = None,
     order: int = 1,
 ):
     """
     Resamples a trajectory to a new dt or a new array of time.
 
+    One of ``new_dt`` or ``new_t`` must be specified.
+
     Parameters
     ----------
     traj : Trajectory
         Input trajectory.
-    new_sample : Union[float, Collection[float]]
-        New sample rate or array of time.
+    new_dt: Optional[float]
+        New dt. By default None.
+    new_t: Optional[Collection[float]]
+        New sample rate or array of time. By default None.
     new_traj_id : Optional[str]
         New trajectory ID. By default None.
     order : int, optional
@@ -119,15 +68,28 @@ def resample(
     -------
     Trajectory
         Output trajectory.
+
+    Raises
+    ------
+    ValueError
+        If neither ``new_dt`` nor ``new_t`` is specified.
+    ValueError
+        If both ``new_dt`` and ``new_t`` are specified.
     """
 
-    is_dt = isinstance(new_sample, (float, int))
+    if new_t is not None and new_dt is not None:
+        raise ValueError("new_t and new_dt cannot be both specified")
+    if new_t is None and new_dt is None:
+        raise ValueError("new_t or new_dt must be specified")
+
+    from_dt = new_dt is not None
+
     new_t = (
-        traj.t[0] + np.arange(0, traj.t[-1], new_sample)
-        if is_dt
-        else np.array(new_sample)
+        traj.t[0] + np.arange(0, traj.t[-1], new_dt)
+        if new_dt is not None
+        else np.array(new_t)
     )
-    new_dims: Collection[Collection[float]] = []
+    new_dims: List[Collection[float]] = []
     old_t = traj.t
 
     for dim in range(traj.dim):
@@ -135,16 +97,16 @@ def resample(
         new_dim = _interpolate_axis(dim_data, old_t, new_t, order)
         new_dims.append(new_dim)
 
-    if is_dt:
+    if from_dt:
         return Trajectory(
             axes=new_dims,
-            dt=new_sample,
+            dt=new_dt,
             traj_id=new_traj_id,
             diff_est=traj.diff_est,
         )
     return Trajectory(
         axes=new_dims,
-        t=new_sample,
+        t=new_t,
         traj_id=new_traj_id,
         diff_est=traj.diff_est,
     )
