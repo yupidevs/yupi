@@ -62,9 +62,9 @@ def plot_2d(
         trajs = [trajs]
 
     units = "" if units is None else f" [{units}]"
-
     cycle = itertools.cycle(YUPI_COLORS)
-    colors = [cycle.__next__() for _ in trajs]
+    colors = [next(cycle) for _ in trajs]
+    ax = plt.gca()
 
     if color is not None:
         if isinstance(color, (str, tuple)):
@@ -113,7 +113,7 @@ def plot_2d(
             "o",
             mfc="white",
             zorder=2,
-            label=f"{traj_id} initial position",
+            label=f"{traj_id} start",
             color=color,
         )
         plt.plot(x_data[-1], y_data[-1], "o", mfc="white", zorder=2, color=color)
@@ -122,7 +122,7 @@ def plot_2d(
             y_data[-1],
             "o",
             alpha=0.5,
-            label=f"{traj_id} final position",
+            label=f"{traj_id} end",
             color=color,
         )
 
@@ -138,6 +138,8 @@ def plot_2d(
 
     if show:
         plt.show()
+
+    return ax
 
 
 def plot_2D(  # pylint: disable=invalid-name
@@ -258,7 +260,7 @@ def plot_3d(
     units = "" if units is None else f" [{units}]"
 
     cycle = itertools.cycle(YUPI_COLORS)
-    colors = [cycle.__next__() for _ in trajs]
+    colors = [next(cycle) for _ in trajs]
 
     if color is not None:
         if isinstance(color, (str, tuple)):
@@ -312,7 +314,7 @@ def plot_3d(
             z_data[0],
             "o",
             mfc="white",
-            label=f"{traj_id} initial position",
+            label=f"{traj_id} start",
             color=color,
         )
 
@@ -323,7 +325,7 @@ def plot_3d(
             z_data[-1],
             "o",
             alpha=0.5,
-            label=f"{traj_id} final position",
+            label=f"{traj_id} end",
             color=color,
         )
 
@@ -339,6 +341,8 @@ def plot_3d(
 
     if show:
         plt.show()
+
+    return ax
 
 
 def plot_3D(  # pylint: disable=invalid-name
