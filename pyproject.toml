@@ -44,6 +44,7 @@ good-names = [
 	"t",   # Time vector
 	"r",   # Position vector
 	"v",   # Velocity vector
+	"a",   # Acceleration vector
 	"dt",  # Time spacing (delta time)
 	"i",   # Usual iteration variable
 	"j",   # Usual iteration variable
