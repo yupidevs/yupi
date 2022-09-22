@@ -54,6 +54,7 @@ Import all the dependencies:
 .. code-block:: python
 
    import cv2
+   import matplotlib.pyplot as plt
    from yupi.tracking import ROI, ObjectTracker, TrackingScenario
    from yupi.tracking import ColorMatching, TemplateMatching
    from yupi.graphics import plot_2d
@@ -125,20 +126,27 @@ Next, we can estimate the trajectory of the LED referred to the center pivot:
 
 .. code-block:: python
 
-   center, led = tl
-   led_centered = led - center
-   led_centered.traj_id= 'led'
+    center, led = tl
+    center_pos = center.r[0]
+    led_centered = led - center_pos
+    center -= center_pos
+    led_centered.traj_id = 'led'
 
 Since the led and the center of the wheel are placed at a constant distance of
-0.039 m, we can estimate the trajectory of the wheel referred to the center
+0.019 m, we can estimate the trajectory of the wheel referred to the center
 pivot:
 
 .. code-block:: python
 
-   wheel_centered = led_centered.copy()
-   wheel_centered.add_polar_offset(0.039, 0)
-   wheel_centered.traj_id = 'wheel'
-   plot_2d([wheel_centered, led_centered])
+    wheel_centered = led_centered.copy()
+    wheel_centered.add_polar_offset(0.019, 0)
+    wheel_centered.traj_id = 'wheel'
+
+    # Plot the trajectories
+    plot_2D([wheel_centered, led_centered], show=False, color=["#4499bb", "#44bb44"])
+    plt.plot([center.r.x[0]], [center.r.y[0]], 'o', color="#bb4444", label="center")
+    plt.legend()
+    plt.show()
 
 
 .. figure:: /images/polar_offset.png
@@ -184,7 +192,6 @@ The temporal evolution of the efficiency can be plotted by:
 
 .. code-block:: python
 
-   import matplotlib.pyplot as plt
    plt.plot(wheel.t, eff)
    plt.xlabel('time [s]')
    plt.ylabel('efficiency')

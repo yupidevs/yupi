@@ -64,18 +64,18 @@ def plot_hists(
 
         If given, the length must be the same as the length of
         ``values``.
-
     """
 
     if kwargs_list and len(kwargs_list) != len(values_list):
         raise ValueError(
-            "The length of 'kwargs_list' must be equals the " "length of 'values_list'"
+            "The length of 'kwargs_list' must be equals the length of 'values_list'"
         )
 
     kwargs_list = [{}] * len(values_list)
 
     cycle = itertools.cycle(YUPI_COLORS)
-    colors = [cycle.__next__() for _ in values_list]
+    colors = [next(cycle) for _ in values_list]
+    ax = plt.gca()
 
     for i, vals in enumerate(values_list):
         kwargs = kwargs_list[i]
@@ -93,6 +93,8 @@ def plot_hists(
         if filled:
             kwargs.pop("label", None)
             plt.hist(vals, histtype="stepfilled", color=color, alpha=alpha, **kwargs)
+
+    return ax
 
 
 def plot_speed_hist(v, show: bool = True, units: str = "m/s", **kwargs):
@@ -120,10 +122,13 @@ def plot_speed_hist(v, show: bool = True, units: str = "m/s", **kwargs):
     plt.xlabel(f"speed{units}")
     plt.ylabel("pdf")
     plt.grid()
-    plt.gca().set_axisbelow(True)
+    ax = plt.gca()
+    ax.set_axisbelow(True)
 
     if show:
         plt.show()
+
+    return ax
 
 
 def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
@@ -154,6 +159,8 @@ def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
     plt.xlabel("turning angles pdf")
     if show:
         plt.show()
+
+    return ax
 
 
 def plot_msd(
@@ -196,6 +203,7 @@ def plot_msd(
     plt.plot(lag_t_msd, msd, ".", **default_kwargs)
     upper_bound = msd + msd_std
     lower_bound = msd - msd_std
+    ax = plt.gca()
     plt.fill_between(lag_t_msd, upper_bound, lower_bound, color=fill_color)
     plt.xscale("log")
     plt.yscale("log")
@@ -205,12 +213,14 @@ def plot_msd(
     if show:
         plt.show()
 
+    return ax
+
 
 def plot_kurtosis(
     kurtosis,
     dt=None,
     t_array=None,
-    kurtosis_ref: float = None,
+    kurtosis_ref: Optional[float] = None,
     units: str = "s",
     show=True,
     ref_color=LIGHT_GREEN,
@@ -244,6 +254,7 @@ def plot_kurtosis(
         t_array = np.linspace(0, dt * len(kurtosis), len(kurtosis))
     if t_array is not None:
         plt.plot(t_array, kurtosis, **kwargs)
+        ax = plt.gca()
 
         if kurtosis_ref is not None:
             bound_1 = kurtosis
@@ -252,15 +263,25 @@ def plot_kurtosis(
         plt.xlabel(f"time{units}")
     else:
         plt.plot(kurtosis, **kwargs)
+        ax = plt.gca()
 
     plt.ylabel("kurtosis")
     plt.grid()
     if show:
         plt.show()
 
+    return ax
+
 
 def plot_vacf(
-    vacf, dt, lag, x_units: str = "s", y_units: str = "(m/s)^2", show=True, **kwargs
+    vacf,
+    dt,
+    lag,
+    x_units: str = "s",
+    y_units: Optional[str] = "(m/s)^2",
+    log_inset: bool = True,
+    show: bool = True,
+    **kwargs,
 ):
     """Plot Velocity Autocorrelation Function.
 
@@ -277,6 +298,8 @@ def plot_vacf(
         Units of the time axes.
     y_units : str, optional
         Units of the VACF axes.
+    log_inset : bool, optional
+        If True, a log-log inset is shown. By default True.
     show : bool, optional
         If True, the plot is shown. By default True.
     """
@@ -296,21 +319,24 @@ def plot_vacf(
 
     ax = plt.gca()
 
-    inset_axes(
-        ax,
-        width="60%",
-        height="60%",
-        bbox_to_anchor=(0, 0, 1, 1),
-        bbox_transform=ax.transAxes,
-        loc="upper right",
-    )
+    if log_inset:
+        inset_axes(
+            ax,
+            width="60%",
+            height="60%",
+            bbox_to_anchor=(0, 0, 1, 1),
+            bbox_transform=ax.transAxes,
+            loc="upper right",
+        )
 
-    plt.plot(lag_t_vacf, vacf, ".", **kwargs)
-    plt.yscale("log")
-    plt.grid()
+        plt.plot(lag_t_vacf, vacf, ".", **kwargs)
+        plt.yscale("log")
+        plt.grid()
 
     if show:
         plt.show()
+
+    return ax
 
 
 def plot_psd(psd_mean, frec, psd_std=None, omega=True, show=True, **kwargs):
@@ -333,6 +359,7 @@ def plot_psd(psd_mean, frec, psd_std=None, omega=True, show=True, **kwargs):
     """
 
     plt.plot(frec, psd_mean, label="psd", **kwargs)
+    ax = plt.gca()
     if psd_std is not None:
         plt.fill_between(
             frec, psd_mean - psd_std, psd_mean + psd_std, alpha=0.3, label="psd_std"
@@ -346,3 +373,5 @@ def plot_psd(psd_mean, frec, psd_std=None, omega=True, show=True, **kwargs):
     plt.legend()
     if show:
         plt.show()
+
+    return ax

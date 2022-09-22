@@ -83,22 +83,27 @@ def test_creation_general():
     )
 
 
-def test_velocity_estimation_methods():
+def test_diff_methods():
     x = [1, 2, 4, 8, 16]
 
     Trajectory.global_diff_method(DiffMethod.LINEAR_DIFF, WindowType.FORWARD)
     traj = Trajectory(x=x)
 
     assert traj.v == pytest.approx([1, 2, 4, 8, 8], rel=APPROX_REL_TOLERANCE)
+    assert traj.a == pytest.approx([1, 2, 4, 0, 0], rel=APPROX_REL_TOLERANCE)
 
     Trajectory.global_diff_method(DiffMethod.LINEAR_DIFF)
     traj.set_diff_method(DiffMethod.LINEAR_DIFF, WindowType.BACKWARD)
 
     assert traj.v == pytest.approx([1, 1, 2, 4, 8], rel=APPROX_REL_TOLERANCE)
+    assert traj.a == pytest.approx([0, 0, 1, 2, 4], rel=APPROX_REL_TOLERANCE)
 
     traj = Trajectory(x=x)
 
     assert traj.v == pytest.approx([3 / 2, 3 / 2, 3, 6, 6], rel=APPROX_REL_TOLERANCE)
+    assert traj.a == pytest.approx(
+        [3 / 4, 3 / 4, 9 / 4, 3 / 2, 3 / 2], rel=APPROX_REL_TOLERANCE
+    )
 
     vel_est = {
         "method": DiffMethod.FORNBERG_DIFF,

@@ -567,7 +567,8 @@ def vacf_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
         current_vacf = np.empty(lag)
         for lag_ in range(1, lag + 1):
             # Multiply components given lag
-            v1v2 = v[:-lag_] * v[lag_:]
+            v1, v2 = v[:-lag_], v[lag_:]
+            v1v2 = (v1 - v1.mean(axis=0)) * (v2 - v2.mean(axis=0))
 
             # Dot product for a given lag time
             v1_dot_v2 = np.sum(v1v2, axis=1)

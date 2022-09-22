@@ -5,7 +5,7 @@ This contains spatial plotting functions for the trajectories.
 import itertools
 import logging
 import warnings
-from typing import List, Optional, Union
+from typing import Callable, Collection, List, Optional, Union
 
 import matplotlib.pyplot as plt
 
@@ -62,9 +62,9 @@ def plot_2d(
         trajs = [trajs]
 
     units = "" if units is None else f" [{units}]"
-
     cycle = itertools.cycle(YUPI_COLORS)
-    colors = [cycle.__next__() for _ in trajs]
+    colors = [next(cycle) for _ in trajs]
+    ax = plt.gca()
 
     if color is not None:
         if isinstance(color, (str, tuple)):
@@ -113,7 +113,7 @@ def plot_2d(
             "o",
             mfc="white",
             zorder=2,
-            label=f"{traj_id} initial position",
+            label=f"{traj_id} start",
             color=color,
         )
         plt.plot(x_data[-1], y_data[-1], "o", mfc="white", zorder=2, color=color)
@@ -122,7 +122,7 @@ def plot_2d(
             y_data[-1],
             "o",
             alpha=0.5,
-            label=f"{traj_id} final position",
+            label=f"{traj_id} end",
             color=color,
         )
 
@@ -138,6 +138,8 @@ def plot_2d(
 
     if show:
         plt.show()
+
+    return ax
 
 
 def plot_2D(  # pylint: disable=invalid-name
@@ -258,7 +260,7 @@ def plot_3d(
     units = "" if units is None else f" [{units}]"
 
     cycle = itertools.cycle(YUPI_COLORS)
-    colors = [cycle.__next__() for _ in trajs]
+    colors = [next(cycle) for _ in trajs]
 
     if color is not None:
         if isinstance(color, (str, tuple)):
@@ -312,7 +314,7 @@ def plot_3d(
             z_data[0],
             "o",
             mfc="white",
-            label=f"{traj_id} initial position",
+            label=f"{traj_id} start",
             color=color,
         )
 
@@ -323,7 +325,7 @@ def plot_3d(
             z_data[-1],
             "o",
             alpha=0.5,
-            label=f"{traj_id} final position",
+            label=f"{traj_id} end",
             color=color,
         )
 
@@ -339,6 +341,8 @@ def plot_3d(
 
     if show:
         plt.show()
+
+    return ax
 
 
 def plot_3D(  # pylint: disable=invalid-name
@@ -405,3 +409,54 @@ def plot_3D(  # pylint: disable=invalid-name
         color,
         **kwargs,
     )
+
+
+def plot_vs_time(
+    trajs: Union[List[Trajectory], Trajectory],
+    key: Callable[[Trajectory], Collection[float]],
+    line_style: str = LINE,
+    x_units: str = "s",
+    y_label: Union[str, None] = None,
+    title: Optional[str] = None,
+    legend: bool = True,
+    color = None,
+    show: bool = True,
+    **kwargs,
+):
+    if isinstance(trajs, Trajectory):
+        trajs = [trajs]
+
+    x_units = "time" + ("" if x_units is None else f" [{x_units}]")
+
+    cycle = itertools.cycle(YUPI_COLORS)
+    colors = [next(cycle) for _ in trajs]
+
+    if color is not None:
+        if isinstance(color, (str, tuple)):
+            kwargs["color"] = color
+        elif isinstance(color, list):
+            colors = color
+
+    for i, traj in enumerate(trajs):
+        if colors is not None:
+            if i < len(colors):
+                kwargs["color"] = colors[i]
+            else:
+                kwargs.pop("color")
+        y_data = key(traj)
+        x_data = traj.t
+        traj_id = traj.traj_id if traj.traj_id is not None else f"traj {i}"
+        plt.plot(x_data, y_data, line_style, **kwargs, label=traj_id)
+        plt.xlabel(x_units)
+        if y_label is not None:
+            plt.ylabel(y_label)
+        plt.grid()
+        plt.title(title)
+
+    if legend:
+        plt.legend()
+
+    if show:
+        plt.show()
+
+    return plt.gca()

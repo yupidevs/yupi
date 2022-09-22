@@ -218,6 +218,7 @@ class Trajectory:
         self.t_0 = t_0
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
         self.__v: Optional[Vector] = None
+        self.__a: Optional[Vector] = None
         self.traj_id = traj_id
         self.lazy = lazy
 
@@ -444,12 +445,32 @@ class Trajectory:
         self.__v = diff.estimate_velocity(self, **self.diff_est)
         return self.__v
 
+    def recalculate_acceleration(self) -> Vector:
+        """
+        Recalculates the acceleration according time data or `dt` if time
+        data is not available.
+
+        Returns
+        -------
+        Vector
+            Velocity vector.
+        """
+        self.__a = diff.estimate_accelereation(self, **self.diff_est)
+        return self.__a
+
     @property
     def v(self) -> Vector:
         """Vector : Velocity vector"""
         if self.lazy and self.__v is not None:
             return self.__v
         return self.recalculate_velocity()
+
+    @property
+    def a(self) -> Vector:
+        """Vector : Velocity vector"""
+        if self.lazy and self.__a is not None:
+            return self.__a
+        return self.recalculate_acceleration()
 
     @property
     def t(self) -> Vector:

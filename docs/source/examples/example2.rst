@@ -105,10 +105,10 @@ Then, we can plot the results:
    :align: center
 
    
-.. _References 6:
+.. _References 2:
 
-5. References 2
----------------
+5. References
+-------------
 
 | [1] Chechkin, Aleksei V., et al. "Brownian yet non-Gaussian diffusion: from superstatistics to subordination of diffusing diffusivities." Physical Review X 7.2 (2017): 021002.
 | [2] Thapa, Samudrajit, et al. "Bayesian analysis of single-particle tracking data using the nested-sampling algorithm: maximum-likelihood model selection applied to stochastic-diffusivity data." Physical Chemistry Chemical Physics 20.46 (2018): 29018-29037.
