@@ -77,7 +77,6 @@ def test_vacf(traj1, traj2):
     assert vacf_e[1] == pytest.approx([1.03125, 0.825, 0.05, 0.05])
 
     vacf_t = vacf([traj1, traj2], time_avg=True, lag=2)
-    print(vacf_t)
     assert vacf_t[0] == pytest.approx([-3.54166667, 0.0])
     assert vacf_t[1] == pytest.approx([0.29166667, 0.0])
 
