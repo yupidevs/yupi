@@ -274,7 +274,14 @@ def plot_kurtosis(
 
 
 def plot_vacf(
-    vacf, dt, lag, x_units: str = "s", y_units: str = "(m/s)^2", show=True, **kwargs
+    vacf,
+    dt,
+    lag,
+    x_units: str = "s",
+    y_units: Optional[str] = "(m/s)^2",
+    log_inset: bool = True,
+    show: bool = True,
+    **kwargs,
 ):
     """Plot Velocity Autocorrelation Function.
 
@@ -291,6 +298,8 @@ def plot_vacf(
         Units of the time axes.
     y_units : str, optional
         Units of the VACF axes.
+    log_inset : bool, optional
+        If True, a log-log inset is shown. By default True.
     show : bool, optional
         If True, the plot is shown. By default True.
     """
@@ -310,18 +319,19 @@ def plot_vacf(
 
     ax = plt.gca()
 
-    inset_axes(
-        ax,
-        width="60%",
-        height="60%",
-        bbox_to_anchor=(0, 0, 1, 1),
-        bbox_transform=ax.transAxes,
-        loc="upper right",
-    )
+    if log_inset:
+        inset_axes(
+            ax,
+            width="60%",
+            height="60%",
+            bbox_to_anchor=(0, 0, 1, 1),
+            bbox_transform=ax.transAxes,
+            loc="upper right",
+        )
 
-    plt.plot(lag_t_vacf, vacf, ".", **kwargs)
-    plt.yscale("log")
-    plt.grid()
+        plt.plot(lag_t_vacf, vacf, ".", **kwargs)
+        plt.yscale("log")
+        plt.grid()
 
     if show:
         plt.show()
