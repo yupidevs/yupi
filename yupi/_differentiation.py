@@ -237,7 +237,6 @@ def estimate_accelereation(
     if method == DiffMethod.LINEAR_DIFF:
         diff = _linear_diff(traj.r, traj.t, window_type)
         diff = _linear_diff(diff, traj.t, window_type)
-        print(diff)
         return diff
     if method == DiffMethod.FORNBERG_DIFF:
         if window_type == WindowType.FORWARD:
