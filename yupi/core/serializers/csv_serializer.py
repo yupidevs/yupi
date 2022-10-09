@@ -53,7 +53,7 @@ class CSVSerializer(Serializer):
             )
             accuracy = Trajectory.general_diff_est.get("accuracy", 1)
             method = traj.diff_est.get("method", diff_method).value
-            window = traj.diff_est.get("window", diff_win).value
+            window = traj.diff_est.get("window_type", diff_win).value
             accuracy = traj.diff_est.get("accuracy", accuracy)
 
             writer.writerow([traj.traj_id, dt, traj.dim])

@@ -54,7 +54,6 @@ def test_turning_angles(traj):
 
 
 def test_speed_ensemble(traj1):
-    print(traj1.v)
     se = speed_ensemble([traj1, traj1])
     assert se == pytest.approx([4, 1.5, 3, 3, 4, 1.5, 3, 3], APPROX_REL_TOLERANCE)
 

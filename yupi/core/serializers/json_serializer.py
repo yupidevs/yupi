@@ -40,10 +40,13 @@ class JSONSerializer(Serializer):
             file_name, overwrite=overwrite, extension=".json"
         )
 
+        method = Trajectory.general_diff_est.get("method", diff.DiffMethod.LINEAR_DIFF)
+        window = Trajectory.general_diff_est.get("window_type", diff.WindowType.CENTRAL)
+        accuracy = Trajectory.general_diff_est.get("accuracy", 1)
         diff_est = {
-            "method": traj.diff_est.get("method", diff.DiffMethod.LINEAR_DIFF).value,
-            "window_type": traj.diff_est.get("window", diff.WindowType.CENTRAL).value,
-            "accuracy": traj.diff_est.get("accuracy", 1),
+            "method": traj.diff_est.get("method", method).value,
+            "window_type": traj.diff_est.get("window_type", window).value,
+            "accuracy": traj.diff_est.get("accuracy", accuracy),
         }
 
         json_dict = {
