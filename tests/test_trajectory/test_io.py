@@ -1,6 +1,5 @@
 import os
 
-import numpy as np
 import pytest
 
 from yupi import Trajectory
@@ -83,6 +82,17 @@ def test_json_serializer(traj):
     loaded_traj = JSONSerializer.load("t1.json")
     compare_trajectories(traj, loaded_traj)
     os.remove("t1.json")
+
+    ensemble = [traj, traj]
+    JSONSerializer.save_ensemble(ensemble, "ensemble.json", overwrite=True)
+
+    with pytest.raises(FileExistsError):
+        JSONSerializer.save_ensemble(ensemble, "ensemble.json")
+
+    loaded_trajs = JSONSerializer.load_ensemble("ensemble.json")
+    for t_1, t_2 in zip(ensemble, loaded_trajs):
+        compare_trajectories(t_1, t_2)
+    os.remove("ensemble.json")
 
 
 @pytest.mark.parametrize("traj", trajectories())
