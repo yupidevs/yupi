@@ -106,7 +106,7 @@ def plot_2d(
                 kwargs.pop("color")
         traj_plot = plt.plot(x_data, y_data, line_style, **kwargs)
         color = traj_plot[-1].get_color()
-        traj_id = traj.traj_id if traj.traj_id is not None else f"traj {i}"
+        traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
         plt.plot(
             x_data[0],
             y_data[0],
@@ -306,7 +306,7 @@ def plot_3d(
                 kwargs.pop("color")
         traj_plot = ax.plot(x_data, y_data, z_data, line_style, **kwargs)
         color = traj_plot[-1].get_color()
-        traj_id = traj.traj_id if traj.traj_id is not None else f"traj {i}"
+        traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
 
         ax.plot(
             x_data[0],
@@ -445,7 +445,7 @@ def plot_vs_time(
                 kwargs.pop("color")
         y_data = key(traj)
         x_data = traj.t
-        traj_id = traj.traj_id if traj.traj_id is not None else f"traj {i}"
+        traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
         plt.plot(x_data, y_data, line_style, **kwargs, label=traj_id)
         plt.xlabel(x_units)
         if y_label is not None:
