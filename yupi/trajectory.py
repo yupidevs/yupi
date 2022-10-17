@@ -165,7 +165,7 @@ class Trajectory:
         t: Optional[Collection[float]] = None,
         dt: Optional[float] = None,
         t_0: float = 0.0,
-        traj_id: Optional[str] = None,
+        traj_id: str = "",
         lazy: Optional[bool] = False,
         diff_est: Optional[Dict[str, Any]] = None,
         vel_est: Optional[Dict[str, Any]] = None,
