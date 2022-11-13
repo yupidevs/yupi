@@ -5,6 +5,7 @@ from typing import List
 
 import numpy as np
 
+from yupi.stats._stats import _kurtosis
 from yupi.trajectory import Trajectory
 
 
@@ -36,10 +37,10 @@ class Featurizer(abc.ABC):
             A numpy array of shape (n_trajs, n_features).
         """
 
-    def __add__(self, other: Featurizer) -> CompundFeaturizer:
+    def __add__(self, other: Featurizer) -> CompoundFeaturizer:
         return self.append(other)
 
-    def append(self, other: Featurizer) -> CompundFeaturizer:
+    def append(self, other: Featurizer) -> CompoundFeaturizer:
         """Append another featurizer to this one.
 
         Parameters
@@ -53,13 +54,13 @@ class Featurizer(abc.ABC):
             A new featurizer that is the concatenation of this one and the
             other one.
         """
-        return CompundFeaturizer([self, other])
+        return CompoundFeaturizer(self, other)
 
 
-class CompundFeaturizer(Featurizer):
+class CompoundFeaturizer(Featurizer):
     """Gather multiple featurizers into one."""
 
-    def __init__(self, featurizers: List[Featurizer]):
+    def __init__(self, *featurizers: Featurizer):
         self.featurizers = featurizers
         self._count = sum(f.count for f in featurizers)
 
@@ -86,4 +87,77 @@ class CompundFeaturizer(Featurizer):
         for featurizer in self.featurizers:
             feats[:, idx : idx + featurizer.count] = featurizer.featurize(trajs)
             idx += featurizer.count
+        return feats
+
+
+class GlobalStatsFeaturizer(Featurizer):
+    """Featurizer that extracts all the global features related to an array.
+
+    Statistics used:
+        - mean
+        - median
+        - kurtoisis
+        - autocorrelation coefficient
+        - min
+        - max
+        - range
+        - std
+        - var
+        - coeff of var
+        - iqr
+    """
+
+    @property
+    def count(self) -> int:
+        return 11
+
+    @abc.abstractmethod
+    def values(self, traj: Trajectory) -> np.ndarray:
+        """Get the array to extract the features from.
+
+        Parameters
+        ----------
+        traj : Trajectory
+            The trajectory.
+
+        Returns
+        -------
+        np.ndarray
+            The array to extract the features from.
+        """
+
+    def _acc_k(self, values: np.ndarray, k: int, mean: float) -> float:
+        N = len(values)  # pylint: disable=invalid-name
+        _sum = np.sum((values[1 : N - k] - mean) * (values[1 + k : N] - mean))
+        return _sum / N
+
+    def _get_global_stats(self, traj: Trajectory) -> np.ndarray:
+        values = self.values(traj)
+        mean = np.mean(values)
+        c_1 = self._acc_k(values, 1, mean)
+        c_0 = self._acc_k(values, 0, mean)
+        stats = np.array(
+            [
+                float(val)
+                for val in [
+                    mean,
+                    np.median(values),
+                    _kurtosis(values),
+                    c_1 / c_0 if c_0 != 0 else 0,
+                    np.min(values),
+                    np.max(values),
+                    np.ptp(values),
+                    np.std(values),
+                    np.var(values),
+                    np.std(values) / mean if mean != 0 else 0,
+                    np.subtract(*np.percentile(values, [75, 25])),
+                ]
+            ]
+        )
+        return stats
+
+    def featurize(self, trajs: List[Trajectory]) -> np.ndarray:
+        feats = np.empty((len(trajs), self.count))
+        for i, traj in enumerate(trajs):
+            feats[i, :] = self._get_global_stats(traj)
         return feats
