@@ -63,6 +63,26 @@ class CompoundFeaturizer(Featurizer):
     def __init__(self, *featurizers: Featurizer):
         self.featurizers = featurizers
         self._count = sum(f.count for f in featurizers)
+        if not self._valid_compound():
+            raise ValueError(
+                "Featurizers names must be unique. Featurizers used:\n"
+                f"{self.featurizers_names()}"
+            )
+
+    def _valid_compound(self) -> bool:
+        """Check that the compound featurizer is valid."""
+        feat_names = self.featurizers_names()
+        return len(feat_names) == len(set(feat_names))
+
+    def featurizers_names(self) -> List[str]:
+        """Return the names of the featurizers."""
+        names = []
+        for featurizer in self.featurizers:
+            if isinstance(featurizer, CompoundFeaturizer):
+                names.extend(featurizer.featurizers_names())
+            else:
+                names.append(featurizer.__class__.__name__)
+        return names
 
     @property
     def count(self) -> int:
@@ -154,6 +174,7 @@ class GlobalStatsFeaturizer(Featurizer):
                 ]
             ]
         )
+        assert len(stats) == self.count
         return stats
 
     def featurize(self, trajs: List[Trajectory]) -> np.ndarray:
