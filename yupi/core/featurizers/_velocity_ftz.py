@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 
 from yupi.core.featurizers.featurizer import (
+    DEFAULT_ZERO_THRESHOLD,
     CompoundFeaturizer,
     Featurizer,
     GlobalStatsFeaturizer,
@@ -16,7 +17,7 @@ class VelocityGlobalFeaturizer(GlobalStatsFeaturizer):
     the velocity of the trajectory.
     """
 
-    def values(self, traj: Trajectory) -> np.ndarray:
+    def _values(self, traj: Trajectory) -> np.ndarray:
         vel = traj.v.norm
         assert isinstance(vel, np.ndarray)
         return vel
@@ -61,6 +62,7 @@ class VelocityChangeRateFeaturizer(Featurizer):
     """
 
     def __init__(self, threshold: float = 1):
+        super().__init__()
         self.threshold = threshold
 
     @property
@@ -94,10 +96,13 @@ class VelocityFeaturizer(CompoundFeaturizer):
     """
 
     def __init__(
-        self, stop_rate_threshold: float = 1, change_rate_threshold: float = 1
+        self,
+        stop_rate_threshold: float = 1,
+        change_rate_threshold: float = 1,
+        zero_threshold: float = DEFAULT_ZERO_THRESHOLD,
     ):
         super().__init__(
-            VelocityGlobalFeaturizer(),
+            VelocityGlobalFeaturizer(zero_threshold=zero_threshold),
             VelocityStopRateFeaturizer(stop_rate_threshold),
             VelocityChangeRateFeaturizer(change_rate_threshold),
         )

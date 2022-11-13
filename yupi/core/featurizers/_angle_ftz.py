@@ -1,6 +1,10 @@
 import numpy as np
 
-from yupi.core.featurizers.featurizer import CompoundFeaturizer, GlobalStatsFeaturizer
+from yupi.core.featurizers.featurizer import (
+    DEFAULT_ZERO_THRESHOLD,
+    CompoundFeaturizer,
+    GlobalStatsFeaturizer,
+)
 from yupi.trajectory import Trajectory
 
 
@@ -10,7 +14,7 @@ class AngleGlobalFeaturizer(GlobalStatsFeaturizer):
     the angles of the trajectory.
     """
 
-    def values(self, traj: Trajectory) -> np.ndarray:
+    def _values(self, traj: Trajectory) -> np.ndarray:
         return traj.turning_angles(accumulate=True)
 
 
@@ -20,7 +24,7 @@ class TurningAngleGobalFeaturizer(GlobalStatsFeaturizer):
     the turning angles of the trajectory.
     """
 
-    def values(self, traj: Trajectory) -> np.ndarray:
+    def _values(self, traj: Trajectory) -> np.ndarray:
         return traj.turning_angles(accumulate=False)
 
 
@@ -30,7 +34,7 @@ class TurningAngleChangeRateGlobalFeaturizer(GlobalStatsFeaturizer):
     the turning angle change rate of the trajectory.
     """
 
-    def values(self, traj: Trajectory) -> np.ndarray:
+    def _values(self, traj: Trajectory) -> np.ndarray:
         angles = traj.turning_angles(accumulate=False)
         dt_vals = traj.t.delta
         angle_change_rate = np.diff(angles) / dt_vals[2:]
@@ -43,9 +47,9 @@ class AngleFeaturizer(CompoundFeaturizer):
     the angles of the trajectory.
     """
 
-    def __init__(self):
+    def __init__(self, zero_threshold: float = DEFAULT_ZERO_THRESHOLD):
         super().__init__(
-            AngleGlobalFeaturizer(),
-            TurningAngleGobalFeaturizer(),
-            TurningAngleChangeRateGlobalFeaturizer(),
+            AngleGlobalFeaturizer(zero_threshold=zero_threshold),
+            TurningAngleGobalFeaturizer(zero_threshold=zero_threshold),
+            TurningAngleChangeRateGlobalFeaturizer(zero_threshold=zero_threshold),
         )

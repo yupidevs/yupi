@@ -1,3 +1,13 @@
+"""
+A Featurizer is a structure that takes a set of trajectories and returns a
+feature matrix. The feature matrix is a 2D numpy array with shape (n_trajs,
+n_features).
+
+This module contains the basic structures for creating featurizers along
+with the implementation of some of them which compute the most common
+features used in the literature.
+"""
+
 from yupi.core.featurizers._acceleration_ftz import (
     AccelerationChangeRateGlobalFeaturizer,
     AccelerationFeaturizer,
@@ -28,32 +38,34 @@ from yupi.core.featurizers._velocity_ftz import (
     VelocityStopRateFeaturizer,
 )
 from yupi.core.featurizers.featurizer import (
+    DEFAULT_ZERO_THRESHOLD,
     CompoundFeaturizer,
     Featurizer,
     GlobalStatsFeaturizer,
 )
 
 __all__ = [
-    "Featurizer",
+    "AccelerationChangeRateGlobalFeaturizer",
+    "AccelerationFeaturizer",
+    "AccelerationGlobalFeaturizer",
+    "AngleFeaturizer",
+    "AngleGlobalFeaturizer",
     "CompoundFeaturizer",
+    "DEFAULT_ZERO_THRESHOLD",
+    "DisplacementFeaturizer",
+    "DistanceFeaturizer",
+    "Featurizer",
+    "GlobalStatsFeaturizer",
+    "KineticFeaturizer",
+    "SpatialFeaturizer",
     "TimeFeaturizer",
     "TimeGlobalFeaturizer",
     "TimeJumpsGlobalFeaturizer",
-    "SpatialFeaturizer",
-    "DisplacementFeaturizer",
-    "DistanceFeaturizer",
+    "TurningAngleChangeRateGlobalFeaturizer",
+    "TurningAngleGobalFeaturizer",
+    "UniversalFeaturizer",
+    "VelocityChangeRateFeaturizer",
     "VelocityFeaturizer",
     "VelocityGlobalFeaturizer",
-    "VelocityChangeRateFeaturizer",
     "VelocityStopRateFeaturizer",
-    "AccelerationFeaturizer",
-    "AccelerationGlobalFeaturizer",
-    "AccelerationChangeRateGlobalFeaturizer",
-    "AngleFeaturizer",
-    "AngleGlobalFeaturizer",
-    "TurningAngleGobalFeaturizer",
-    "TurningAngleChangeRateGlobalFeaturizer",
-    "KineticFeaturizer",
-    "GlobalStatsFeaturizer",
-    "UniversalFeaturizer",
 ]

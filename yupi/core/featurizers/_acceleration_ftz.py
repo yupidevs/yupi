@@ -1,6 +1,10 @@
 import numpy as np
 
-from yupi.core.featurizers.featurizer import CompoundFeaturizer, GlobalStatsFeaturizer
+from yupi.core.featurizers.featurizer import (
+    DEFAULT_ZERO_THRESHOLD,
+    CompoundFeaturizer,
+    GlobalStatsFeaturizer,
+)
 from yupi.trajectory import Trajectory
 
 
@@ -10,8 +14,8 @@ class AccelerationGlobalFeaturizer(GlobalStatsFeaturizer):
     the acceleration of the trajectory.
     """
 
-    def values(self, traj: Trajectory) -> np.ndarray:
-        acc = traj.a.delta.norm
+    def _values(self, traj: Trajectory) -> np.ndarray:
+        acc = traj.a.norm
         assert isinstance(acc, np.ndarray)
         return acc
 
@@ -22,10 +26,10 @@ class AccelerationChangeRateGlobalFeaturizer(GlobalStatsFeaturizer):
     the acceleration change rate of the trajectory.
     """
 
-    def values(self, traj: Trajectory) -> np.ndarray:
-        acc = traj.a.delta.norm
+    def _values(self, traj: Trajectory) -> np.ndarray:
+        acc = traj.a.norm
         dt_vals = traj.t.delta
-        acc_change_rate = np.diff(acc) / dt_vals[1:]
+        acc_change_rate = np.diff(acc) / dt_vals
         return acc_change_rate
 
 
@@ -35,7 +39,8 @@ class AccelerationFeaturizer(CompoundFeaturizer):
     the acceleration of the trajectory.
     """
 
-    def __init__(self):
+    def __init__(self, zero_threshold: float = DEFAULT_ZERO_THRESHOLD):
         super().__init__(
-            AccelerationGlobalFeaturizer(), AccelerationChangeRateGlobalFeaturizer()
+            AccelerationGlobalFeaturizer(zero_threshold=zero_threshold),
+            AccelerationChangeRateGlobalFeaturizer(zero_threshold=zero_threshold),
         )

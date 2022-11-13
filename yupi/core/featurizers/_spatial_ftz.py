@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 
 from yupi.core.featurizers.featurizer import (
+    DEFAULT_ZERO_THRESHOLD,
     CompoundFeaturizer,
     Featurizer,
     GlobalStatsFeaturizer,
@@ -48,7 +49,7 @@ class JumpsGlobalFeaturizer(GlobalStatsFeaturizer):
     between each point of the trajectory.
     """
 
-    def values(self, traj: Trajectory) -> np.ndarray:
+    def _values(self, traj: Trajectory) -> np.ndarray:
         jumps = traj.r.delta.norm
         assert isinstance(jumps, np.ndarray)
         return jumps
@@ -60,7 +61,9 @@ class SpatialFeaturizer(CompoundFeaturizer):
     the spatial characteristics of the trajectory.
     """
 
-    def __init__(self):
+    def __init__(self, zero_threshold: float = DEFAULT_ZERO_THRESHOLD):
         super().__init__(
-            DistanceFeaturizer(), DisplacementFeaturizer(), JumpsGlobalFeaturizer()
+            DistanceFeaturizer(zero_threshold=zero_threshold),
+            DisplacementFeaturizer(zero_threshold=zero_threshold),
+            JumpsGlobalFeaturizer(zero_threshold=zero_threshold),
         )

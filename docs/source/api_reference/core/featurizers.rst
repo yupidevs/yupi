@@ -1,9 +1,10 @@
-Trackers
-========
+Featurizers
+===========
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: tracking.trackers
+.. automodule:: core.featurizers
   :members:
+

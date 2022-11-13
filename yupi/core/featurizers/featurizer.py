@@ -8,6 +8,9 @@ import numpy as np
 from yupi.stats._stats import _kurtosis
 from yupi.trajectory import Trajectory
 
+DEFAULT_ZERO_THRESHOLD = 1e-12
+"""Default threshold to check if a value is zero."""
+
 
 class Featurizer(abc.ABC):
     """Base class for featurizers.
@@ -15,7 +18,19 @@ class Featurizer(abc.ABC):
     A featurizer is a class that takes a set of trajectories and returns a
     feature matrix. The feature matrix is a 2D numpy array with shape
     (n_trajs, n_features)
+
+    Parameters
+    ----------
+    zero_threshold : float, optional
+        Threshold to check if a value is zero, by default DEFAULT_ZERO_THRESHOLD
     """
+
+    def __init__(self, zero_threshold: float = DEFAULT_ZERO_THRESHOLD):
+        self.zero_threshold = zero_threshold
+
+    def is_zero(self, val: float) -> bool:
+        """Check if a value is zero using the zero threshold."""
+        return abs(val) < self.zero_threshold
 
     @property
     @abc.abstractmethod
@@ -58,9 +73,17 @@ class Featurizer(abc.ABC):
 
 
 class CompoundFeaturizer(Featurizer):
-    """Gather multiple featurizers into one."""
+    """
+    Gather multiple featurizers into one.
+
+    Parameters
+    ----------
+    *featurizers : Featurizer
+        The featurizers to gather.
+    """
 
     def __init__(self, *featurizers: Featurizer):
+        super().__init__()
         self.featurizers = featurizers
         self._count = sum(f.count for f in featurizers)
         if not self._valid_compound():
@@ -132,7 +155,7 @@ class GlobalStatsFeaturizer(Featurizer):
         return 11
 
     @abc.abstractmethod
-    def values(self, traj: Trajectory) -> np.ndarray:
+    def _values(self, traj: Trajectory) -> np.ndarray:
         """Get the array to extract the features from.
 
         Parameters
@@ -152,7 +175,7 @@ class GlobalStatsFeaturizer(Featurizer):
         return _sum / N
 
     def _get_global_stats(self, traj: Trajectory) -> np.ndarray:
-        values = self.values(traj)
+        values = self._values(traj)
         mean = np.mean(values)
         c_1 = self._acc_k(values, 1, mean)
         c_0 = self._acc_k(values, 0, mean)
@@ -163,13 +186,13 @@ class GlobalStatsFeaturizer(Featurizer):
                     mean,
                     np.median(values),
                     _kurtosis(values),
-                    c_1 / c_0 if c_0 != 0 else 0,
+                    0 if self.is_zero(c_0) else c_1 / c_0,
                     np.min(values),
                     np.max(values),
                     np.ptp(values),
                     np.std(values),
                     np.var(values),
-                    np.std(values) / mean if mean != 0 else 0,
+                    0 if self.is_zero(mean) else np.std(values) / mean,
                     np.subtract(*np.percentile(values, [75, 25])),
                 ]
             ]
