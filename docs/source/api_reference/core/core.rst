@@ -2,4 +2,11 @@ yupi.core
 =========
 
 .. automodule:: core
-   :members:
+
+.. toctree::
+  :maxdepth: 2
+  :caption: Contents:
+  
+  serializers
+  featurizers
+

@@ -1,0 +1,45 @@
+name: Release and Upload Python Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        required: true
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8.6'
+    - name: Install bumpver
+      run: pip install bumpver
+    - name: Set version with bumpver
+      run: bumpver update -n --set-version "${{ github.event.inputs.version }}"
+    - uses: EndBug/add-and-commit@v9
+      with:
+        default_author: user_info
+        message: 'Set version v${{ github.event.inputs.version }}'
+        pathspec_error_handling: exitImmediately
+        push: "--force"
+        tag: 'v${{ github.event.inputs.version }}'
+        tag_push: '--force'
+    - uses: ncipollo/release-action@v1
+      with:
+        tag: "v${{ github.event.inputs.version }}"
+        name: "yupi-beta v${{ github.event.inputs.version }}"
+    - name: Install Poetry
+      run: curl -sSL https://install.python-poetry.org | python -
+    - name: Add Poetry to path
+      run: echo "${HOME}/.poetry/bin" >> $GITHUB_PATH
+    - name: Config pypi token
+      run: poetry config pypi-token.pypi "${{ secrets.PYPI_RELEASE_TOKEN }}"
+    - name: Build
+      run: poetry build
+    - name: Publish
+      run: poetry publish
