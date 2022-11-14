@@ -19,8 +19,16 @@ jobs:
         python-version: '3.8.6'
     - name: Install bumpver
       run: pip install bumpver
+    - name: Install Poetry
+      run: curl -sSL https://install.python-poetry.org | python -
+    - name: Add Poetry to path
+      run: echo "${HOME}/.poetry/bin" >> $GITHUB_PATH
     - name: Set version with bumpver
       run: bumpver update -n --set-version "${{ github.event.inputs.version }}"
+    - name: Install yupi on venv
+      run: poetry install
+    - name: Run tests
+      run: poetry run pytest ./tests/
     - uses: EndBug/add-and-commit@v9
       with:
         default_author: user_info
@@ -33,10 +41,6 @@ jobs:
       with:
         tag: "v${{ github.event.inputs.version }}"
         name: "yupi-beta v${{ github.event.inputs.version }}"
-    - name: Install Poetry
-      run: curl -sSL https://install.python-poetry.org | python -
-    - name: Add Poetry to path
-      run: echo "${HOME}/.poetry/bin" >> $GITHUB_PATH
     - name: Config pypi token
       run: poetry config pypi-token.pypi "${{ secrets.PYPI_RELEASE_TOKEN }}"
     - name: Build
