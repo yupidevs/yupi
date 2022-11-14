@@ -54,6 +54,21 @@ good-names = [
 	"N"    # Number of trajectories
 ]
 
+[tool.bumpver]
+current_version = "0.11.2"
+version_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
+commit = false
+tag = false
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+    'version = "{version}"',
+]
+"yupi/__init__.py" = ['__version__ = "{version}"']
+"docs/source/conf.py" = ['release = "{version}"']
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
