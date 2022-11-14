@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from yupi import Trajectory
-from yupi.core import Featurizer
+from yupi.core.featurizers import Featurizer
 
 
 class SimpleSpacialFeaturizer(Featurizer):
