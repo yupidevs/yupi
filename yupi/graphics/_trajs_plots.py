@@ -419,7 +419,7 @@ def plot_vs_time(
     y_label: Union[str, None] = None,
     title: Optional[str] = None,
     legend: bool = True,
-    color = None,
+    color=None,
     show: bool = True,
     **kwargs,
 ):
