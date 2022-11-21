@@ -1,7 +1,16 @@
-<p align="center"><img src="logo.png" alt="Logo"></p>
+<p align="center">
+<img src="logo.png" alt="Logo"><br>
+</p>
+
+<div align="center">
+<a href="https://www.python.org/downloads/release/python-370/"><img src="https://img.shields.io/badge/python-3.7-blue" alt="Python"></a>
+<a href="https://zenodo.org/badge/latestdoi/304602979"><img src="https://zenodo.org/badge/304602979.svg" alt="DOI"></a>
+<a href="https://pypi.org/project/yupi/"><img src="https://img.shields.io/pypi/v/yupi" alt="PyPI"></a>
+<a href="https://yupi.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/yupi" alt="ReadTheDocs"></a>
+</div>
 
 Standing for *Yet Underused Path Instruments*, **yupi** is a set of tools designed
-for collecting, generating and processing trajectory data of any kind.
+for collecting, generating and processing trajectory data.
 
 ## **Main features**
 
