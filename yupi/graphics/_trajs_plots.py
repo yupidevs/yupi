@@ -62,15 +62,14 @@ def plot_2d(
         trajs = [trajs]
 
     units = "" if units is None else f" [{units}]"
-    cycle = itertools.cycle(YUPI_COLORS)
-    colors = [next(cycle) for _ in trajs]
     ax = plt.gca()
 
+    colors = itertools.cycle(YUPI_COLORS)
     if color is not None:
         if isinstance(color, (str, tuple)):
-            kwargs["color"] = color
+            colors = itertools.cycle([color])
         elif isinstance(color, list):
-            colors = color
+            colors = itertools.cycle(color)
 
     if connected:
         lengths = list(map(len, trajs))
@@ -99,11 +98,8 @@ def plot_2d(
 
         # Plotting
         x_data, y_data = traj.r.x, traj.r.y
-        if colors is not None:
-            if i < len(colors):
-                kwargs["color"] = colors[i]
-            else:
-                kwargs.pop("color")
+
+        kwargs["color"] = next(colors)
         traj_plot = plt.plot(x_data, y_data, line_style, **kwargs)
         color = traj_plot[-1].get_color()
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
@@ -259,14 +255,12 @@ def plot_3d(
 
     units = "" if units is None else f" [{units}]"
 
-    cycle = itertools.cycle(YUPI_COLORS)
-    colors = [next(cycle) for _ in trajs]
-
+    colors = itertools.cycle(YUPI_COLORS)
     if color is not None:
         if isinstance(color, (str, tuple)):
-            kwargs["color"] = color
+            colors = itertools.cycle([color])
         elif isinstance(color, list):
-            colors = color
+            colors = itertools.cycle(color)
 
     ax = plt.axes(projection="3d")
 
@@ -299,11 +293,7 @@ def plot_3d(
         # Plotting
         x_data, y_data, z_data = traj.r.x, traj.r.y, traj.r.z
 
-        if colors is not None:
-            if i < len(colors):
-                kwargs["color"] = colors[i]
-            else:
-                kwargs.pop("color")
+        kwargs["color"] = next(colors)
         traj_plot = ax.plot(x_data, y_data, z_data, line_style, **kwargs)
         color = traj_plot[-1].get_color()
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
