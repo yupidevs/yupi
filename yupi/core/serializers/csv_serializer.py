@@ -9,8 +9,8 @@ import csv
 import numpy as np
 
 import yupi._differentiation as diff
-from yupi import Trajectory
 from yupi.core.serializers.serializer import Serializer
+from yupi.trajectory import Trajectory
 
 
 class CSVSerializer(Serializer):

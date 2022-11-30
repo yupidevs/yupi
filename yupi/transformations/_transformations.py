@@ -2,7 +2,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from yupi import Trajectory
+from yupi.trajectory import Trajectory
 from yupi.transformations._affine_estimator import _affine_matrix
 
 

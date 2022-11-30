@@ -3,7 +3,8 @@ from typing import Callable, Optional, Tuple
 
 import numpy as np
 
-from yupi import DiffMethod, Trajectory, WindowType
+from yupi._differentiation import DiffMethod, WindowType
+from yupi.trajectory import Trajectory
 
 
 class Generator(metaclass=abc.ABCMeta):

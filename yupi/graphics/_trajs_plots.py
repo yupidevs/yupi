@@ -9,8 +9,8 @@ from typing import Callable, Collection, List, Optional, Union
 
 import matplotlib.pyplot as plt
 
-from yupi import Trajectory
 from yupi.graphics._style import LINE, YUPI_COLORS
+from yupi.trajectory import Trajectory
 
 
 def plot_2d(

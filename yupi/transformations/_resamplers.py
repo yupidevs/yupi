@@ -1,12 +1,12 @@
 """
 This constains resampling functions for trajectories.
 """
-from typing import Collection, List, Optional, Union
+from typing import Collection, List, Optional
 
 import numpy as np
 
-from yupi import Trajectory
 from yupi._differentiation import _get_coeff
+from yupi.trajectory import Trajectory
 
 
 def _get_k_value_neighbors(val: float, data, k: int, _from: int):

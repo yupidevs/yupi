@@ -7,9 +7,9 @@ import logging
 from typing import List
 
 import yupi._differentiation as diff
-from yupi import Trajectory
 from yupi.core.serializers.serializer import Serializer
 from yupi.exceptions import LoadTrajectoryError
+from yupi.trajectory import Trajectory
 
 
 class JSONSerializer(Serializer):
