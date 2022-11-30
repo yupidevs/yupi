@@ -31,4 +31,4 @@ __all__ = [
     "WindowType",
 ]
 
-__version__ = "0.12.2"
+__version__ = "0.12.3"
