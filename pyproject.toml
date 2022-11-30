@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yupi"
-version = "0.12.0"
+version = "0.12.2"
 description = "A package for tracking and analysing objects trajectories"
 authors = [
     "Gustavo Viera-López <gvieralopez@gmail.com>",
@@ -55,7 +55,7 @@ good-names = [
 ]
 
 [tool.bumpver]
-current_version = "0.12.0"
+current_version = "0.12.2"
 version_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
 commit = false
 tag = false
