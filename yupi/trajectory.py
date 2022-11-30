@@ -27,7 +27,6 @@ import numpy as np
 
 import yupi._differentiation as diff
 from yupi.exceptions import LoadTrajectoryError
-from yupi.features import Features
 from yupi.vector import Vector
 
 _THRESHOLD = 1e-12
@@ -258,8 +257,6 @@ class Trajectory:
                     "You are giving 'dt' and 't' but 't_0' is not "
                     "the same as the first value of 't'."
                 )
-
-        self.features = Features(self)
 
     def set_diff_method(
         self,

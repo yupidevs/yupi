@@ -13,7 +13,6 @@ import yupi.stats
 import yupi.tracking
 import yupi.transformations
 from yupi._differentiation import DiffMethod, WindowType
-from yupi.features import Features
 from yupi.trajectory import Trajectory, TrajectoryPoint
 from yupi.vector import Vector
 
