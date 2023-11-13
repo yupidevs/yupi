@@ -164,7 +164,7 @@ class JSONSerializer(Serializer):
         """
 
         method = Trajectory.general_diff_est.get("method", diff.DiffMethod.LINEAR_DIFF)
-        window = Trajectory.general_diff_est.get("window_type", diff.WindowType.CENTRAL)
+        window = Trajectory.general_diff_est.get("window_type", diff.WindowType.FORWARD)
         accuracy = Trajectory.general_diff_est.get("accuracy", 1)
         diff_est = {
             "method": traj.diff_est.get("method", method).value,
