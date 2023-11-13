@@ -151,7 +151,7 @@ class Trajectory:
 
     general_diff_est: Dict[str, Any] = {
         "method": diff.DiffMethod.LINEAR_DIFF,
-        "window_type": diff.WindowType.CENTRAL,
+        "window_type": diff.WindowType.FORWARD,
     }
 
     def __init__(
@@ -261,7 +261,7 @@ class Trajectory:
     def set_diff_method(
         self,
         method: diff.DiffMethod,
-        window_type: diff.WindowType = diff.WindowType.CENTRAL,
+        window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
     ):
         """
@@ -288,7 +288,7 @@ class Trajectory:
     def set_vel_method(
         self,
         method: diff.DiffMethod,
-        window_type: diff.WindowType = diff.WindowType.CENTRAL,
+        window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
     ):
         """
@@ -306,7 +306,7 @@ class Trajectory:
     @staticmethod
     def global_diff_method(
         method: diff.DiffMethod,
-        window_type: diff.WindowType = diff.WindowType.CENTRAL,
+        window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
     ):
         """
@@ -332,7 +332,7 @@ class Trajectory:
     @staticmethod
     def global_vel_method(
         method: diff.DiffMethod,
-        window_type: diff.WindowType = diff.WindowType.CENTRAL,
+        window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
     ):
         """
@@ -774,7 +774,7 @@ class Trajectory:
 
         diff_est = {
             "method": self.diff_est.get("method", diff.DiffMethod.LINEAR_DIFF).value,
-            "window_type": self.diff_est.get("window", diff.WindowType.CENTRAL).value,
+            "window_type": self.diff_est.get("window", diff.WindowType.FORWARD).value,
             "accuracy": self.diff_est.get("accuracy", 1),
         }
 
@@ -794,7 +794,7 @@ class Trajectory:
             writer.writerow([self.traj_id, self.__dt, self.dim])
 
             default_diff_method = diff.DiffMethod.LINEAR_DIFF
-            default_diff_window = diff.WindowType.CENTRAL
+            default_diff_window = diff.WindowType.FORWARD
             default_diff_accuracy = 1
             method = self.diff_est.get("method", default_diff_method).value
             window = self.diff_est.get("window", default_diff_window).value
