@@ -26,10 +26,9 @@ logging.basicConfig(
 __all__ = [
     "Trajectory",
     "TrajectoryPoint",
-    "Features",
     "Vector",
     "DiffMethod",
     "WindowType",
 ]
 
-__version__ = "0.12.2"
+__version__ = "0.12.3"

@@ -18,7 +18,7 @@ In this table you can easily find the examples that better suits you.
 
 .. list-table::
    :header-rows: 1
-  
+
    * -
      - Related API functions
    * - | :doc:`Example 1<example1>`
@@ -43,10 +43,10 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~graphics.plot_vacf`
    * - | :doc:`Example 2<example2>`
        |
-       | A model framework of a diffusion process with fluctuating 
+       | A model framework of a diffusion process with fluctuating
        | diffusivity is presented.
      - * Generators:
-          * :py:class:`~generators.DiffDiffGenerator`  
+          * :py:class:`~generators.DiffDiffGenerator`
    * - | :doc:`Example 3<example3>`
        |
        | Tracking a scaled-size rover wheel moving over the sand.
@@ -103,7 +103,29 @@ In this table you can easily find the examples that better suits you.
           * :py:func:`~tracking.algorithms.BackgroundSubtraction`
           * :py:func:`~tracking.algorithms.TemplateMatching`
           * :py:func:`~tracking.algorithms.OpticalFlow`
-       
+   * - | :doc:`Example 7<example7>`
+       |
+       | Inspection and processing of HURDAT2, a hurricane dataset
+       | provided by The National Hurricane Center and Central
+       | Pacific Hurricane Center
+     - * Core:
+          * :py:func:`~core.serializers.JSONSerializer`
+       * Graphics:
+          * :py:func:`~graphics.plot_2d`
+   * - | :doc:`Example 8<example8>`
+       |
+       | Inspection of the dataset presented in `this <https://www.nature.com/articles/s42003-021-02190-2>`_ article.
+       | This example reproduces some of the figures of the original
+       | paper focusing on showcasing yupi API for data processing
+       | and visualization for the case of 3D trajectories.
+     - * Core:
+          * :py:func:`~core.serializers.JSONSerializer`
+       * Graphics:
+          * :py:func:`~graphics.plot_3d`
+          * :py:func:`~graphics.plot_angle_hist`
+       * Stats:
+          * :py:func:`~stats.collect`
+
 .. toctree::
    :maxdepth: 2
    :caption: Advanced Resources
@@ -113,5 +135,7 @@ In this table you can easily find the examples that better suits you.
    example2
    example3
    example4
-   example5 
-   example6 
+   example5
+   example6
+   example7
+   example8
