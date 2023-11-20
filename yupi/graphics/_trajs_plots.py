@@ -22,6 +22,7 @@ def plot_2d(
     connected: bool = False,
     units: str = "m",
     color=None,
+    ax=None,
     **kwargs,
 ):
     """
@@ -56,13 +57,19 @@ def plot_2d(
         If there are less colors than trajectories then the remaining
         trajectories are colored automatically (not with the same
         color).
+    ax : matplotlib.axes.Axes, optional
+        Axes where the plot is drawn, by default None.
+
+        If None, then the current axes is used.
     """
 
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
     units = "" if units is None else f" [{units}]"
-    ax = plt.gca()
+
+    if ax is None:
+        ax = plt.gca()
 
     colors = itertools.cycle(YUPI_COLORS)
     if color is not None:
@@ -214,6 +221,7 @@ def plot_3d(
     connected: bool = False,
     units: str = "m",
     color=None,
+    ax=None,
     **kwargs,
 ):
     """
@@ -248,6 +256,10 @@ def plot_3d(
         If there are less colors than trajectories then the remaining
         trajectories are colored automatically (not with the same
         color).
+    ax : matplotlib.axes.Axes, optional
+        Axes where the plot is drawn, by default None.
+
+        If None, then a new axes is created with projection='3d'.
     """
 
     if isinstance(trajs, Trajectory):
@@ -262,7 +274,8 @@ def plot_3d(
         elif isinstance(color, list):
             colors = itertools.cycle(color)
 
-    ax = plt.axes(projection="3d")
+    if ax is None:
+        ax = plt.axes(projection="3d")
 
     if connected:
         lengths = list(map(len, trajs))
