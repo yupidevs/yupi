@@ -47,7 +47,7 @@ def exp_convolutional_filter(
 
 
 
-def exponential_moving_average(
+def exp_moving_average_filter(
         traj: Trajectory, alpha: float,tau:Optional[float] = None, new_traj_id: Optional[str] = None
 ):
     """

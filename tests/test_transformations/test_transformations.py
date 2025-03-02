@@ -3,7 +3,7 @@ import pytest
 
 from yupi import Trajectory
 from yupi.transformations import resample, subsample
-from yupi.transformations import exponential_moving_average,exp_convolutional_filter 
+from yupi.transformations import exp_moving_average_filter,exp_convolutional_filter 
 
 
 @pytest.fixture
@@ -15,19 +15,16 @@ def x():
 def traj(x):
     return Trajectory(x=x)
 
-@pytest.fixture
-def initial_velocity():
-    return [1.0, 0.5, 0.2]  # Constant velocity [vx, vy, vz]
 
 @pytest.fixture
 def non_zero_origin():
     return [7, 7, 7]  # Initial position
 
 @pytest.fixture
-def contant_v_non_zero_origin_traj(non_zero_origin,initial_velocity):
+def constant_v_non_zero_origin_traj(non_zero_origin):
     num_steps = 500
     noise_std = 0.8  # Standard deviation of Gaussian noise
-    velocity = np.array(initial_velocity)
+    velocity = np.array([1.0, 0.5, 0.2])
     trajectory = np.zeros((num_steps, 3))
     trajectory[0] = non_zero_origin
     t_vals = list(range(num_steps))
@@ -67,13 +64,13 @@ def test_threshold():
     subsample(traj2)
 
 
-def test_exp_convolution_origin(contant_v_non_zero_origin_traj,
+def test_exp_convolution_origin(constant_v_non_zero_origin_traj,
                                 non_zero_origin):
-    smooted_trajectory = exp_convolutional_filter(contant_v_non_zero_origin_traj,1/100)
+    smooted_trajectory = exp_convolutional_filter(constant_v_non_zero_origin_traj,1/100)
     assert smooted_trajectory.r[0] == pytest.approx(non_zero_origin)
 
 
-def test_ema_origin(contant_v_non_zero_origin_traj,
+def test_ema_origin(constant_v_non_zero_origin_traj,
                                 non_zero_origin):
-    smooted_trajectory = exponential_moving_average(contant_v_non_zero_origin_traj,alpha=1/100)
+    smooted_trajectory = exp_moving_average_filter(constant_v_non_zero_origin_traj,alpha=1/100)
     assert smooted_trajectory.r[0] == pytest.approx(non_zero_origin)
