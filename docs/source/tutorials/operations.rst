@@ -85,6 +85,17 @@ the context of animal trajectory analysis:
 
 
 
+Aditionally, a simple exponentially moving average filter is provided
+
+.. code-block:: python
+
+    from yupi.transformations import exp_moving_average_filter 
+    traj = Trajectory(points=[[1,2], [3,3], [4,2]])
+    smoothed_traj = exp_moving_average_filter(traj, alpha=1/100)
+
+For trajectories with non-uniform time samples, a :py:class:`~tau` parameter must be provided and 
+an adaptive alpha parameter is calculated as alpha = 1- exp(-dt/\tau) for each time step.
+
 Adding and subtracting
 ======================
 
