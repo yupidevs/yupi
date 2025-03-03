@@ -15,7 +15,7 @@ documentation = "https://yupi.readthedocs.io"
 keywords = ["trajectory", "analysis", "tracking"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8.18"
 opencv-python = ">=4.4.0"
 numpy = ">=1.16.5"
 nudged = ">=0.3.1"
