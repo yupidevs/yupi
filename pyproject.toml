@@ -15,7 +15,7 @@ documentation = "https://yupi.readthedocs.io"
 keywords = ["trajectory", "analysis", "tracking"]
 
 [tool.poetry.dependencies]
-python = "^3.8.18"
+python = "^3.9.12"
 opencv-python = ">=4.4.0"
 numpy = ">=1.16.5"
 nudged = ">=0.3.1"
@@ -32,7 +32,7 @@ profile = "black"
 known_first_party = ["yupi"]
 
 [tool.black]
-target-version = ["py37"]
+target-version = ["py39"]
 
 [tool.pylint."MESSAGES CONTROL"]
 extension-pkg-whitelist = ["cv2"]
