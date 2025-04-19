@@ -1,6 +1,7 @@
 """
 This constains resampling functions for trajectories.
 """
+
 from typing import Collection, List, Optional
 
 import numpy as np
@@ -85,7 +86,7 @@ def resample(
     from_dt = new_dt is not None
 
     new_t = (
-        traj.t[0] + np.arange(0, traj.t[-1], new_dt)
+        np.arange(traj.t[0], traj.t[-1], new_dt)
         if new_dt is not None
         else np.array(new_t)
     )
