@@ -3,7 +3,6 @@ from typing import Any
 import pytest
 
 from yupi import DiffMethod, Trajectory, WindowType
-from yupi._checkers import T
 
 APPROX_REL_TOLERANCE = 1e-10
 

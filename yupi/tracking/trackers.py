@@ -11,9 +11,6 @@ from yupi.trajectory import Trajectory
 from yupi.transformations import add_moving_FoR
 from yupi.transformations._affine_estimator import AffineParams, _get_affine
 
-# pylint: disable=protected-access
-
-
 Centroid = tuple[int, int]
 """Centroid of a tracked object: x, y."""
 
@@ -641,7 +638,7 @@ class TrackingScenario:
             cv2.rectangle(frame, (x_0, y_0), (x_f, y_f), (0, 0, 255), 2)
             p_2, p_3 = self.camera_tracker.features
             # Draw detected and estimated features
-            for p2_, p3_ in zip(p_2, p_3):
+            for p2_, p3_ in zip(p_2, p_3, strict=True):
                 x_2, y_2 = np.rint(p2_).astype(np.int32)
                 x_3, y_3 = np.rint(p3_).astype(np.int32)
 
@@ -734,9 +731,9 @@ class TrackingScenario:
             f"Trackers Initialized: {current_tracker}/{total_trackers}",
         ]
 
-        l = int(0.0396825 * boxw + 2.222222)
+        l = int(0.0396825 * boxw + 2.222222)  # noqa: E741
 
-        def put_text(img: np.ndarray, text: str, pos: Tuple[int, int]) -> Any:
+        def put_text(img: np.ndarray, text: str, pos: tuple[int, int]) -> Any:
             return cv2.putText(
                 img, text, pos, font, font_scale, color, thickness, cv2.LINE_AA
             )
@@ -865,7 +862,7 @@ class TrackingScenario:
     def _tracker2trajectory(self, tracker: ObjectTracker, pix_per_m: int) -> Trajectory:
         dt = 1 / self.fps
         traj_id = tracker.name
-        x, y = map(list, zip(*tracker.history))
+        x, y = map(list, zip(*tracker.history, strict=False))
         x_arr = np.array(x) / pix_per_m
         y_arr = -1 * np.array(y) / pix_per_m
         return Trajectory(x=x_arr, y=y_arr, dt=dt, traj_id=traj_id)

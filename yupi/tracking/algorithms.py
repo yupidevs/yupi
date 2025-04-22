@@ -85,9 +85,6 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
     from this class should implement ``detect`` method.
     """
 
-    def __init__(self) -> None:
-        pass
-
     def get_centroid(self, bin_img: np.ndarray) -> tuple[int, int] | None:
         """
         Computes the centroid of a binary image using ``cv2.moments``.

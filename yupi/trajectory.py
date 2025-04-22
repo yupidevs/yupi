@@ -783,6 +783,8 @@ class Trajectory:
         return -((discont_half - theta) % discont - discont_half)
 
     def _save_json(self, path: str | Path) -> None:
+        _path = Path(path) if isinstance(path, str) else path
+
         def convert_to_list(
             vec: Optional[Vector],
         ) -> Optional[List[Any] | Dict[int, List[Any]]]:
@@ -805,11 +807,12 @@ class Trajectory:
             "t": convert_to_list(self.__t),
             "diff_est": diff_est,
         }
-        with open(str(path), "w", encoding="utf-8") as traj_file:
+        with _path.open("w", encoding="utf-8") as traj_file:
             json.dump(json_dict, traj_file)
 
     def _save_csv(self, path: Union[str, Path]) -> None:
-        with open(str(path), "w", newline="", encoding="utf-8") as traj_file:
+        _path = Path(path) if isinstance(path, str) else path
+        with _path.open("w", newline="", encoding="utf-8") as traj_file:
             writer = csv.writer(traj_file, delimiter=",")
             writer.writerow([self.traj_id, self.__dt, self.dim])
 
@@ -923,8 +926,9 @@ class Trajectory:
             traj.save(name, path, file_type, overwrite)
 
     @staticmethod
-    def _load_json(path: str) -> Trajectory:
-        with open(path, "r", encoding="utf-8") as traj_file:
+    def _load_json(path: str | Path) -> Trajectory:
+        _path = Path(path) if isinstance(path, str) else path
+        with _path.open("r", encoding="utf-8") as traj_file:
             data = json.load(traj_file)
 
             traj_id = data["id"]
@@ -940,8 +944,9 @@ class Trajectory:
             return Trajectory(axes=axes, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
 
     @staticmethod
-    def _load_csv(path: str) -> Trajectory:
-        with open(path, "r", encoding="utf-8") as traj_file:
+    def _load_csv(path: str | Path) -> Trajectory:
+        _path = Path(path) if isinstance(path, str) else path
+        with _path.open("r", encoding="utf-8") as traj_file:
             r: List[List[float]] = []
             t: List[float] = []
             traj_id: Optional[str] = None

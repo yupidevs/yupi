@@ -88,7 +88,7 @@ def test_constant_addition(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj + 10
     new_points = points + 10
 
-    for true_point, point in zip(new_points, new_traj.r):
+    for true_point, point in zip(new_points, new_traj.r, strict=True):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
@@ -96,7 +96,7 @@ def test_point_addition(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj + (1, 3)
     new_points = points + (1, 3)
 
-    for true_point, point in zip(new_points, new_traj.r):
+    for true_point, point in zip(new_points, new_traj.r, strict=True):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
@@ -105,7 +105,7 @@ def test_traj_addition(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj + other_traj
     new_points = points + points
 
-    for true_point, point in zip(new_points, new_traj.r):
+    for true_point, point in zip(new_points, new_traj.r, strict=True):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
@@ -118,7 +118,7 @@ def test_constant_substraction(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj - 10
     new_points = points - 10
 
-    for true_point, point in zip(new_points, new_traj.r):
+    for true_point, point in zip(new_points, new_traj.r, strict=True):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
@@ -126,7 +126,7 @@ def test_point_substraction(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj - (1, 3)
     new_points = points - (1, 3)
 
-    for true_point, point in zip(new_points, new_traj.r):
+    for true_point, point in zip(new_points, new_traj.r, strict=True):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
@@ -135,7 +135,7 @@ def test_traj_substraction(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj - other_traj
     new_points = points - points
 
-    for true_point, point in zip(new_points, new_traj.r):
+    for true_point, point in zip(new_points, new_traj.r, strict=True):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
@@ -148,7 +148,7 @@ def test_constant_multiplication(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj * 3
     new_points = points * 3
 
-    for true_point, point in zip(new_points, new_traj.r):
+    for true_point, point in zip(new_points, new_traj.r, strict=True):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 

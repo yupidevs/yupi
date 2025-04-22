@@ -5,6 +5,7 @@ CSV traj serializer
 from __future__ import annotations
 
 import csv
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -21,7 +22,7 @@ class CSVSerializer(Serializer):
 
     @staticmethod
     def save(
-        traj: Trajectory, file_name: str, overwrite: bool = False, **kwargs: Any
+        traj: Trajectory, file_path: str | Path, overwrite: bool = False, **kwargs: Any
     ) -> None:
         """
         Writes a trajectory to a file.
@@ -30,8 +31,8 @@ class CSVSerializer(Serializer):
         ----------
         traj : Trajectory
             The trajectory to write to the file.
-        file_name : str
-            The name of the file to write.
+        file_path : str | Path
+            The path of the file to write.
         overwrite : bool
             If True, overwrites the file if it already exists.
         kwargs
@@ -39,10 +40,13 @@ class CSVSerializer(Serializer):
 
             Encoding is set to UTF-8 as default.
         """
-        CSVSerializer.check_save_path(file_name, overwrite=overwrite, extension=".csv")
+
+        _path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        CSVSerializer.check_save_path(_path, overwrite=overwrite, extension=".csv")
 
         kwargs["encoding"] = kwargs.get("encoding", "utf-8")
-        with open(file_name, "w", newline="", **kwargs) as traj_file:
+        with _path.open("w", newline="", **kwargs) as traj_file:
             writer = csv.writer(traj_file, delimiter=",")
             dt = traj.dt if traj.dt_std == 0 else None
 
@@ -59,17 +63,19 @@ class CSVSerializer(Serializer):
 
             writer.writerow([traj.traj_id, dt, traj.dim])
             writer.writerow([method, window, accuracy])
-            writer.writerows(np.hstack([p, t]) for p, t in zip(traj.r, traj.t))
+            writer.writerows(
+                np.hstack([p, t]) for p, t in zip(traj.r, traj.t, strict=True)
+            )
 
     @staticmethod
-    def load(file_name: str, **kwargs: Any) -> Trajectory:
+    def load(file_path: str | Path, **kwargs: Any) -> Trajectory:
         """
         Loads a trajectory from a file.
 
         Parameters
         ----------
-        file_name : str
-            The name of the file to loaded.
+        file_path : str | Path
+            The path of the file to loaded.
         kwargs : dict
             Additional keyword arguments.
 
@@ -81,10 +87,12 @@ class CSVSerializer(Serializer):
             The trajectory loaded from the file.
         """
 
-        CSVSerializer.check_load_path(file_name, extension=".csv")
+        _path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        CSVSerializer.check_load_path(_path, extension=".csv")
 
         kwargs["encoding"] = kwargs.get("encoding", "utf-8")
-        with open(file_name, "r", **kwargs) as traj_file:
+        with _path.open("r", **kwargs) as traj_file:
             reader = csv.reader(traj_file, delimiter=",")
 
             traj_id, _dt, _dim = next(reader)

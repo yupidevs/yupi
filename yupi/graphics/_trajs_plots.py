@@ -90,7 +90,7 @@ def plot_2d(
         for i in range(min_len):
             traj_points = [t[i] for t in trajs]
             traj_points.append(traj_points[0])
-            for tp1, tp2 in zip(traj_points[:-1], traj_points[1:]):
+            for tp1, tp2 in itertools.pairwise(traj_points):
                 seg_x = [tp1.r[0], tp2.r[0]]
                 seg_y = [tp1.r[1], tp2.r[1]]
                 plt.plot(seg_x, seg_y, color=(0.2, 0.2, 0.2), linewidth=0.5)
@@ -291,7 +291,7 @@ def plot_3d(
         for i in range(min_len):
             traj_points = [t[i] for t in trajs]
             traj_points.append(traj_points[0])
-            for tp1, tp2 in zip(traj_points[:-1], traj_points[1:]):
+            for tp1, tp2 in itertools.pairwise(traj_points):
                 seg_x = [tp1.r[0], tp2.r[0]]
                 seg_y = [tp1.r[1], tp2.r[1]]
                 seg_z = [tp1.r[2], tp2.r[2]]

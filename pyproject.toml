@@ -92,6 +92,7 @@ ignore = [
 	"RUF012", # Mutable class attributes should be annotated with typing.ClassVar
 	"A002",   # Shadowing function arguments
 	"B028",   # No explicit stack level
+	"RUF005", # Concatenations without using add operator
 ]
 fixable = ["ALL"]
 unfixable = []
