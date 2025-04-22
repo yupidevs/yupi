@@ -4,7 +4,7 @@ JSON trajctory serializer.
 
 import json
 import logging
-from typing import List
+from typing import Any, List
 
 import yupi._differentiation as diff
 from yupi.core.serializers.serializer import Serializer
@@ -19,7 +19,7 @@ class JSONSerializer(Serializer):
 
     @staticmethod
     def save(
-        traj: Trajectory, file_name: str, overwrite: bool = False, **kwargs
+        traj: Trajectory, file_name: str, overwrite: bool = False, **kwargs: Any
     ) -> None:
         """
         Writes a trajectory to a file.
@@ -48,7 +48,7 @@ class JSONSerializer(Serializer):
 
     @staticmethod
     def save_ensemble(
-        trajs: List[Trajectory], file_name: str, overwrite: bool = False, **kwargs
+        trajs: List[Trajectory], file_name: str, overwrite: bool = False, **kwargs: Any
     ) -> None:
         """
         Writes an ensemble to a file.
@@ -79,7 +79,7 @@ class JSONSerializer(Serializer):
             json.dump(json_dicts, traj_file)
 
     @staticmethod
-    def load(file_name: str, **kwargs) -> Trajectory:
+    def load(file_name: str, **kwargs: Any) -> Trajectory:
         """
         Loads a trajectory from a file.
 
@@ -110,7 +110,7 @@ class JSONSerializer(Serializer):
             return JSONSerializer.from_json(data)
 
     @staticmethod
-    def load_ensemble(file_name: str, **kwargs) -> List[Trajectory]:
+    def load_ensemble(file_name: str, **kwargs: Any) -> List[Trajectory]:
         """
         Loads an ensemble from a file.
 

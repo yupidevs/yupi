@@ -5,6 +5,7 @@ CSV traj serializer
 from __future__ import annotations
 
 import csv
+from typing import Any
 
 import numpy as np
 
@@ -20,7 +21,7 @@ class CSVSerializer(Serializer):
 
     @staticmethod
     def save(
-        traj: Trajectory, file_name: str, overwrite: bool = False, **kwargs
+        traj: Trajectory, file_name: str, overwrite: bool = False, **kwargs: Any
     ) -> None:
         """
         Writes a trajectory to a file.
@@ -61,7 +62,7 @@ class CSVSerializer(Serializer):
             writer.writerows(np.hstack([p, t]) for p, t in zip(traj.r, traj.t))
 
     @staticmethod
-    def load(file_name: str, **kwargs) -> Trajectory:
+    def load(file_name: str, **kwargs: Any) -> Trajectory:
         """
         Loads a trajectory from a file.
 
@@ -86,9 +87,9 @@ class CSVSerializer(Serializer):
         with open(file_name, "r", **kwargs) as traj_file:
             reader = csv.reader(traj_file, delimiter=",")
 
-            traj_id, dt, dim = next(reader)
-            dt = None if not dt else float(dt)
-            dim = None if not dim else int(dim)
+            traj_id, _dt, _dim = next(reader)
+            dt = None if not _dt else float(_dt)
+            dim = None if not _dim else int(_dim)
 
             method, window, accuracy = list(map(int, next(reader)))
             diff_est = Trajectory.general_diff_est

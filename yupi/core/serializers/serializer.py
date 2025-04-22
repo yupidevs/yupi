@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import abc
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import yupi
 
@@ -19,7 +19,7 @@ class Serializer(abc.ABC):
     @staticmethod
     @abc.abstractmethod
     def save(
-        traj: yupi.Trajectory, file_name: str, overwrite: bool = False, **kwargs
+        traj: yupi.Trajectory, file_name: str, overwrite: bool = False, **kwargs: Any
     ) -> None:
         """
         Saves a trajectory to a file.
@@ -38,7 +38,7 @@ class Serializer(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def load(file_name: str, **kwargs) -> yupi.Trajectory:
+    def load(file_name: str, **kwargs: Any) -> yupi.Trajectory:
         """
         Loads a trajectory from a file.
 
