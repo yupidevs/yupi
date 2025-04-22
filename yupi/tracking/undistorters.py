@@ -77,7 +77,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         """
 
     # Turn the image if required
-    def _rotate(self, frame: np.ndarray, _input=True) -> np.ndarray:
+    def _rotate(self, frame: np.ndarray, _input: bool = True) -> np.ndarray:
         if self.turn:
             direction = cv2.ROTATE_90_COUNTERCLOCKWISE
             if _input:
@@ -106,7 +106,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         return self.masked(corrected)
 
     # Create a mask with the distortion pattern
-    def _create_mask(self, frame: np.ndarray):
+    def _create_mask(self, frame: np.ndarray) -> None:
         empty_frame = 255 * np.ones(frame.shape, dtype=np.uint8)
         corrected = self.undistort(empty_frame)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
