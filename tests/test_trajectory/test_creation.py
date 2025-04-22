@@ -1,6 +1,7 @@
 import pytest
 
 from yupi import DiffMethod, Trajectory, WindowType
+from yupi._checkers import T
 
 APPROX_REL_TOLERANCE = 1e-10
 
@@ -10,16 +11,16 @@ def test_creation_by_xyz():
     Trajectory(x=[1, 2, 4], y=[2, 3, 6])
     Trajectory(x=[1, 2, 4], y=[2, 3, 6], z=[1, 4, 7])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(x=[1, 2], y=[2])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(x=[1, 2], y=[2], z=[2, 5])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(x=[1, 2], y=[2, 6], z=[5])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(x=[2], y=[2, 6], z=[5, 8])
 
 
@@ -29,16 +30,16 @@ def test_creation_by_axes():
     Trajectory(axes=[[1, 2, 1], [2, 3, 9], [1, 4, 3]])
     Trajectory(axes=[[1, 2, 5], [2, 3, 3], [1, 4, 8], [7, 8, 7]])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(axes=[[1, 2], [2]])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(axes=[[1, 2], [2], [2, 5]])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(axes=[[1, 2], [2, 6], [5]])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(axes=[[2], [2, 6], [5, 8]])
 
 
@@ -47,10 +48,10 @@ def test_creation_by_points():
     Trajectory(points=[[1, 2, 4], [2, 3, 2], [1, 4, 8], [2, 6, 8]])
     Trajectory(points=[[1, 2, 7, 3], [2, 3, 5, 3], [3, 7, 2, 1]])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(points=[[1, 2], [2]])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Trajectory(points=[[1, 2], [2], [2, 5]])
 
     with pytest.raises(ValueError):

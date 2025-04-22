@@ -5,7 +5,7 @@ This contains the Vector structure used across the library to store data.
 from __future__ import annotations
 
 import warnings
-from typing import Union
+from typing import Any, Optional, Union
 
 import numpy as np
 from numpy.linalg.linalg import norm as nrm
@@ -14,8 +14,18 @@ from numpy.linalg.linalg import norm as nrm
 class Vector(np.ndarray):
     """Represents a vector"""
 
-    def __new__(cls, arr, dtype=None, copy=False):
-        vec = np.asarray(arr, dtype=dtype)
+    def __new__(
+        cls: type[Vector],
+        arr: Any,
+        dtype: Optional[Any] = None,
+        copy: bool = False,
+    ) -> Vector:
+        try:
+            vec = np.asarray(arr, dtype=dtype)
+        except Exception as e:
+            raise TypeError(
+                f"Input 'arr' is not convertible to a NumPy array: {e}"
+            ) from e
         if copy:
             vec = vec.copy()
         return vec.view(cls)
@@ -48,7 +58,7 @@ class Vector(np.ndarray):
         """Vector : Z component of all vector items"""
         return self.component(2)
 
-    def component(self, dim) -> Vector:
+    def component(self, dim: int) -> Vector:
         """
         Extract a given component from all vector items.
 
@@ -89,7 +99,7 @@ class Vector(np.ndarray):
         return self[:, dim].view(Vector)
 
     @staticmethod
-    def create(*args, **kwargs) -> Vector:
+    def create(*args: Any, **kwargs: Any) -> Vector:
         """
         .. deprecated:: 0.10.0
             :func:`Vector.create` will be removed in a future version, use
