@@ -8,11 +8,13 @@ import warnings
 from typing import Any, Optional, Union
 
 import numpy as np
-from numpy.linalg.linalg import norm as nrm
+from numpy.linalg import norm as nrm
 
 
 class Vector(np.ndarray):
     """Represents a vector"""
+
+    __array_priority__ = 100
 
     def __new__(
         cls: type[Vector],
@@ -29,6 +31,24 @@ class Vector(np.ndarray):
         if copy:
             vec = vec.copy()
         return vec.view(cls)
+
+    def __add__(self, other: Any) -> Vector:
+        return super().__add__(other).view(Vector)
+
+    def __iadd__(self, other: Any) -> Vector:
+        return super().__iadd__(other).view(Vector)
+
+    def __sub__(self, other: Any) -> Vector:  # type: ignore[override]
+        return super().__sub__(other).view(Vector)
+
+    def __isub__(self, other: Any) -> Vector:  # type: ignore[override]
+        return super().__isub__(other).view(Vector)
+
+    def __mul__(self, other: Any) -> Vector:
+        return super().__mul__(other).view(Vector)
+
+    def __imul__(self, other: Any) -> Vector:
+        return super().__imul__(other).view(Vector)
 
     @property
     def norm(self) -> Union[Vector, float]:
