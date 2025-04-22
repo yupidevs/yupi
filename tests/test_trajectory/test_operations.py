@@ -8,35 +8,35 @@ APPROX_REL_TOLERANCE = 1e-12
 
 
 @fixture
-def points():
+def points() -> np.ndarray:
     return np.array([[1, 2], [4, 3], [4, 1], [6, 8], [5, 7]], dtype=float)
 
 
 @fixture
-def traj(points):
+def traj(points: np.ndarray) -> Trajectory:
     return Trajectory(points=points)
 
 
 @fixture
-def time():
-    return [0, 0.1, 0.18, 0.26, 0.41]
+def time() -> np.ndarray:
+    return np.array([0, 0.1, 0.18, 0.26, 0.41])
 
 
 @fixture
-def timed_traj(points, time):
+def timed_traj(points: np.ndarray, time: np.ndarray) -> Trajectory:
     return Trajectory(points=points, t=time)
 
 
 @fixture
-def simple_traj():
+def simple_traj() -> Trajectory:
     return Trajectory(x=[0, 1], y=[0, 1], diff_est={"window_type": WindowType.FORWARD})
 
 
-def test_length(points, traj):
+def test_length(points: np.ndarray, traj: np.ndarray) -> None:
     assert len(traj) == len(points)
 
 
-def test_copy(traj):
+def test_copy(traj: Trajectory) -> None:
     copy_traj = traj.copy()
 
     assert traj.r == approx(copy_traj.r, APPROX_REL_TOLERANCE)
@@ -46,7 +46,7 @@ def test_copy(traj):
     assert traj.diff_est == copy_traj.diff_est
 
 
-def test_iteration(points, traj):
+def test_iteration(points: np.ndarray, traj: Trajectory) -> None:
     time = traj.t
 
     for i, tp in enumerate(traj):
@@ -57,7 +57,7 @@ def test_iteration(points, traj):
         assert t == approx(tp.t, APPROX_REL_TOLERANCE)  # Time
 
 
-def test_rotation(simple_traj):
+def test_rotation(simple_traj: Trajectory) -> None:
     # 45 degrees
     ang = np.pi / 4
 
@@ -69,7 +69,7 @@ def test_rotation(simple_traj):
     assert simple_traj.r[1] == approx([0, np.sqrt(2)], APPROX_REL_TOLERANCE)
 
 
-def test_rotation_3d():
+def test_rotation_3d() -> None:
     traj = Trajectory(
         x=[0, 1], y=[0, 0], z=[0, 0], diff_est={"window_type": WindowType.FORWARD}
     )
@@ -84,7 +84,7 @@ def test_rotation_3d():
     assert traj.r[1] == approx([0, -1, 0], APPROX_REL_TOLERANCE)
 
 
-def test_constant_addition(points, traj):
+def test_constant_addition(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj + 10
     new_points = points + 10
 
@@ -92,7 +92,7 @@ def test_constant_addition(points, traj):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
-def test_point_addition(points, traj):
+def test_point_addition(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj + (1, 3)
     new_points = points + (1, 3)
 
@@ -100,7 +100,7 @@ def test_point_addition(points, traj):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
-def test_traj_addition(points, traj):
+def test_traj_addition(points: np.ndarray, traj: Trajectory) -> None:
     other_traj = traj.copy()
     new_traj = traj + other_traj
     new_points = points + points
@@ -109,12 +109,12 @@ def test_traj_addition(points, traj):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
-def test_wrong_addition(traj):
+def test_wrong_addition(traj: Trajectory) -> None:
     with pytest.raises(TypeError):
-        traj += "wrong"
+        traj += "wrong"  # type: ignore[arg-type]
 
 
-def test_constant_substraction(points, traj):
+def test_constant_substraction(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj - 10
     new_points = points - 10
 
@@ -122,7 +122,7 @@ def test_constant_substraction(points, traj):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
-def test_point_substraction(points, traj):
+def test_point_substraction(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj - (1, 3)
     new_points = points - (1, 3)
 
@@ -130,7 +130,7 @@ def test_point_substraction(points, traj):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
-def test_traj_substraction(points, traj):
+def test_traj_substraction(points: np.ndarray, traj: Trajectory) -> None:
     other_traj = traj.copy()
     new_traj = traj - other_traj
     new_points = points - points
@@ -139,12 +139,12 @@ def test_traj_substraction(points, traj):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
-def test_wrong_substraction(traj):
+def test_wrong_substraction(traj: Trajectory) -> None:
     with pytest.raises(TypeError):
-        traj -= "wrong"
+        traj -= "wrong"  # type: ignore[arg-type]
 
 
-def test_constant_multiplication(points, traj):
+def test_constant_multiplication(points: np.ndarray, traj: Trajectory) -> None:
     new_traj = traj * 3
     new_points = points * 3
 
@@ -152,20 +152,27 @@ def test_constant_multiplication(points, traj):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
 
 
-def test_wrong_multiplication(traj):
+def test_wrong_multiplication(traj: Trajectory) -> None:
     with pytest.raises(TypeError):
-        traj *= "wrong"
+        traj *= "wrong"  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        traj *= [1, 2]
+        traj *= [1, 2]  # type: ignore[arg-type]
 
 
-def test_slicing(traj, timed_traj):
+def test_slicing(traj: Trajectory, timed_traj: Trajectory) -> None:
     slice_1 = timed_traj[:]
     slice_2 = timed_traj[2:]
     slice_3 = timed_traj[:-2]
     slice_4 = timed_traj[1:4]
     slice_5 = traj[::2]
     slice_6 = traj[0:5:2]
+
+    assert isinstance(slice_1, Trajectory)
+    assert isinstance(slice_2, Trajectory)
+    assert isinstance(slice_3, Trajectory)
+    assert isinstance(slice_4, Trajectory)
+    assert isinstance(slice_5, Trajectory)
+    assert isinstance(slice_6, Trajectory)
 
     # Test lengths
     assert len(slice_1) == len(timed_traj)

@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from yupi import DiffMethod, Trajectory, WindowType
@@ -6,7 +8,7 @@ from yupi._checkers import T
 APPROX_REL_TOLERANCE = 1e-10
 
 
-def test_creation_by_xyz():
+def test_creation_by_xyz() -> None:
     Trajectory(x=[1, 2, 3])
     Trajectory(x=[1, 2, 4], y=[2, 3, 6])
     Trajectory(x=[1, 2, 4], y=[2, 3, 6], z=[1, 4, 7])
@@ -24,7 +26,7 @@ def test_creation_by_xyz():
         Trajectory(x=[2], y=[2, 6], z=[5, 8])
 
 
-def test_creation_by_axes():
+def test_creation_by_axes() -> None:
     Trajectory(axes=[[1, 2, 3]])
     Trajectory(axes=[[1, 2, 5], [2, 3, 3]])
     Trajectory(axes=[[1, 2, 1], [2, 3, 9], [1, 4, 3]])
@@ -43,7 +45,7 @@ def test_creation_by_axes():
         Trajectory(axes=[[2], [2, 6], [5, 8]])
 
 
-def test_creation_by_points():
+def test_creation_by_points() -> None:
     Trajectory(points=[[1, 2], [2, 3], [6, 7]])
     Trajectory(points=[[1, 2, 4], [2, 3, 2], [1, 4, 8], [2, 6, 8]])
     Trajectory(points=[[1, 2, 7, 3], [2, 3, 5, 3], [3, 7, 2, 1]])
@@ -58,7 +60,7 @@ def test_creation_by_points():
         Trajectory(points=[[1, 2]])
 
 
-def test_creation_with_time():
+def test_creation_with_time() -> None:
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 0.1, 0.2])
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], dt=0.1)
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 0.1, 0.2], dt=0.1)
@@ -75,7 +77,7 @@ def test_creation_with_time():
         Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0.4, 0.5, 0.6], dt=0.1)
 
 
-def test_creation_general():
+def test_creation_general() -> None:
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 1, 2], traj_id="test")
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], dt=0.5, traj_id="test")
     Trajectory(points=[[1, 2], [2, 3], [3, 6]], dt=0.5, traj_id="test")
@@ -84,7 +86,7 @@ def test_creation_general():
     )
 
 
-def test_diff_methods():
+def test_diff_methods() -> None:
     x = [1, 2, 4, 8, 16]
 
     traj = Trajectory(x=x)
@@ -111,7 +113,7 @@ def test_diff_methods():
     assert traj.v == pytest.approx([1, 2, 4, 8, 8], rel=APPROX_REL_TOLERANCE)
     assert traj.a == pytest.approx([1, 2, 4, 0, 0], rel=APPROX_REL_TOLERANCE)
 
-    vel_est = {
+    vel_est: Any = {
         "method": DiffMethod.FORNBERG_DIFF,
         "window_type": WindowType.CENTRAL,
         "accuracy": 2,
