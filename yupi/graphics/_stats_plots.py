@@ -3,10 +3,12 @@ This contains the plotting functions of the statistical observables.
 """
 
 import itertools
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.axes import Axes
+from matplotlib.projections import PolarAxes
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from yupi.graphics._style import (
@@ -22,12 +24,12 @@ from yupi.graphics._style import (
 )
 
 
-def _validate_units(units):
+def _validate_units(units: str) -> str:
     return "" if units is None else f" [{units}]"
 
 
 @_plot_basic_properties
-def plot_hist(values: np.ndarray, **kwargs):
+def plot_hist(values: np.ndarray, **kwargs: Any) -> Axes:
     """
     Plot a histogram of the given
 
@@ -35,6 +37,11 @@ def plot_hist(values: np.ndarray, **kwargs):
     ----------
     values : np.ndarray
         Input values
+
+    Returns
+    -------
+    Axes
+        Axes of the plot.
     """
 
     if "color" not in kwargs:
@@ -42,16 +49,17 @@ def plot_hist(values: np.ndarray, **kwargs):
     if "ec" not in kwargs:
         kwargs["ec"] = (0, 0, 0, 0.6)
     plt.hist(values, **kwargs)
+    return plt.gca()
 
 
 @_plot_basic_properties
 def plot_hists(
-    values_list: List[np.ndarray],
+    values_list: list[np.ndarray],
     kwargs_list: Optional[List[dict]] = None,
     labels: Optional[List[str]] = None,
     filled: bool = False,
-    **general_kwargs,
-):
+    **general_kwargs: Any,
+) -> Axes:
     """
     Plot several histograms given a collection of values.
 
@@ -64,6 +72,18 @@ def plot_hists(
 
         If given, the length must be the same as the length of
         ``values``.
+    labels : Optional[List[str]]
+        Labels of each plot, by default None
+    filled : bool
+        If True, the histogram is filled. By default False.
+    general_kwargs : Any
+        General kwargs for all plots.
+        By default {}
+
+    Returns
+    -------
+    Axes
+        Axes of the plot.
     """
 
     if kwargs_list and len(kwargs_list) != len(values_list):
@@ -97,7 +117,9 @@ def plot_hists(
     return ax
 
 
-def plot_speed_hist(v, show: bool = True, units: str = "m/s", **kwargs):
+def plot_speed_hist(
+    v: np.ndarray, show: bool = True, units: str = "m/s", **kwargs: Any
+) -> Axes:
     """Plot a histogram of the array of velocities ``v``.
 
     Parameters
@@ -108,6 +130,11 @@ def plot_speed_hist(v, show: bool = True, units: str = "m/s", **kwargs):
         If True, the plot is shown. By default True.
     units : string, optional
         Velocity units. By default 'm/s'.
+
+    Returns
+    -------
+    Axes
+        Axes of the plot.
     """
 
     if "color" not in kwargs:
@@ -131,7 +158,13 @@ def plot_speed_hist(v, show: bool = True, units: str = "m/s", **kwargs):
     return ax
 
 
-def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
+def plot_angles_hist(
+    ang: np.ndarray,
+    bins: int,
+    show: bool = True,
+    ax: Axes | None = None,
+    **kwargs: Any,
+) -> PolarAxes:
     """Plot a histogram of the array of angles ``ang``.
 
     Parameters
@@ -142,15 +175,27 @@ def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
         Number of histogram bins.
     show : bool, optional
         If True, the plot is shown. By default True.
-    ax : matplotlib.axes._subplots.AxesSubplot, optional
+    ax : Axes, optional
         Axes to plot. By default None.
+
+    Returns
+    -------
+    PolarAxes
+        Axes of the plot.
+
+    Raises
+    ------
+    ValueError
+        If the axes is not polar.
     """
 
     if ax is None:
         ax = plt.axes(projection="polar")
-    elif ax.name != "polar":
+
+    if not isinstance(ax, PolarAxes):
         raise ValueError("The axes must be polar")
-    default_kwargs = {"color": LIGHT_BLUE, "ec": (0, 0, 0, 0.6), "density": True}
+
+    default_kwargs: Any = {"color": LIGHT_BLUE, "ec": (0, 0, 0, 0.6), "density": True}
     default_kwargs.update(kwargs)
     plt.hist(ang, bins, **default_kwargs)
     ax.set_theta_zero_location("N")
@@ -164,16 +209,16 @@ def plot_angles_hist(ang, bins, show: bool = True, ax=None, **kwargs):
 
 
 def plot_msd(
-    msd,
-    msd_std,
-    dt,
-    lag,
+    msd: np.ndarray,
+    msd_std: np.ndarray,
+    dt: float,
+    lag: int,
     x_units: str = "s",
     y_units: str = "m^2",
-    show=True,
-    fill_color=LIGHT_ORANGE,
-    **kwargs,
-):
+    show: bool = True,
+    fill_color: Any = LIGHT_ORANGE,
+    **kwargs: Any,
+) -> Axes:
     """Plot Mean Square Displacement.
 
     Parameters
@@ -184,7 +229,7 @@ def plot_msd(
         Standard deviation.
     dt : float
         Trajectories time step.
-    lag : int, optional
+    lag : int
         Lag time.
     x_units : str, optional
         Units of the time axes.
@@ -192,13 +237,21 @@ def plot_msd(
         Units of the MSD axes.
     show : bool, optional
         If True, the plot is shown. By default True.
+    fill_color : Any, optional
+        Color of the fill between the upper and lower bound.
+        By default LIGHT_ORANGE.
+
+    Returns
+    -------
+    Axes
+        Axes of the plot.
     """
 
     x_units = _validate_units(x_units)
     y_units = _validate_units(y_units)
 
     lag_t_msd = dt * np.arange(lag)
-    default_kwargs = {"color": ".2"}
+    default_kwargs: Any = {"color": ".2"}
     default_kwargs.update(kwargs)
     plt.plot(lag_t_msd, msd, ".", **default_kwargs)
     upper_bound = msd + msd_std
@@ -217,15 +270,15 @@ def plot_msd(
 
 
 def plot_kurtosis(
-    kurtosis,
-    dt=None,
-    t_array=None,
+    kurtosis: np.ndarray,
+    dt: Optional[float] = None,
+    t_array: Optional[np.ndarray] = None,
     kurtosis_ref: Optional[float] = None,
     units: str = "s",
-    show=True,
-    ref_color=LIGHT_GREEN,
-    **kwargs,
-):
+    show: bool = True,
+    ref_color: Any = LIGHT_GREEN,
+    **kwargs: Any,
+) -> Axes:
     """Plot kurtosis.
 
     Parameters
@@ -243,6 +296,14 @@ def plot_kurtosis(
         Units of the time axes.
     show : bool, optional
         If True, the plot is shown. By default True.
+    ref_color : Any, optional
+        Color of the fill between the upper and lower bound.
+        By default LIGHT_GREEN.
+
+    Returns
+    -------
+    Axes
+        Axes of the plot.
     """
 
     units = _validate_units(units)
@@ -274,15 +335,15 @@ def plot_kurtosis(
 
 
 def plot_vacf(
-    vacf,
-    dt,
-    lag,
+    vacf: np.ndarray,
+    dt: float,
+    lag: int,
     x_units: str = "s",
-    y_units: Optional[str] = "(m/s)^2",
+    y_units: str = "(m/s)^2",
     log_inset: bool = True,
     show: bool = True,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Axes:
     """Plot Velocity Autocorrelation Function.
 
     Parameters
@@ -302,6 +363,11 @@ def plot_vacf(
         If True, a log-log inset is shown. By default True.
     show : bool, optional
         If True, the plot is shown. By default True.
+
+    Returns
+    -------
+    Axes
+        Axes of the plot.
     """
 
     x_units = _validate_units(x_units)
@@ -339,7 +405,14 @@ def plot_vacf(
     return ax
 
 
-def plot_psd(psd_mean, frec, psd_std=None, omega=True, show=True, **kwargs):
+def plot_psd(
+    psd_mean: np.ndarray,
+    frec: np.ndarray,
+    psd_std: Optional[np.ndarray] = None,
+    omega: bool = True,
+    show: bool = True,
+    **kwargs: Any,
+) -> Axes:
     """Plot the Power Spectral Density.
 
     Parameters
@@ -356,6 +429,11 @@ def plot_psd(psd_mean, frec, psd_std=None, omega=True, show=True, **kwargs):
         in Hz. By default True.
     show : bool, optional
         If True, the plot is shown. By default True.
+
+    Returns
+    -------
+    Axes
+        Axes of the plot.
     """
 
     plt.plot(frec, psd_mean, label="psd", **kwargs)

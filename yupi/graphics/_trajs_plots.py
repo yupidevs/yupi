@@ -5,9 +5,12 @@ This contains spatial plotting functions for the trajectories.
 import itertools
 import logging
 import warnings
-from typing import Callable, Collection, List, Optional, Union
+from typing import Any, Callable, Collection, List, Optional, Union
 
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.axes import Axes
+from mpl_toolkits.mplot3d.axes3d import Axes3D
 
 from yupi.graphics._style import LINE, YUPI_COLORS
 from yupi.trajectory import Trajectory
@@ -21,10 +24,10 @@ def plot_2d(
     show: bool = True,
     connected: bool = False,
     units: str = "m",
-    color=None,
-    ax=None,
-    **kwargs,
-):
+    color: Any = None,
+    ax: Axes | None = None,
+    **kwargs: Any,
+) -> Axes:
     """
     Plot all the points of trajectories from ``trajs`` in a 2D plane.
 
@@ -93,7 +96,6 @@ def plot_2d(
                 plt.plot(seg_x, seg_y, color=(0.2, 0.2, 0.2), linewidth=0.5)
 
     for i, traj in enumerate(trajs):
-
         if traj.dim != 2:
             logging.warning(
                 "Using plot_2d with a trajectory of %i dimensions"
@@ -132,7 +134,8 @@ def plot_2d(
         if legend:
             plt.legend()
 
-        plt.title(title)
+        if title is not None:
+            plt.title(title)
         plt.tick_params(direction="in")
         plt.axis("equal")
         plt.grid(True)
@@ -145,7 +148,7 @@ def plot_2d(
     return ax
 
 
-def plot_2D(  # pylint: disable=invalid-name
+def plot_2D(  # noqa: N802
     trajs: Union[List[Trajectory], Trajectory],
     line_style: str = LINE,
     title: Optional[str] = None,
@@ -153,9 +156,9 @@ def plot_2D(  # pylint: disable=invalid-name
     show: bool = True,
     connected: bool = False,
     units: str = "m",
-    color=None,
-    **kwargs,
-):
+    color: Any = None,
+    **kwargs: Any,
+) -> None:
     """
     .. deprecated:: 0.10.0
         :func:`plot_2D` will be removed in a future version, use
@@ -220,10 +223,10 @@ def plot_3d(
     show: bool = True,
     connected: bool = False,
     units: str = "m",
-    color=None,
-    ax=None,
-    **kwargs,
-):
+    color: Any = None,
+    ax: Axes3D | None = None,
+    **kwargs: Any,
+) -> Axes3D:
     """
     Plot all the points of trajectories from ``trajs`` in a 3D space.
 
@@ -277,6 +280,8 @@ def plot_3d(
     if ax is None:
         ax = plt.axes(projection="3d")
 
+    assert isinstance(ax, Axes3D), "ax must be a 3D Axes"
+
     if connected:
         lengths = list(map(len, trajs))
         min_len = min(lengths)
@@ -293,7 +298,6 @@ def plot_3d(
                 ax.plot(seg_x, seg_y, seg_z, color=(0.2, 0.2, 0.2), linewidth=0.5)
 
     for i, traj in enumerate(trajs):
-
         if traj.dim != 3:
             logging.warning(
                 "Using plot_3d with a trajectory of %i dimensions"
@@ -335,7 +339,8 @@ def plot_3d(
         if legend:
             plt.legend()
 
-        plt.title(title)
+        if title is not None:
+            plt.title(title)
         plt.tick_params(direction="in")
         plt.grid(True)
         ax.set_xlabel(f"x{units}")
@@ -348,7 +353,7 @@ def plot_3d(
     return ax
 
 
-def plot_3D(  # pylint: disable=invalid-name
+def plot_3D(  # noqa: N802
     trajs: Union[List[Trajectory], Trajectory],
     line_style: str = LINE,
     title: Optional[str] = None,
@@ -356,9 +361,9 @@ def plot_3D(  # pylint: disable=invalid-name
     show: bool = True,
     connected: bool = False,
     units: str = "m",
-    color=None,
-    **kwargs,
-):
+    color: Any = None,
+    **kwargs: Any,
+) -> None:
     """
     .. deprecated:: 0.10.0
         :func:`plot_3D` will be removed in a future version, use
@@ -422,10 +427,10 @@ def plot_vs_time(
     y_label: Union[str, None] = None,
     title: Optional[str] = None,
     legend: bool = True,
-    color=None,
+    color: Any = None,
     show: bool = True,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Axes:
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
@@ -446,7 +451,7 @@ def plot_vs_time(
                 kwargs["color"] = colors[i]
             else:
                 kwargs.pop("color")
-        y_data = key(traj)
+        y_data = np.array(key(traj))
         x_data = traj.t
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
         plt.plot(x_data, y_data, line_style, **kwargs, label=traj_id)
@@ -454,7 +459,9 @@ def plot_vs_time(
         if y_label is not None:
             plt.ylabel(y_label)
         plt.grid()
-        plt.title(title)
+
+        if title is not None:
+            plt.title(title)
 
     if legend:
         plt.legend()
