@@ -259,9 +259,7 @@ def collect(
         lag = 0
         checks[0] = True
     if sum(checks) > 1:
-        raise ValueError(
-            "You can not set `lag` and `at` parameters at the " "same time"
-        )
+        raise ValueError("You can not set `lag` and `at` parameters at the same time")
     is_lag = checks[0] or checks[1]
 
     data = []
@@ -311,7 +309,11 @@ def collect(
 @check_exact_dim(2)
 @check_uniform_time_spaced
 def turning_angles_ensemble(
-    trajs: List[Trajectory], accumulate=False, degrees=False, centered=False, wrap=True
+    trajs: List[Trajectory],
+    accumulate: bool = False,
+    degrees: bool = False,
+    centered: bool = False,
+    wrap: bool = True,
 ) -> np.ndarray:
     """
     Return a concatenation of all the turning angles that forms
@@ -626,7 +628,7 @@ def vacf(
     return vacf_mean, vacf_std
 
 
-def _kurtosis(arr):
+def _kurtosis(arr: np.ndarray) -> float:
     """
     Compute the kurtosis of the array, `arr`.
 
