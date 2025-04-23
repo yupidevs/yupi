@@ -4,7 +4,6 @@ the trajectories according to different criteria.
 """
 
 from functools import wraps
-from itertools import pairwise
 from typing import Any, Callable, List, TypeVar
 
 import numpy as np
