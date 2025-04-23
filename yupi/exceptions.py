@@ -2,6 +2,8 @@
 This contains specific exceptions related to the library.
 """
 
+from yupi.trajectory import Trajectory
+
 
 class YupiExceptionError(Exception):
     """Generic exception for yupi package"""
@@ -10,8 +12,20 @@ class YupiExceptionError(Exception):
 class TrajectoryError(YupiExceptionError):
     """Generic exception for handling trajectory errors"""
 
+    def __init__(self, traj: Trajectory, *args, **kwargs):
+        self.traj = traj
+        super().__init__(*args, **kwargs)
 
-class LoadTrajectoryError(TrajectoryError):
+
+class TrajectoryGroupError(YupiExceptionError):
+    """Generic exception for handling errors in a collection of trajectories"""
+
+    def __init__(self, trajs: list[Trajectory], *args, **kwargs):
+        self.trajs = trajs
+        super().__init__(*args, **kwargs)
+
+
+class LoadTrajectoryError(YupiExceptionError):
     """Error while loading a trajectory"""
 
     def __init__(self, path: str, reason: str = ""):

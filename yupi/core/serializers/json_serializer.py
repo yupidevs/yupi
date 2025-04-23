@@ -109,7 +109,7 @@ class JSONSerializer(Serializer):
         with _path.open("r", encoding=encoding, **kwargs) as file:
             data = json.load(file)
 
-            if "axes" not in data and "r" not in data:
+            if "axes" not in data:
                 raise LoadTrajectoryError(str(_path), "No position data found.")
             if "dt" not in data and "t" not in data:
                 raise LoadTrajectoryError(str(_path), "No time data found.")
@@ -145,7 +145,7 @@ class JSONSerializer(Serializer):
         with _path.open("r", encoding=encoding, **kwargs) as file:
             data = json.load(file)
 
-            if any("axes" not in traj and "r" not in traj for traj in data):
+            if any("axes" not in traj for traj in data):
                 raise LoadTrajectoryError(
                     str(_path),
                     "No position data found for one or more trajectories.",
@@ -208,14 +208,7 @@ class JSONSerializer(Serializer):
         Trajectory
             The trajectory.
         """
-        axes = json_traj.get("axes", None)
-        if axes is None:
-            logging.warning(
-                "Trajectory will be loaded but it seems to be saved in an old format. "
-                "Please consider updating it by using the JSONSerializer.save method. "
-                "Older format won't be supported in a future."
-            )
-            axes = list(json_traj["r"].values())
+        axes = json_traj["axes"]
         traj_id = json_traj["id"] if json_traj["id"] is not None else ""
 
         diff_est = json_traj.get("diff_est", None)

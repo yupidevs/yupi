@@ -9,6 +9,23 @@ from pathlib import Path
 from typing import Any, Optional
 
 import yupi
+from yupi.exceptions import YupiExceptionError
+
+
+class InvalidTrajectoryFileExtensionError(YupiExceptionError):
+    """Raised when the trajectory file extension is invalid."""
+
+    def __init__(
+        self, file_path: str | Path, expected_extension: str | None = None
+    ) -> None:
+        message = f"Invalid trajectory file extension for '{file_path}'"
+        if expected_extension is not None:
+            message += f". Expected '{expected_extension}'."
+        super().__init__(
+            message,
+        )
+        self.file_path = file_path
+        self.expected_extension = expected_extension
 
 
 class Serializer(abc.ABC):
@@ -76,8 +93,8 @@ class Serializer(abc.ABC):
         """
         _path = Path(file_path) if isinstance(file_path, str) else file_path
         if extension is not None and _path.suffix != extension:
-            raise ValueError(
-                f"File extension must be '{extension}', not {_path.suffix}"
+            raise InvalidTrajectoryFileExtensionError(
+                file_path, expected_extension=extension
             )
 
         if _path.exists() and not overwrite:
@@ -99,8 +116,8 @@ class Serializer(abc.ABC):
         """
         _path = Path(file_path) if isinstance(file_path, str) else file_path
         if extension is not None and _path.suffix != extension:
-            raise ValueError(
-                f"File extension must be '{extension}', not {_path.suffix}"
+            raise InvalidTrajectoryFileExtensionError(
+                file_path, expected_extension=extension
             )
 
         if not _path.exists():
