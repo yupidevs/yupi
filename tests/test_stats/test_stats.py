@@ -1,7 +1,15 @@
+import logging
+
 import numpy as np
 import pytest
 
-from yupi import DiffMethod, Trajectory, WindowType
+from yupi import DiffMethod, NotUniformTimeSpacedError, Trajectory, WindowType
+from yupi._checkers import (
+    DifferentDimensionError,
+    DifferentDtError,
+    DifferentLengthError,
+    DifferentTimeVectorError,
+)
 from yupi.stats import (
     collect,
     kurtosis,
@@ -115,23 +123,27 @@ def test_checkers() -> None:
     non_equal_dim_traj = Trajectory(points=[[*p, 0] for p in points])
 
     # Exact dimension checker
-    with pytest.raises(ValueError):
+    with pytest.raises(DifferentDimensionError):
         turning_angles_ensemble([non_equal_dim_traj])
 
     # Uniform time spaced checker
-    with pytest.raises(ValueError):
-        turning_angles_ensemble([simple_traj, non_equal_spacing_traj])
+    with pytest.raises(NotUniformTimeSpacedError):
+        turning_angles_ensemble([non_equal_spacing_traj])
 
     # Same dt checker
-    with pytest.raises(ValueError):
+    with pytest.raises(DifferentDtError):
         turning_angles_ensemble([simple_traj, non_equal_dt_traj])
 
     # Same dim checker
-    with pytest.raises(ValueError):
+    with pytest.raises(DifferentDimensionError):
         speed_ensemble([simple_traj, non_equal_dim_traj])
 
+    # Same length checker
+    with pytest.raises(DifferentLengthError):
+        msd([simple_traj, Trajectory(points=points[:-2])], time_avg=False)
+
     # Same t checker
-    with pytest.raises(ValueError):
+    with pytest.raises(DifferentTimeVectorError):
         msd([simple_traj, non_equal_t0_traj], time_avg=False)
 
 
