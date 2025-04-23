@@ -4,7 +4,6 @@ This contains the Vector structure used across the library to store data.
 
 from __future__ import annotations
 
-import warnings
 from typing import Any, Optional, Union
 
 import numpy as np
@@ -117,25 +116,3 @@ class Vector(np.ndarray):
         if self.shape[1] < dim + 1:
             raise ValueError(f"Vector has not component {dim}")
         return self[:, dim].view(Vector)
-
-    @staticmethod
-    def create(*args: Any, **kwargs: Any) -> Vector:
-        """
-        .. deprecated:: 0.10.0
-            :func:`Vector.create` will be removed in a future version, use
-            :class:`Vector` constructor instead.
-
-        Creates a new vector.
-
-        Returns
-        -------
-        Vector
-            Vector created
-        """
-
-        warnings.warn(
-            "Vector.create is deprecated and it will be removed in a future version, "
-            "use Vector constructor instead.",
-            DeprecationWarning,
-        )
-        return np.array(*args, **kwargs).view(Vector)

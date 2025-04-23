@@ -24,53 +24,6 @@ def compare_trajectories(t1: Trajectory, t2: Trajectory) -> None:
     pytest.approx(t1.r, t2.r, APPROX_REL_TOLERANCE)
 
 
-# Old IO methods
-def test_invalid_file_type(traj_1: Trajectory) -> None:
-    with pytest.raises(ValueError, match="Invalid export file type"):
-        traj_1.save("t1", file_type="abc")
-
-
-def test_overwrite(traj_1: Trajectory) -> None:
-    traj_1.save("t1")
-    traj_1.save("t1")
-    with pytest.raises(FileExistsError):
-        traj_1.save("t1", overwrite=False)
-    Path.unlink(Path("t1.json"))
-
-
-@pytest.mark.parametrize("traj", trajectories())
-def test_old_io_json(traj: Trajectory) -> None:
-    traj.save("_old_traj", file_type="json")
-    loaded_traj = Trajectory.load("_old_traj.json")
-    compare_trajectories(traj, loaded_traj)
-    Path.unlink(Path("_old_traj.json"))
-
-
-@pytest.mark.parametrize("traj", trajectories())
-def test_old_io_csv(traj: Trajectory) -> None:
-    traj.save("_old_traj", file_type="csv")
-    loaded_traj = Trajectory.load("_old_traj.csv")
-    compare_trajectories(traj, loaded_traj)
-    Path.unlink(Path("_old_traj.csv"))
-
-
-# Retrocompatibility
-@pytest.mark.parametrize("traj", trajectories())
-def test_json_retrocompatibility(traj: Trajectory) -> None:
-    traj.save("_old_traj", file_type="json")
-    loaded_traj = JSONSerializer.load("_old_traj.json")
-    compare_trajectories(traj, loaded_traj)
-    Path.unlink(Path("_old_traj.json"))
-
-
-@pytest.mark.parametrize("traj", trajectories())
-def test_csv_retrocompatibility(traj: Trajectory) -> None:
-    traj.save("_old_traj", file_type="csv")
-    loaded_traj = CSVSerializer.load("_old_traj.csv")
-    compare_trajectories(traj, loaded_traj)
-    Path.unlink(Path("_old_traj.csv"))
-
-
 # Serializers
 @pytest.mark.parametrize("traj", trajectories())
 def test_json_serializer(traj: Trajectory) -> None:

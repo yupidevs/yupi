@@ -4,12 +4,6 @@ Contains the basic structures for trajectories.
 
 from __future__ import annotations
 
-import csv
-import json
-import logging
-import os
-import warnings
-from pathlib import Path
 from typing import (
     Any,
     Collection,
@@ -26,7 +20,6 @@ from typing import (
 import numpy as np
 
 import yupi._differentiation as diff
-from yupi.exceptions import LoadTrajectoryError
 from yupi.vector import Vector
 
 _THRESHOLD = 1e-12
@@ -167,8 +160,6 @@ class Trajectory:
         traj_id: Any = "",
         lazy: Optional[bool] = False,
         diff_est: Optional[Dict[str, Any]] = None,
-        vel_est: Optional[Dict[str, Any]] = None,
-        t0: Optional[float] = None,  # pylint: disable=invalid-name
     ):
         # Position data validation
         from_xyz = x is not None
@@ -207,14 +198,6 @@ class Trajectory:
         if len(self.r) < 2:
             raise ValueError("The trajectory must contain at least 2 points.")
 
-        if t0 is not None:
-            t_0 = t0
-            warnings.warn(
-                "'t0' is deprecated and will be removed in a future version, "
-                "use 't_0' instead.",
-                DeprecationWarning,
-            )
-
         self.__dt = dt
         self.t_0 = t_0
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
@@ -232,13 +215,6 @@ class Trajectory:
             self.dt_std = np.std(np.array(self.__t.delta))
 
         # Differentiation method
-        if vel_est is not None:
-            diff_est = vel_est
-            warnings.warn(
-                "'vel_est' is deprecated and will be removed in a future version, "
-                "use 'diff_est' instead.",
-                DeprecationWarning,
-            )
         self.diff_est = Trajectory.general_diff_est.copy()
         if diff_est is not None:
             self.diff_est.update(diff_est)
@@ -287,24 +263,6 @@ class Trajectory:
         }
         self.recalculate_velocity()
 
-    def set_vel_method(
-        self,
-        method: diff.DiffMethod,
-        window_type: diff.WindowType = diff.WindowType.FORWARD,
-        accuracy: int = 1,
-    ) -> None:
-        """
-        .. deprecated:: 0.10.0
-            :func:`set_vel_method` is deprecated and will be removed in
-            version 1.0.0, use :func:`set_diff_method` instead.
-        """
-        warnings.warn(
-            "'set_vel_method' is deprecated and will be removed in a future version, "
-            "use 'set_diff_method' instead.",
-            DeprecationWarning,
-        )
-        self.set_diff_method(method, window_type, accuracy)
-
     @staticmethod
     def global_diff_method(
         method: diff.DiffMethod,
@@ -330,24 +288,6 @@ class Trajectory:
             "window_type": window_type,
             "accuracy": accuracy,
         }
-
-    @staticmethod
-    def global_vel_method(
-        method: diff.DiffMethod,
-        window_type: diff.WindowType = diff.WindowType.FORWARD,
-        accuracy: int = 1,
-    ) -> None:
-        """
-        .. deprecated:: 0.10.0
-            :func:`global_vel_method` is deprecated and will be removed in
-            version 1.0.0, use :func:`global_diff_method` instead.
-        """
-        warnings.warn(
-            "'global_vel_method' is deprecated and will be removed in "
-            "version 1.0.0, use 'global_diff_method' instead.",
-            DeprecationWarning,
-        )
-        Trajectory.global_diff_method(method, window_type, accuracy)
 
     @property
     def dt(self) -> float:
@@ -521,19 +461,6 @@ class Trajectory:
         """
         self.add_polar_offset(0, angle)
 
-    def rotate2d(self, angle: float) -> None:
-        """
-        .. deprecated:: 0.10.0
-            :func:`rotate2d` will be removed in a future version, use
-            :func:`rotate_2d` instead.
-        """
-        warnings.warn(
-            "rotate2d is deprecated and will be removed in a future version, "
-            "use rotate_2d instead",
-            DeprecationWarning,
-        )
-        self.rotate_2d(angle)
-
     def rotate_3d(self, angle: float, vector: Collection[float]) -> None:
         """
         Rotates the trajectory around a given vector.
@@ -585,19 +512,6 @@ class Trajectory:
             ]
         )
         self.r = Vector(np.dot(self.r, rot_matrix))
-
-    def rotate3d(self, angle: float, vector: Union[list, np.ndarray]) -> None:
-        """
-        .. deprecated:: 0.10.0
-            :func:`rotate3d` will be removed in a future version, use
-            :func:`rotate_3d` instead.
-        """
-        warnings.warn(
-            "rotate3d is deprecated and will be removed in a future version, "
-            "use rotate_3d instead",
-            DeprecationWarning,
-        )
-        self.rotate_3d(angle, vector)
 
     def copy(self) -> Trajectory:
         """
@@ -781,283 +695,3 @@ class Trajectory:
 
         discont_half = discont / 2
         return -((discont_half - theta) % discont - discont_half)
-
-    def _save_json(self, path: str | Path) -> None:
-        _path = Path(path) if isinstance(path, str) else path
-
-        def convert_to_list(
-            vec: Optional[Vector],
-        ) -> Optional[List[Any] | Dict[int, List[Any]]]:
-            if vec is None:
-                return vec
-            if len(vec.shape) == 1:
-                return list(vec)
-            return {d: list(v) for d, v in enumerate(vec)}
-
-        diff_est = {
-            "method": self.diff_est.get("method", diff.DiffMethod.LINEAR_DIFF).value,
-            "window_type": self.diff_est.get("window", diff.WindowType.FORWARD).value,
-            "accuracy": self.diff_est.get("accuracy", 1),
-        }
-
-        json_dict = {
-            "id": self.traj_id,
-            "dt": self.__dt,
-            "r": convert_to_list(self.r.T),
-            "t": convert_to_list(self.__t),
-            "diff_est": diff_est,
-        }
-        with _path.open("w", encoding="utf-8") as traj_file:
-            json.dump(json_dict, traj_file)
-
-    def _save_csv(self, path: Union[str, Path]) -> None:
-        _path = Path(path) if isinstance(path, str) else path
-        with _path.open("w", newline="", encoding="utf-8") as traj_file:
-            writer = csv.writer(traj_file, delimiter=",")
-            writer.writerow([self.traj_id, self.__dt, self.dim])
-
-            default_diff_method = diff.DiffMethod.LINEAR_DIFF
-            default_diff_window = diff.WindowType.FORWARD
-            default_diff_accuracy = 1
-            method = self.diff_est.get("method", default_diff_method).value
-            window = self.diff_est.get("window", default_diff_window).value
-            accuracy = self.diff_est.get("accuracy", default_diff_accuracy)
-            writer.writerow([method, window, accuracy])
-
-            for t_p in self:
-                row = np.hstack([t_p.r, t_p.t])
-                writer.writerow(row)
-
-    def save(
-        self,
-        file_name: str,
-        path: str = ".",
-        file_type: str = "json",
-        overwrite: bool = True,
-    ) -> None:
-        """
-        .. deprecated:: 0.10.0
-            :func:`save` will be removed in a future version, use a Serializer
-            from ``yupi.core`` instead (e.g., JSONSerializer).
-
-        Saves the trajectory to disk.
-
-        Parameters
-        ----------
-        file_name : str
-            Name of the file.
-        path : str
-            Path where to save the trajectory, by default ``'.'``.
-        file_time : str
-            Type of the file, by default ``json``.
-
-            The only types avaliable are: ``json`` and ``csv``.
-        overwrite : bool
-            Wheter or not to overwrite the file if it already exists,
-            by default True.
-
-        Raises
-        ------
-        ValueError
-            If ``override`` parameter is ``False`` and the file already
-            exists.
-        ValueError
-            If ``file_type`` is not ``json`` or ``csv``.
-
-        Examples
-        --------
-        >>> t = Trajectory(x=[0.37, 1.24, 1.5])
-        >>> t.save('my_track')
-        """
-        warnings.warn(
-            "`save` is deprecated and will be removed in a future version, use a "
-            "Serializer from `yupi.core` instead (e.g., JSONSerializer).",
-            DeprecationWarning,
-        )
-
-        # Build full path
-        full_path = Path(path) / Path(f"{file_name}.{file_type}")
-
-        # Check file existance
-        if not overwrite and full_path.exists():
-            raise FileExistsError(f"File '{full_path!s}' already exist")
-
-        if file_type == "json":
-            self._save_json(full_path)
-        elif file_type == "csv":
-            self._save_csv(full_path)
-        else:
-            raise ValueError(f"Invalid export file type '{file_type}'")
-
-    @staticmethod
-    def save_trajectories(
-        trajs: List[Trajectory],
-        folder_path: str = ".",
-        file_type: str = "json",
-        overwrite: bool = True,
-    ) -> None:
-        """
-        Saves a list of trajectories to disk. Each Trajectory object
-        will be saved in a separate file inside the given folder.
-
-        Parameters
-        ----------
-        trajs : list[Trajectory]
-            List of Trajectory objects that will be saved.
-        folder_path : str
-            Path where to save all the trajectory, by default ``'.'``.
-        file_type : str
-            Type of the file, by default ``jon``.
-
-            The only types avaliable are: ``json`` and ``csv``.
-        overwrite : bool
-            Wheter or not to overwrite the file if it already exists,
-            by default True.
-
-        Examples
-        --------
-        >>> t1 = Trajectory(x=[0.37, 1.24, 1.5])
-        >>> t2 = Trajectory(x=[1, 2, 3], y=[3, 4, 5])
-        >>> Trajectory.save_trajectories([t1, t2])
-        """
-        for i, traj in enumerate(trajs):
-            path = str(Path(folder_path))
-            name = str(Path(f"trajectory_{i}"))
-            traj.save(name, path, file_type, overwrite)
-
-    @staticmethod
-    def _load_json(path: str | Path) -> Trajectory:
-        _path = Path(path) if isinstance(path, str) else path
-        with _path.open("r", encoding="utf-8") as traj_file:
-            data = json.load(traj_file)
-
-            traj_id = data["id"]
-            t, dt = data["t"], data["dt"]
-            axes = list(data["r"].values())
-            diff_est = data.get("diff_est", None)
-            if diff_est is None:
-                diff_est = Trajectory.general_diff_est
-            else:
-                diff_est["method"] = diff.DiffMethod(diff_est["method"])
-                diff_est["window_type"] = diff.WindowType(diff_est["window_type"])
-
-            return Trajectory(axes=axes, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
-
-    @staticmethod
-    def _load_csv(path: str | Path) -> Trajectory:
-        _path = Path(path) if isinstance(path, str) else path
-        with _path.open("r", encoding="utf-8") as traj_file:
-            r: List[List[float]] = []
-            t: List[float] = []
-            traj_id: Optional[str] = None
-            dt: float | None = 1.0
-            dim = 1
-            diff_est = Trajectory.general_diff_est
-
-            for i, row in enumerate(csv.reader(traj_file)):
-                if i == 0:
-                    traj_id = row[0] if row[0] != "" else None
-                    dt = None if row[1] == "" else float(row[1])
-                    dim = int(row[2])
-                    r = [[] for _ in range(dim)]
-                    continue
-
-                if i == 1:
-                    diff_est = {
-                        "method": diff.DiffMethod(int(row[0])),
-                        "window_type": diff.WindowType(int(row[1])),
-                        "accuracy": int(row[2]),
-                    }
-                    continue
-
-                for j in range(dim):
-                    r[j].append(float(row[j]))
-
-                t.append(float(row[-1]))
-
-            return Trajectory(axes=r, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
-
-    @staticmethod
-    def load(file_path: str) -> Trajectory:
-        """
-        .. deprecated:: 0.10.0
-            :func:`load` will be removed in a future version, use a Serializer
-            from ``yupi.core`` instead (e.g., JSONSerializer).
-
-        Loads a trajectory
-
-        Parameters
-        ----------
-        file_path : str
-            Path of the trajectory file
-
-        Returns
-        -------
-        Trajectory
-            Loaded Trajectory object.
-
-        Raises
-        ------
-        ValueError
-            If ``file_path`` is a non existing path.
-        ValueError
-            If ``file_path`` is a not a file.
-        ValueError
-            If ``file_path`` extension is not ``json`` or ```csv``.
-        """
-
-        warnings.warn(
-            "`load` is deprecated and will be removed in a future version, use a "
-            "Serializer from `yupi.core` instead (e.g., JSONSerializer).",
-            DeprecationWarning,
-        )
-
-        path = Path(file_path)
-        # Check valid path
-        if not path.exists():
-            raise ValueError("Path does not exist.")
-        if not path.is_file():
-            raise ValueError("Path must be a file.")
-
-        file_type = path.suffix
-
-        try:
-            if file_type == ".json":
-                return Trajectory._load_json(file_path)
-            if file_type == ".csv":
-                return Trajectory._load_csv(file_path)
-            raise ValueError("Invalid file type.")
-        except (json.JSONDecodeError, KeyError, ValueError, IndexError) as exc:
-            raise LoadTrajectoryError(str(path)) from exc
-
-    @staticmethod
-    def load_folder(
-        folder_path: str = ".", recursively: bool = False
-    ) -> List[Trajectory]:
-        """
-        Loads all the trajectories from a folder.
-
-        Parameters
-        ----------
-        folder_path : str
-            Path of the trajectories folder.
-        recursively : bool
-            If True then subfolders are analized recursively, by
-            default False.
-
-        Returns
-        -------
-        List[Trajectory]
-            List of the loaded trajectories.
-        """
-        trajs = []
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                path = str(Path(root) / Path(file))
-                try:
-                    trajs.append(Trajectory.load(path))
-                except LoadTrajectoryError as load_exception:
-                    logging.warning("Ignoring: '%s'", load_exception.path)
-            if not recursively:
-                break
-        return trajs
