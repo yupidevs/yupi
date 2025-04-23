@@ -321,6 +321,8 @@ class LangevinGenerator(_LangevinGenerator):
         Noise intensity (i.e., scale parameter of noise pdf), by default 1.
     bounds: Optional[np.ndarray]
         Lower and upper reflecting boundaries that confine the trajectories.
+        Must have shape (2, dim). The first row contains the lower
+        boundaries and the second row contains the upper boundaries.
         If None is passed, trajectories are simulated in a free space.
         By default None.
     bounds_extent: Optional[np.ndarray]
@@ -404,6 +406,7 @@ class LangevinGenerator(_LangevinGenerator):
     def _set_bounds(self) -> None:
         # Broadcast and convert None into np.nan
         self._broadcast_bounds()
+        assert self.bounds is not None
 
         # Check if there is at least one bound
         self.has_bounds = not np.all(np.isnan(self.bounds))
@@ -502,7 +505,7 @@ class _DiffDiffGenerator(Generator):
         # Dynamic variables
         self.t = np.arange(self.n, dtype=np.float32)  # Time array
         self.r = np.empty(self.shape)  # Position array
-        self.aux_var = np.empty((dim_aux, N))  # Square of diffusivity
+        self.aux_var: np.ndarray = np.empty((dim_aux, N))  # Square of diffusivity
         self.noise_r: np.ndarray  # Noise for position (filled in _set_noise method)
         self.noise_Y: np.ndarray  # Aux variable (filled in _set_noise method)
 
@@ -593,8 +596,10 @@ class DiffDiffGenerator(_DiffDiffGenerator):
     dim_aux: int, optional
         Dimension of the auxiliary process, which is the square of
         the diffusivity, by default 1.
-    bounds: Optional[np.ndarray], optional
+    bounds: Optional[np.ndarray]
         Lower and upper reflecting boundaries that confine the trajectories.
+        Must have shape (2, dim). The first row contains the lower
+        boundaries and the second row contains the upper boundaries.
         If None is passed, trajectories are simulated in a free space.
         By default None.
     bounds_extent: Optional[np.ndarray]
@@ -623,7 +628,9 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         super().__init__(T, dim, N, dt, tau, sigma, dim_aux, r0, seed)
 
         # Verify if there is any boundary
-        self.bounds = np.float32(bounds)  # Convert None into np.nan
+        self.bounds = (
+            np.full((2, dim), np.nan, dtype=np.float32) if bounds is None else bounds
+        )
         self.has_bounds = not np.all(np.isnan(self.bounds))  # Check for all bounds
 
         if self.has_bounds:
