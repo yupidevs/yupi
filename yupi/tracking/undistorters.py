@@ -45,7 +45,7 @@ class Undistorter(metaclass=abc.ABCMeta):
 
     def __init__(self, camera_file: str, turn: bool = False):
         # Read camera undistort matrix
-        self.cam_file = np.load(camera_file)
+        self.cam_file: np.ndarray = np.load(camera_file)
 
         # Initialize camera parameters
         c_h = self.cam_file["h"]
@@ -65,7 +65,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         )
         self.c_mapx, self.c_mapy = c_map
         self.mask = None
-        self.background = None
+        self.background: np.ndarray | None = None
 
     @abc.abstractmethod
     def undistort(self, frame: np.ndarray) -> np.ndarray:
@@ -77,7 +77,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         """
 
     # Turn the image if required
-    def _rotate(self, frame: np.ndarray, _input=True) -> np.ndarray:
+    def _rotate(self, frame: np.ndarray, _input: bool = True) -> np.ndarray:
         if self.turn:
             direction = cv2.ROTATE_90_COUNTERCLOCKWISE
             if _input:
@@ -106,7 +106,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         return self.masked(corrected)
 
     # Create a mask with the distortion pattern
-    def _create_mask(self, frame: np.ndarray):
+    def _create_mask(self, frame: np.ndarray) -> None:
         empty_frame = 255 * np.ones(frame.shape, dtype=np.uint8)
         corrected = self.undistort(empty_frame)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))

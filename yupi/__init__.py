@@ -6,12 +6,6 @@ from one of the aforementioned modules.
 import logging
 import warnings
 
-import yupi.core
-import yupi.generators
-import yupi.graphics
-import yupi.stats
-import yupi.tracking
-import yupi.transformations
 from yupi._differentiation import DiffMethod, WindowType
 from yupi.trajectory import Trajectory, TrajectoryPoint
 from yupi.vector import Vector
@@ -24,10 +18,10 @@ logging.basicConfig(
 )
 
 __all__ = [
+    "DiffMethod",
     "Trajectory",
     "TrajectoryPoint",
     "Vector",
-    "DiffMethod",
     "WindowType",
 ]
 

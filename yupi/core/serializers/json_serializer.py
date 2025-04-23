@@ -4,7 +4,8 @@ JSON trajctory serializer.
 
 import json
 import logging
-from typing import List
+from pathlib import Path
+from typing import Any, List
 
 import yupi._differentiation as diff
 from yupi.core.serializers.serializer import Serializer
@@ -19,7 +20,7 @@ class JSONSerializer(Serializer):
 
     @staticmethod
     def save(
-        traj: Trajectory, file_name: str, overwrite: bool = False, **kwargs
+        traj: Trajectory, file_path: str | Path, overwrite: bool = False, **kwargs: Any
     ) -> None:
         """
         Writes a trajectory to a file.
@@ -28,8 +29,8 @@ class JSONSerializer(Serializer):
         ----------
         traj : Trajectory
             The trajectory to write to the file.
-        file_name : str
-            The name of the file to write.
+        file_path : str | Path
+            The path of the file to write.
         overwrite : bool
             If True, overwrites the file if it already exists.
         kwargs
@@ -37,18 +38,21 @@ class JSONSerializer(Serializer):
 
             Encoding is set to UTF-8 as default.
         """
-        JSONSerializer.check_save_path(
-            file_name, overwrite=overwrite, extension=".json"
-        )
+        _path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        JSONSerializer.check_save_path(_path, overwrite=overwrite, extension=".json")
 
         json_dict = JSONSerializer.to_json(traj)
         encoding = "utf-8" if "encoding" not in kwargs else kwargs.pop("encoding")
-        with open(file_name, "w", encoding=encoding, **kwargs) as traj_file:
+        with _path.open("w", encoding=encoding, **kwargs) as traj_file:
             json.dump(json_dict, traj_file)
 
     @staticmethod
     def save_ensemble(
-        trajs: List[Trajectory], file_name: str, overwrite: bool = False, **kwargs
+        trajs: List[Trajectory],
+        file_path: str | Path,
+        overwrite: bool = False,
+        **kwargs: Any,
     ) -> None:
         """
         Writes an ensemble to a file.
@@ -60,8 +64,8 @@ class JSONSerializer(Serializer):
         ----------
         trajs : List[Trajectory]
             The ensemble to write to the file.
-        file_name : str
-            The name of the file to write.
+        file_path : str | Path
+            The path of the file to write.
         overwrite : bool
             If True, overwrites the file if it already exists.
         kwargs
@@ -69,24 +73,24 @@ class JSONSerializer(Serializer):
 
             Encoding is set to UTF-8 as default.
         """
-        JSONSerializer.check_save_path(
-            file_name, overwrite=overwrite, extension=".json"
-        )
+        _path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        JSONSerializer.check_save_path(_path, overwrite=overwrite, extension=".json")
 
         json_dicts = [JSONSerializer.to_json(traj) for traj in trajs]
         encoding = "utf-8" if "encoding" not in kwargs else kwargs.pop("encoding")
-        with open(file_name, "w", encoding=encoding, **kwargs) as traj_file:
+        with _path.open("w", encoding=encoding, **kwargs) as traj_file:
             json.dump(json_dicts, traj_file)
 
     @staticmethod
-    def load(file_name: str, **kwargs) -> Trajectory:
+    def load(file_path: str | Path, **kwargs: Any) -> Trajectory:
         """
         Loads a trajectory from a file.
 
         Parameters
         ----------
-        file_name : str
-            The name of the file to loaded.
+        file_path : str | Path
+            The path of the file to loaded.
         kwargs : dict
             Additional keyword arguments.
 
@@ -97,20 +101,22 @@ class JSONSerializer(Serializer):
         Trajectory
             The trajectory loaded from the file.
         """
-        JSONSerializer.check_load_path(file_name, extension=".json")
+        _path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        JSONSerializer.check_load_path(_path, extension=".json")
 
         encoding = "utf-8" if "encoding" not in kwargs else kwargs.pop("encoding")
-        with open(file_name, "r", encoding=encoding, **kwargs) as file:
+        with _path.open("r", encoding=encoding, **kwargs) as file:
             data = json.load(file)
 
             if "axes" not in data and "r" not in data:
-                raise LoadTrajectoryError(file_name, "No position data found.")
+                raise LoadTrajectoryError(str(_path), "No position data found.")
             if "dt" not in data and "t" not in data:
-                raise LoadTrajectoryError(file_name, "No time data found.")
+                raise LoadTrajectoryError(str(_path), "No time data found.")
             return JSONSerializer.from_json(data)
 
     @staticmethod
-    def load_ensemble(file_name: str, **kwargs) -> List[Trajectory]:
+    def load_ensemble(file_path: str | Path, **kwargs: Any) -> List[Trajectory]:
         """
         Loads an ensemble from a file.
 
@@ -119,8 +125,8 @@ class JSONSerializer(Serializer):
 
         Parameters
         ----------
-        file_name : str
-            The name of the file to loaded.
+        file_path : str | Path
+            The path of the file to loaded.
         kwargs : dict
             Additional keyword arguments.
 
@@ -131,19 +137,22 @@ class JSONSerializer(Serializer):
         List[Trajectory]
             The ensemble loaded from the file.
         """
-        JSONSerializer.check_load_path(file_name, extension=".json")
+        _path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        JSONSerializer.check_load_path(_path, extension=".json")
 
         encoding = "utf-8" if "encoding" not in kwargs else kwargs.pop("encoding")
-        with open(file_name, "r", encoding=encoding, **kwargs) as file:
+        with _path.open("r", encoding=encoding, **kwargs) as file:
             data = json.load(file)
 
             if any("axes" not in traj and "r" not in traj for traj in data):
                 raise LoadTrajectoryError(
-                    file_name, "No position data found for one or more trajectories."
+                    str(_path),
+                    "No position data found for one or more trajectories.",
                 )
             if any("dt" not in traj and "t" not in traj for traj in data):
                 raise LoadTrajectoryError(
-                    file_name, "No time data found for one or more trajectories."
+                    str(_path), "No time data found for one or more trajectories."
                 )
             return [JSONSerializer.from_json(traj) for traj in data]
 

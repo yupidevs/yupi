@@ -10,7 +10,9 @@ from yupi._differentiation import _get_coeff
 from yupi.trajectory import Trajectory
 
 
-def _get_k_value_neighbors(val: float, data, k: int, _from: int):
+def _get_k_value_neighbors(
+    val: float, data: np.ndarray, k: int, _from: int
+) -> tuple[int, int]:
     lower_bound, upper_bound = _from, _from
     for _ in range(k):
         look_forwards = (
@@ -23,14 +25,16 @@ def _get_k_value_neighbors(val: float, data, k: int, _from: int):
     return lower_bound, upper_bound
 
 
-def _interpolate_axis(axis_data, old_t, new_t, order):
+def _interpolate_axis(
+    axis_data: np.ndarray, old_t: np.ndarray, new_t: np.ndarray, order: int
+) -> np.ndarray:
     new_t_idxs = np.searchsorted(old_t, new_t)
     assert isinstance(new_t_idxs, np.ndarray)
     new_dim = np.empty(len(new_t))
     for i, new_t_idx in enumerate(new_t_idxs):
         val = new_t[i]
         min_neighbor, max_neighbor = _get_k_value_neighbors(
-            val, old_t, order, new_t_idx
+            val, old_t, order, int(new_t_idx)
         )
         alphas = old_t[min_neighbor : max_neighbor + 1]
         _coeff = _get_coeff(val, alphas, M=1)
@@ -46,7 +50,7 @@ def resample(
     new_t: Optional[Collection[float]] = None,
     new_traj_id: Optional[str] = None,
     order: int = 1,
-):
+) -> Trajectory:
     """
     Resamples a trajectory to a new dt or a new array of time.
 
@@ -113,7 +117,9 @@ def resample(
     )
 
 
-def subsample(traj: Trajectory, step: int = 1, new_traj_id: Optional[str] = None):
+def subsample(
+    traj: Trajectory, step: int = 1, new_traj_id: Optional[str] = None
+) -> Trajectory:
     """
     Sample the trajectory ``traj`` by removing evenly spaced
     points according to ``step``.
@@ -136,11 +142,10 @@ def subsample(traj: Trajectory, step: int = 1, new_traj_id: Optional[str] = None
     points = traj.r[::step]
     t = traj.t[::step] if traj.t is not None else None
 
-    subsampled_traj = Trajectory(
+    return Trajectory(
         points=points,
         t=t,
         dt=step * traj.dt,
         traj_id=new_traj_id,
         diff_est=traj.diff_est,
     )
-    return subsampled_traj

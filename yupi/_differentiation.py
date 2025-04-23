@@ -4,11 +4,14 @@ of a trajectory.
 """
 
 import enum
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 
 from yupi.vector import Vector
+
+if TYPE_CHECKING:
+    from yupi.trajectory import Trajectory
 
 
 class DiffMethod(enum.Enum):
@@ -28,8 +31,7 @@ class WindowType(enum.Enum):
 
 def _get_coeff(
     x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None, M: int = 2
-):
-    # pylint: disable=invalid-name
+) -> np.ndarray:
     # The variables where named as in the original algorithm.
 
     N = len(a)
@@ -59,7 +61,9 @@ def _get_coeff(
     return coeff_arr
 
 
-def _validate_traj_vel(traj, method, window_type, accuracy):
+def _validate_traj_vel(
+    traj: "Trajectory", method: DiffMethod, window_type: WindowType, accuracy: int
+) -> bool:
     length = len(traj)
     if method == DiffMethod.LINEAR_DIFF:
         return length >= 3 if window_type == WindowType.CENTRAL else length >= 2
@@ -68,7 +72,9 @@ def _validate_traj_vel(traj, method, window_type, accuracy):
     raise ValueError("Invalid method to estimate the velocity.")
 
 
-def _validate_traj_acc(traj, method, window_type, accuracy):
+def _validate_traj_acc(
+    traj: "Trajectory", method: DiffMethod, window_type: WindowType, accuracy: int
+) -> bool:
     length = len(traj)
     if method == DiffMethod.LINEAR_DIFF:
         return length >= 4 if window_type == WindowType.CENTRAL else length >= 3
@@ -77,7 +83,9 @@ def _validate_traj_acc(traj, method, window_type, accuracy):
     raise ValueError("Invalid method to estimate the velocity.")
 
 
-def _linear_diff(data_values, axis_values, window_type):
+def _linear_diff(
+    data_values: np.ndarray, axis_values: np.ndarray, window_type: WindowType
+) -> Vector:
     diff_ans = np.zeros_like(data_values)
     if window_type == WindowType.FORWARD:
         diff = (
@@ -106,7 +114,7 @@ def _linear_diff(data_values, axis_values, window_type):
     return Vector(diff_ans)
 
 
-def _fornberg_diff_forward(traj, n, deriv=1):  # pylint: disable=invalid-name
+def _fornberg_diff_forward(traj: "Trajectory", n: int, deriv: int = 1) -> Vector:
     vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
@@ -118,7 +126,7 @@ def _fornberg_diff_forward(traj, n, deriv=1):  # pylint: disable=invalid-name
     return Vector(vel)
 
 
-def _fornberg_diff_backward(traj, n, deriv=1):  # pylint: disable=invalid-name
+def _fornberg_diff_backward(traj: "Trajectory", n: int, deriv: int = 1) -> Vector:
     vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
@@ -130,7 +138,7 @@ def _fornberg_diff_backward(traj, n, deriv=1):  # pylint: disable=invalid-name
     return Vector(vel)
 
 
-def _fornberg_diff_central(traj, n, deriv=1):  # pylint: disable=invalid-name
+def _fornberg_diff_central(traj: "Trajectory", n: int, deriv: int = 1) -> Vector:
     vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
@@ -151,7 +159,7 @@ def _fornberg_diff_central(traj, n, deriv=1):  # pylint: disable=invalid-name
 
 
 def estimate_velocity(
-    traj,
+    traj: "Trajectory",
     method: DiffMethod,
     window_type: WindowType = WindowType.CENTRAL,
     accuracy: int = 1,
@@ -202,7 +210,7 @@ def estimate_velocity(
 
 
 def estimate_accelereation(
-    traj,
+    traj: "Trajectory",
     method: DiffMethod,
     window_type: WindowType = WindowType.CENTRAL,
     accuracy: int = 1,

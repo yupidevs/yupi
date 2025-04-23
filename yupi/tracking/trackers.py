@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, Optional
 
 import cv2
 import numpy as np
@@ -11,13 +11,10 @@ from yupi.trajectory import Trajectory
 from yupi.transformations import add_moving_FoR
 from yupi.transformations._affine_estimator import AffineParams, _get_affine
 
-# pylint: disable=protected-access
-
-
-Centroid = Tuple[int, int]
+Centroid = tuple[int, int]
 """Centroid of a tracked object: x, y."""
 
-Bounds = Tuple[int, int, int, int]
+Bounds = tuple[int, int, int, int]
 """Bounds of a frame: x_min, x_max, y_min, y_max."""
 
 
@@ -92,11 +89,10 @@ class ROI:
 
     def __init__(
         self,
-        size: Tuple[float, float],
+        size: tuple[float, float],
         init_mode: str = MANUAL_INIT_MODE,
         scale: float = 1,
     ):
-
         if size[0] <= 0 or size[1] <= 0:
             raise ValueError("ROI's size values must be positives")
 
@@ -122,7 +118,7 @@ class ROI:
         self._global_height: int
         self._global_width: int
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "ROI: size=({self.width}, {self.height}) "
             "init_mode={self.init_mode} scale={self.scale}"
@@ -242,8 +238,11 @@ class ROI:
         cv2.imshow(win1_name, frame_)
 
         roi_initialized = False
+
         # Callback handler to manually set the roi
-        def on_click(event, x, y, flags, param):
+        def on_click(
+            event: int, x: int, y: int, _flags: int, _param: Any | None
+        ) -> None:
             if event == cv2.EVENT_LBUTTONDOWN:
                 # Global roi center coordinates
                 self._centroid = int(x / self.scale), int(y / self.scale)
@@ -406,13 +405,13 @@ class ObjectTracker:
         self.roi = roi
         self.algorithm = algorithm
         self.preprocessing = preprocessing
-        self.history: List[Centroid] = []
-        self.mask: np.ndarray
+        self.history: list[Centroid] = []
+        self.mask: np.ndarray | None
 
     def _init_roi(self, frame: np.ndarray) -> bool:
         return self.roi._initialize(self.name, frame)
 
-    def _track(self, frame: np.ndarray):
+    def _track(self, frame: np.ndarray) -> None:
         """
         Tracks the center of the object.
 
@@ -461,8 +460,8 @@ class CameraTracker:
     """
 
     def __init__(self, roi: ROI):
-        self.affine_params_history: List[AffineParams] = []
-        self.mse: List[float] = []
+        self.affine_params_history: list[AffineParams] = []
+        self.mse: list[float] = []
         self.roi = roi
         self.features: Any
 
@@ -471,7 +470,7 @@ class CameraTracker:
 
     # Track the floor
     def _track(
-        self, prev_frame: np.ndarray, frame: np.ndarray, ignored_regions: List[Bounds]
+        self, prev_frame: np.ndarray, frame: np.ndarray, ignored_regions: list[Bounds]
     ) -> bool:
         """
         Tracks the camera movements according to the changing background
@@ -563,7 +562,7 @@ class TrackingScenario:
 
     def __init__(
         self,
-        object_trackers: List[ObjectTracker],
+        object_trackers: list[ObjectTracker],
         camera_tracker: Optional[CameraTracker] = None,
         undistorter: Optional[Undistorter] = None,
         preview_scale: float = 1,
@@ -580,15 +579,15 @@ class TrackingScenario:
         self.video_path: str
         self.cap: Any
         self.frame_count: int
-        self.fps: int
+        self.fps: float
         self.width: int
         self.height: int
-        self.dim: Tuple[int, int]
+        self.dim: tuple[int, int]
         self.prev_frame: np.ndarray
         self.first_frame: int
         self.last_frame: Optional[int] = None
 
-    def _digest_video_path(self, video_path):
+    def _digest_video_path(self, video_path: str) -> None:
         if not Path.exists(Path(video_path)):
             raise ValueError(f"Path '{video_path}' does not exists")
         self.video_path = video_path
@@ -612,12 +611,12 @@ class TrackingScenario:
 
         self.first_frame = 0
 
-    def _undistort(self, frame):
+    def _undistort(self, frame: np.ndarray) -> np.ndarray:
         if self.undistorter:
             frame = self.undistorter.fix(frame)
         return frame
 
-    def _show_frame(self, frame, show_frame_id=True):
+    def _show_frame(self, frame: np.ndarray, show_frame_id: bool = True) -> None:
         # CXY, region, features, frame_numb, mask
         frame = frame.copy()
 
@@ -639,7 +638,7 @@ class TrackingScenario:
             cv2.rectangle(frame, (x_0, y_0), (x_f, y_f), (0, 0, 255), 2)
             p_2, p_3 = self.camera_tracker.features
             # Draw detected and estimated features
-            for p2_, p3_ in zip(p_2, p_3):
+            for p2_, p3_ in zip(p_2, p_3, strict=True):
                 x_2, y_2 = np.rint(p2_).astype(np.int32)
                 x_3, y_3 = np.rint(p3_).astype(np.int32)
 
@@ -693,7 +692,7 @@ class TrackingScenario:
         current_tracker: int,
         total_trackers: int,
         roi: ROI,
-    ):
+    ) -> np.ndarray:
         imgc = img.copy()
         imgc = _resize_frame(imgc, roi.scale)
         height = img.shape[0] * roi.scale
@@ -732,9 +731,9 @@ class TrackingScenario:
             f"Trackers Initialized: {current_tracker}/{total_trackers}",
         ]
 
-        l = int(0.0396825 * boxw + 2.222222)
+        l = int(0.0396825 * boxw + 2.222222)  # noqa: E741
 
-        def put_text(img: np.ndarray, text: str, pos: Tuple[float, float]):
+        def put_text(img: np.ndarray, text: str, pos: tuple[int, int]) -> Any:
             return cv2.putText(
                 img, text, pos, font, font_scale, color, thickness, cv2.LINE_AA
             )
@@ -747,7 +746,7 @@ class TrackingScenario:
         box = put_text(box, text_lines[5], (l, boxh - l))
         return imgc
 
-    def _first_iteration(self, start_frame):
+    def _first_iteration(self, start_frame: int) -> bool:
         # Start processing frams at the given index
         if start_frame:
             self.first_frame = start_frame
@@ -791,7 +790,7 @@ class TrackingScenario:
         logging.info("All trackers were initialized")
         return True
 
-    def _keyboard_controller(self):
+    def _keyboard_controller(self) -> None:
         # Keyboard events
         wait_key = 0 if not self.auto_mode else 10
 
@@ -805,7 +804,7 @@ class TrackingScenario:
         elif key == ord("e"):
             exit()
 
-    def _regular_iteration(self):
+    def _regular_iteration(self) -> tuple[bool, bool]:
         # Get current frame and ends the processing when no more frames are
         # detected
 
@@ -856,19 +855,19 @@ class TrackingScenario:
 
         return True, False
 
-    def _release_cap(self):
+    def _release_cap(self) -> None:
         self.cap.release()
         cv2.destroyAllWindows()
 
-    def _tracker2trajectory(self, tracker, pix_per_m):
+    def _tracker2trajectory(self, tracker: ObjectTracker, pix_per_m: int) -> Trajectory:
         dt = 1 / self.fps
         traj_id = tracker.name
-        x, y = map(list, zip(*tracker.history))
+        x, y = map(list, zip(*tracker.history, strict=False))
         x_arr = np.array(x) / pix_per_m
         y_arr = -1 * np.array(y) / pix_per_m
         return Trajectory(x=x_arr, y=y_arr, dt=dt, traj_id=traj_id)
 
-    def _export_trajectories(self, pix_per_m):
+    def _export_trajectories(self, pix_per_m: int) -> list[Trajectory]:
         t_list = []
         reference = None
         # Extract camera reference
@@ -895,7 +894,7 @@ class TrackingScenario:
         start_frame: int = 0,
         end_frame: Optional[int] = None,
         pix_per_m: int = 1,
-    ) -> Tuple[bool, Optional[List[Trajectory]]]:
+    ) -> tuple[bool, Optional[list[Trajectory]]]:
         """
         Starts the tracking process.
 

@@ -164,13 +164,12 @@ class Trajectory:
         t: Optional[Collection[float]] = None,
         dt: Optional[float] = None,
         t_0: float = 0.0,
-        traj_id: str = "",
+        traj_id: Any = "",
         lazy: Optional[bool] = False,
         diff_est: Optional[Dict[str, Any]] = None,
         vel_est: Optional[Dict[str, Any]] = None,
         t0: Optional[float] = None,  # pylint: disable=invalid-name
-    ):  # pylint: disable=too-many-arguments
-
+    ):
         # Position data validation
         from_xyz = x is not None
         from_points = points is not None
@@ -190,14 +189,17 @@ class Trajectory:
             axes = [d for d in [x, y, z] if d is not None]
 
         # Check if positional data is given
+        r = None
         if axes is not None and len(axes) > 0:
             lengths.extend([len(d) for d in axes])
-            self.r = Vector(axes, dtype=float, copy=True).T
+            r = Vector(axes, dtype=float, copy=True).T
         elif points is not None:
             lengths.append(len(points))
-            self.r = Vector(points, dtype=float, copy=True)
+            r = Vector(points, dtype=float, copy=True)
         else:
             raise ValueError("No position data were given.")
+
+        self.r: Vector = r
 
         # Check if all the given data has the same shape
         if lengths.count(lengths[0]) != len(lengths):
@@ -263,7 +265,7 @@ class Trajectory:
         method: diff.DiffMethod,
         window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
-    ):
+    ) -> None:
         """
         Set the local diferentiation method.
 
@@ -290,7 +292,7 @@ class Trajectory:
         method: diff.DiffMethod,
         window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
-    ):
+    ) -> None:
         """
         .. deprecated:: 0.10.0
             :func:`set_vel_method` is deprecated and will be removed in
@@ -308,7 +310,7 @@ class Trajectory:
         method: diff.DiffMethod,
         window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
-    ):
+    ) -> None:
         """
         Set the global diferentiation method.
 
@@ -334,7 +336,7 @@ class Trajectory:
         method: diff.DiffMethod,
         window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
-    ):
+    ) -> None:
         """
         .. deprecated:: 0.10.0
             :func:`global_vel_method` is deprecated and will be removed in
@@ -369,7 +371,7 @@ class Trajectory:
     def __len__(self) -> int:
         return self.r.shape[0]
 
-    def __getitem__(self, index) -> Union[Trajectory, TrajectoryPoint]:
+    def __getitem__(self, index: int | slice) -> Union[Trajectory, TrajectoryPoint]:
         if isinstance(index, int):
             # r, v, t
             data = [self.r[index], None, None]
@@ -508,7 +510,7 @@ class Trajectory:
         x, y = rad * np.cos(ang), rad * np.sin(ang)
         self.r = Vector([x, y]).T
 
-    def rotate_2d(self, angle: float):
+    def rotate_2d(self, angle: float) -> None:
         """
         Rotates the trajectory around the center coordinates [0,0]
 
@@ -519,7 +521,7 @@ class Trajectory:
         """
         self.add_polar_offset(0, angle)
 
-    def rotate2d(self, angle: float):
+    def rotate2d(self, angle: float) -> None:
         """
         .. deprecated:: 0.10.0
             :func:`rotate2d` will be removed in a future version, use
@@ -532,7 +534,7 @@ class Trajectory:
         )
         self.rotate_2d(angle)
 
-    def rotate_3d(self, angle: float, vector: Collection[float]):
+    def rotate_3d(self, angle: float, vector: Collection[float]) -> None:
         """
         Rotates the trajectory around a given vector.
 
@@ -555,11 +557,11 @@ class Trajectory:
                 "3D rotations can only be applied on 3 dimensional trajectories"
             )
 
-        vec = Vector(vector)
+        vec: Vector = Vector(vector)
         if vec.shape != (3,):
             raise ValueError("The vector must have shape (3,)")
 
-        vec = vec / vec.norm
+        vec = Vector(vec / vec.norm)
         v_x, v_y, v_z = vec[0], vec[1], vec[2]
         a_cos, a_sin = np.cos(angle), np.sin(angle)
 
@@ -584,7 +586,7 @@ class Trajectory:
         )
         self.r = Vector(np.dot(self.r, rot_matrix))
 
-    def rotate3d(self, angle: float, vector: Union[list, np.ndarray]):
+    def rotate3d(self, angle: float, vector: Union[list, np.ndarray]) -> None:
         """
         .. deprecated:: 0.10.0
             :func:`rotate3d` will be removed in a future version, use
@@ -626,7 +628,9 @@ class Trajectory:
         diff = np.abs(np.subtract(self_time, other_time))
         return all(diff < threshold)
 
-    def __iadd__(self, other):
+    def __iadd__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         if isinstance(other, (int, float)):
             self.r += other
             return self
@@ -651,7 +655,9 @@ class Trajectory:
             f"'{type(other).__name__}'"
         )
 
-    def __isub__(self, other):
+    def __isub__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         if isinstance(other, (int, float)):
             self.r -= other
             return self
@@ -676,23 +682,31 @@ class Trajectory:
             f"'{type(other).__name__}'"
         )
 
-    def __add__(self, other):
+    def __add__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         traj = self.copy()
         traj += other
         return traj
 
-    def __sub__(self, other):
+    def __sub__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         traj = self.copy()
         traj -= other
         return traj
 
-    def __radd__(self, other):
+    def __radd__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         return self + other
 
-    def __rsub__(self, other):
+    def __rsub__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         return self - other
 
-    def __imul__(self, other):
+    def __imul__(self, other: int | float) -> Trajectory:
         if isinstance(other, (int, float)):
             self.r *= other
             return self
@@ -701,17 +715,21 @@ class Trajectory:
             f"'{type(other).__name__}'"
         )
 
-    def __mul__(self, other):
+    def __mul__(self, other: int | float) -> Trajectory:
         traj = self.copy()
         traj *= other
         return traj
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: int | float) -> Trajectory:
         return self * other
 
     def turning_angles(
-        self, accumulate=False, degrees=False, centered=False, wrap=True
-    ):
+        self,
+        accumulate: bool = False,
+        degrees: bool = False,
+        centered: bool = False,
+        wrap: bool = True,
+    ) -> np.ndarray:
         """
         Return the sequence of turning angles that forms the trajectory.
 
@@ -764,8 +782,12 @@ class Trajectory:
         discont_half = discont / 2
         return -((discont_half - theta) % discont - discont_half)
 
-    def _save_json(self, path: Union[str, Path]) -> None:
-        def convert_to_list(vec: Optional[Vector]):
+    def _save_json(self, path: str | Path) -> None:
+        _path = Path(path) if isinstance(path, str) else path
+
+        def convert_to_list(
+            vec: Optional[Vector],
+        ) -> Optional[List[Any] | Dict[int, List[Any]]]:
             if vec is None:
                 return vec
             if len(vec.shape) == 1:
@@ -785,11 +807,12 @@ class Trajectory:
             "t": convert_to_list(self.__t),
             "diff_est": diff_est,
         }
-        with open(str(path), "w", encoding="utf-8") as traj_file:
+        with _path.open("w", encoding="utf-8") as traj_file:
             json.dump(json_dict, traj_file)
 
     def _save_csv(self, path: Union[str, Path]) -> None:
-        with open(str(path), "w", newline="", encoding="utf-8") as traj_file:
+        _path = Path(path) if isinstance(path, str) else path
+        with _path.open("w", newline="", encoding="utf-8") as traj_file:
             writer = csv.writer(traj_file, delimiter=",")
             writer.writerow([self.traj_id, self.__dt, self.dim])
 
@@ -811,7 +834,7 @@ class Trajectory:
         path: str = ".",
         file_type: str = "json",
         overwrite: bool = True,
-    ):
+    ) -> None:
         """
         .. deprecated:: 0.10.0
             :func:`save` will be removed in a future version, use a Serializer
@@ -857,7 +880,7 @@ class Trajectory:
 
         # Check file existance
         if not overwrite and full_path.exists():
-            raise FileExistsError(f"File '{str(full_path)}' already exist")
+            raise FileExistsError(f"File '{full_path!s}' already exist")
 
         if file_type == "json":
             self._save_json(full_path)
@@ -872,7 +895,7 @@ class Trajectory:
         folder_path: str = ".",
         file_type: str = "json",
         overwrite: bool = True,
-    ):
+    ) -> None:
         """
         Saves a list of trajectories to disk. Each Trajectory object
         will be saved in a separate file inside the given folder.
@@ -903,8 +926,9 @@ class Trajectory:
             traj.save(name, path, file_type, overwrite)
 
     @staticmethod
-    def _load_json(path: str):
-        with open(path, "r", encoding="utf-8") as traj_file:
+    def _load_json(path: str | Path) -> Trajectory:
+        _path = Path(path) if isinstance(path, str) else path
+        with _path.open("r", encoding="utf-8") as traj_file:
             data = json.load(traj_file)
 
             traj_id = data["id"]
@@ -920,24 +944,20 @@ class Trajectory:
             return Trajectory(axes=axes, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
 
     @staticmethod
-    def _load_csv(path: str):
-        with open(path, "r", encoding="utf-8") as traj_file:
-
-            def check_empty_val(val, cast_value=True) -> Union[None, float]:
-                if val == "":
-                    return None
-                return float(val) if cast_value else val
-
+    def _load_csv(path: str | Path) -> Trajectory:
+        _path = Path(path) if isinstance(path, str) else path
+        with _path.open("r", encoding="utf-8") as traj_file:
             r: List[List[float]] = []
             t: List[float] = []
             traj_id: Optional[str] = None
-            dt, dim = 1.0, 1
+            dt: float | None = 1.0
+            dim = 1
             diff_est = Trajectory.general_diff_est
 
             for i, row in enumerate(csv.reader(traj_file)):
                 if i == 0:
                     traj_id = row[0] if row[0] != "" else None
-                    dt = check_empty_val(row[1])
+                    dt = None if row[1] == "" else float(row[1])
                     dim = int(row[2])
                     r = [[] for _ in range(dim)]
                     continue
@@ -958,7 +978,7 @@ class Trajectory:
             return Trajectory(axes=r, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
 
     @staticmethod
-    def load(file_path: str):
+    def load(file_path: str) -> Trajectory:
         """
         .. deprecated:: 0.10.0
             :func:`load` will be removed in a future version, use a Serializer
@@ -1011,7 +1031,9 @@ class Trajectory:
             raise LoadTrajectoryError(str(path)) from exc
 
     @staticmethod
-    def load_folder(folder_path=".", recursively: bool = False):
+    def load_folder(
+        folder_path: str = ".", recursively: bool = False
+    ) -> List[Trajectory]:
         """
         Loads all the trajectories from a folder.
 

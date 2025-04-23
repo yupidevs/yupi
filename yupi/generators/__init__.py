@@ -13,4 +13,4 @@ from yupi.generators._generators import (
     RandomWalkGenerator,
 )
 
-__all__ = ["Generator", "RandomWalkGenerator", "LangevinGenerator", "DiffDiffGenerator"]
+__all__ = ["DiffDiffGenerator", "Generator", "LangevinGenerator", "RandomWalkGenerator"]

@@ -9,7 +9,7 @@ Bounds = Tuple[int, int, int, int]
 """Bounds of a frame: x_min, x_max, y_min, y_max."""
 
 
-def _resize_frame(frame: np.ndarray, scale: float = 1):
+def _resize_frame(frame: np.ndarray, scale: float = 1) -> np.ndarray:
     height, weight = frame.shape[:2]
     scaled_height, scaled_weight = int(scale * height), int(scale * weight)
     short_frame = cv2.resize(
@@ -18,7 +18,7 @@ def _resize_frame(frame: np.ndarray, scale: float = 1):
     return short_frame
 
 
-def _change_colorspace(image, color_space: str) -> np.ndarray:
+def _change_colorspace(image: np.ndarray, color_space: str) -> np.ndarray:
     if color_space == "BGR":
         return image
     if color_space == "GRAY":
@@ -34,11 +34,11 @@ class BackgroundEstimator:
     sequences. It estimates the temporal median of the sequence.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     @staticmethod
-    def from_video(video_path: str, samples: int, start_in: int = 0):
+    def from_video(video_path: str, samples: int, start_in: int = 0) -> np.ndarray:
         """
         This method takes a video indicated by ``video_path`` and
         uniformely take a number of image samples according to the
@@ -54,6 +54,11 @@ class BackgroundEstimator:
         start_in : int, optional
             If passed, the method will start sampling after the frame
             indicated by this value, by default 0.
+
+        Returns
+        -------
+        np.ndarray
+            Median image of the samples taken from the video.
         """
 
         # Create a cv2 Video Capture Object
@@ -64,7 +69,7 @@ class BackgroundEstimator:
         spacing = effective_frames / samples
 
         # Store frames in a list
-        frames = []
+        frames: list[np.ndarray] = []
         for i in range(samples):
             cap.set(cv2.CAP_PROP_POS_FRAMES, i * spacing + start_in)
             _, frame = cap.read()
@@ -80,10 +85,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
     from this class should implement ``detect`` method.
     """
 
-    def __init__(self):
-        pass
-
-    def get_centroid(self, bin_img: np.ndarray):
+    def get_centroid(self, bin_img: np.ndarray) -> tuple[int, int] | None:
         """
         Computes the centroid of a binary image using ``cv2.moments``.
 
@@ -94,8 +96,9 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
 
         Returns
         -------
-        tuple
-            x, y coordinates of the centroid
+        tuple [int, int] | None
+            x, y coordinates of the centroid. None if no object was
+            detected.
         """
 
         # Calculate moments
@@ -117,7 +120,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
         frame: np.ndarray,
         roi_bound: Optional[Bounds] = None,
         preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ):
+    ) -> np.ndarray:
         """
         Preprocesses a frame.
 
@@ -206,8 +209,13 @@ class ColorMatching(TrackingAlgorithm):
         max_pixels: Optional[int] = None,
     ):
         super().__init__()
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
+
+        self.lower_bound = np.array(
+            lower_bound if isinstance(lower_bound, tuple) else 3 * (lower_bound,)
+        )
+        self.upper_bound = np.array(
+            upper_bound if isinstance(upper_bound, tuple) else 3 * (upper_bound,)
+        )
         self.color_space = color_space
         self.max_pixels = max_pixels
 
@@ -267,15 +275,16 @@ class FrameDifferencing(TrackingAlgorithm):
 
     Parameters
     ----------
+    frame_diff_threshold : int, optional
         Minimum difference (in terms of pixel intensity) among current
         and previous image to consider that pixel as part of a moving
         object, by default 1.
     """
 
-    def __init__(self, frame_diff_threshold=1):
+    def __init__(self, frame_diff_threshold: int = 1) -> None:
         super().__init__()
         self.frame_diff_threshold = frame_diff_threshold
-        self.prev_frame = None
+        self.prev_frame: np.ndarray | None = None
 
     def detect(
         self,
@@ -328,7 +337,10 @@ class FrameDifferencing(TrackingAlgorithm):
         gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
         # Convert the grayscale image to binary image
-        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)
+
+        # cv2.inRange accepts scalars as lowerb and upperb.
+        # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)  # type: ignore[call-overload]
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -357,7 +369,9 @@ class BackgroundSubtraction(TrackingAlgorithm):
         object, by default 1.
     """
 
-    def __init__(self, background, background_threshold):
+    def __init__(
+        self, background: np.ndarray, background_threshold: Optional[int]
+    ) -> None:
         super().__init__()
         self.background_threshold = background_threshold
         self.background = background
@@ -410,7 +424,10 @@ class BackgroundSubtraction(TrackingAlgorithm):
         gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
         # Convert the grayscale image to binary image
-        mask = cv2.inRange(gray_image, self.background_threshold, 255)
+
+        # cv2.inRange accepts scalars as lowerb and upperb.
+        # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+        mask = cv2.inRange(gray_image, self.background_threshold, 255)  # type: ignore[call-overload]
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -435,7 +452,7 @@ class TemplateMatching(TrackingAlgorithm):
         default 0.8.
     """
 
-    def __init__(self, template, threshold):
+    def __init__(self, template: np.ndarray, threshold: Optional[float]) -> None:
         super().__init__()
         self.template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         self.threshold = threshold
@@ -566,7 +583,6 @@ class OpticalFlow(TrackingAlgorithm):
         """
 
         if len(self.previous_frames) == self.buffer_size:
-
             cframe = self.preprocess(
                 frame=frame, roi_bound=roi_bound, preprocessing=preprocessing
             )
@@ -579,6 +595,7 @@ class OpticalFlow(TrackingAlgorithm):
             cframe = cv2.cvtColor(cframe, cv2.COLOR_BGR2GRAY)
             pframe = cv2.cvtColor(pframe, cv2.COLOR_BGR2GRAY)
 
+            # cv2.calcOpticalFlowFarneback accepts None as output flow parameter
             diff = cv2.calcOpticalFlowFarneback(
                 prev=pframe,
                 next=cframe,
@@ -590,11 +607,15 @@ class OpticalFlow(TrackingAlgorithm):
                 poly_n=5,
                 poly_sigma=1.2,
                 flags=0,
-            )
+            )  # type: ignore[call-overload]
+
             mag, _ = cv2.cartToPolar(diff[..., 0], diff[..., 1])
 
             # Convert the grayscale image to binary image
-            mask = cv2.inRange(mag, self.threshold, 255)
+
+            # cv2.inRange accepts scalars as lowerb and upperb.
+            # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+            mask = cv2.inRange(mag, self.threshold, 255.0)  # type: ignore[call-overload]
 
             # Compute the centroid of the pixels over threshold
             centroid = self.get_centroid(mask)

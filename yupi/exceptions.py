@@ -3,11 +3,11 @@ This contains specific exceptions related to the library.
 """
 
 
-class YupiException(Exception):
+class YupiExceptionError(Exception):
     """Generic exception for yupi package"""
 
 
-class TrajectoryError(YupiException):
+class TrajectoryError(YupiExceptionError):
     """Generic exception for handling trajectory errors"""
 
 

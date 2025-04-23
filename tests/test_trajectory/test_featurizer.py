@@ -36,34 +36,38 @@ class ComplexSpacialFeaturizer(Featurizer):
 
 
 @pytest.fixture
-def trajs():
+def trajs() -> list[Trajectory]:
     t1 = Trajectory(x=[0, 0, 4], y=[0, 3, 3])
     t2 = Trajectory(x=[4, 7, 7], y=[4, 4, 8], t=[0, 0.1, 0.2])
     return [t1, t2]
 
 
 @pytest.fixture
-def simple_featurizer():
+def simple_featurizer() -> SimpleSpacialFeaturizer:
     return SimpleSpacialFeaturizer()
 
 
 @pytest.fixture
-def complex_featurizer():
+def complex_featurizer() -> ComplexSpacialFeaturizer:
     return ComplexSpacialFeaturizer()
 
 
-def test_featurizer_count(simple_featurizer):
+def test_featurizer_count(simple_featurizer: SimpleSpacialFeaturizer) -> None:
     assert simple_featurizer.count == 2
 
 
-def test_simple_featurizer(trajs, simple_featurizer):
+def test_simple_featurizer(
+    trajs: list[Trajectory], simple_featurizer: SimpleSpacialFeaturizer
+) -> None:
     feats = simple_featurizer.featurize(trajs)
     assert isinstance(feats, np.ndarray)
     assert feats.shape == (2, 2)
     assert pytest.approx(feats) == [[7, 5], [7, 5]]
 
 
-def test_complex_featurizer(trajs, complex_featurizer):
+def test_complex_featurizer(
+    trajs: list[Trajectory], complex_featurizer: ComplexSpacialFeaturizer
+) -> None:
     feats = complex_featurizer.featurize(trajs)
     assert isinstance(feats, np.ndarray)
     assert feats.shape == (2, 4)
@@ -73,7 +77,11 @@ def test_complex_featurizer(trajs, complex_featurizer):
     ]
 
 
-def test_compound_featurizer(trajs, simple_featurizer, complex_featurizer):
+def test_compound_featurizer(
+    trajs: list[Trajectory],
+    simple_featurizer: SimpleSpacialFeaturizer,
+    complex_featurizer: ComplexSpacialFeaturizer,
+) -> None:
     compound = simple_featurizer + complex_featurizer
     feats = compound.featurize(trajs)
     assert isinstance(feats, np.ndarray)

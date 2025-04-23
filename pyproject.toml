@@ -3,10 +3,10 @@ name = "yupi"
 version = "0.13.0"
 description = "A package for tracking and analysing objects trajectories"
 authors = [
-    "Gustavo Viera-López <gvieralopez@gmail.com>",
-    "Alfredo Reyes <areyes@fisica.uh.cu>",
-    "Jorge Morgado <jorge.morgadov@gmail.com>",
-    "Ernesto Altshuler <ealtshuler@fisica.uh.cu>"
+	"Gustavo Viera-López <gvieralopez@gmail.com>",
+	"Alfredo Reyes <areyes@fisica.uh.cu>",
+	"Jorge Morgado <jorge.morgadov@gmail.com>",
+	"Ernesto Altshuler <ealtshuler@fisica.uh.cu>",
 ]
 license = "MIT"
 readme = "README.md"
@@ -15,44 +15,136 @@ documentation = "https://yupi.readthedocs.io"
 keywords = ["trajectory", "analysis", "tracking"]
 
 [tool.poetry.dependencies]
-python = "^3.9.12"
+python = ">=3.10"
 opencv-python = ">=4.4.0"
 numpy = ">=1.16.5"
 nudged = ">=0.3.1"
 matplotlib = ">=3.2.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.test.dependencies]
 pytest = ">=6.2.2"
-pylint = ">=2.7.2"
-isort = ">=5.10.1"
-black = ">=22.3.0"
 
-[tool.isort]
-profile = "black"
-known_first_party = ["yupi"]
+[tool.poetry.group.dev.dependencies]
+ruff = ">=0.11.6"
 
-[tool.black]
-target-version = ["py39"]
+[tool.ruff.lint.isort]
+known-first-party = ["yupi"]
 
-[tool.pylint."MESSAGES CONTROL"]
-extension-pkg-whitelist = ["cv2"]
-max-line-length = 88
-good-names = [
-	"x",   # Data from x axis
-	"y",   # Data from y axis
-	"z",   # Data from z axis
-	"t",   # Time vector
-	"r",   # Position vector
-	"v",   # Velocity vector
-	"a",   # Acceleration vector
-	"dt",  # Time spacing (delta time)
-	"i",   # Usual iteration variable
-	"j",   # Usual iteration variable
-	"k",   # Usual iteration variable
-	"ax",  # Matplotlib Axes
-	"T",   # Total time
-	"N"    # Number of trajectories
+[tool.ruff]
+exclude = [
+	".bzr",
+	".direnv",
+	".eggs",
+	".git",
+	".git-rewrite",
+	".hg",
+	".ipynb_checkpoints",
+	".mypy_cache",
+	".nox",
+	".pants.d",
+	".pyenv",
+	".pytest_cache",
+	".pytype",
+	".ruff_cache",
+	".svn",
+	".tox",
+	".venv",
+	".vscode",
+	"__pypackages__",
+	"_build",
+	"buck-out",
+	"build",
+	"dist",
+	"node_modules",
+	"site-packages",
+	"venv",
+	".env",
 ]
+line-length = 88
+indent-width = 4
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+	"A",      # flake8-builtins: Check variables shadowing
+	"B",      # flake8-bugbear: Finds likely bugs and design problems
+	"C",      # McCabe: Complexity checker to ensure maintainable code
+	"DJ",     # flake8-django: Checks on Django code
+	"E4",     # Pycodestyle: Line length, indentation, etc.
+	"E7",     # Pycodestyle: Miscellaneous checks
+	"E9",     # Pycodestyle: Syntax errors
+	"F",      # Pyflakes: Unused imports, undefined variables, etc.
+	"FIX",    # Avoid lines containing TODO tags
+	"G",      # flake8-logging-format: Ensure logging messages follow best practices.
+	"I",      # Isort: Import sorting
+	"LOG",    # flake8-logging: Use the logging module correctly
+	"N",      # pep8-naming: Enforce naming conventions
+	"PGH004", # Enforce specify the rule to avoid on noqa tags
+	"PTH",    # flake8-use-pathlib: Enforces pathlib usage
+	"RUF",    # Ruff-specific rules: Mostly for handling noqa tags and general stuff
+	"S",      # flake8-bandit: Identifies common security issues in code
+	"T20",    # flake8-print: Avoids print in the code
+]
+ignore = [
+	"S101",   # Use of assert function
+	"LOG015", # error() call on root logger
+	"FIX002", # Avoid leaving unfinished TODOs
+	"RUF012", # Mutable class attributes should be annotated with typing.ClassVar
+	"A002",   # Shadowing function arguments
+	"B028",   # No explicit stack level
+	"RUF005", # Concatenations without using add operator
+]
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+quote-style = "double"                 # Use double quotes for strings.
+indent-style = "space"                 # Indent with spaces (like Black).
+skip-magic-trailing-comma = false      # Respect magic trailing commas.
+docstring-code-format = false
+docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 88
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = [
+	"x",  # Data from x axis
+	"y",  # Data from y axis
+	"z",  # Data from z axis
+	"t",  # Time vector
+	"r",  # Position vector
+	"v",  # Velocity vector
+	"a",  # Acceleration vector
+	"dt", # Time spacing (delta time)
+	"i",  # Usual iteration variable
+	"j",  # Usual iteration variable
+	"k",  # Usual iteration variable
+	"ax", # Matplotlib Axes
+	"T",  # Total time
+	"N",  # Number of trajectories
+	"M",  # Number of trajectories
+]
+
+[tool.mypy]
+python_version = "3.10"
+disable_error_code = ["import-untyped"]
+exclude = [
+	"docs",
+	"/tests\\.py$|/test_.*\\.py$|.*_test\\.py$|/tests/",
+	"^.venv",
+]
+
+[[tool.mypy.overrides]]
+module = "cv2.*"
+ignore_errors = true
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
+enable_error_code = ["ignore-without-code"]
+disable_error_code = ["import-untyped", "import-not-found"]
+check_untyped_defs = true
+disallow_untyped_defs = true
 
 [tool.bumpver]
 current_version = "0.13.0"
@@ -62,10 +154,7 @@ tag = false
 push = false
 
 [tool.bumpver.file_patterns]
-"pyproject.toml" = [
-    'current_version = "{version}"',
-    'version = "{version}"',
-]
+"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
 "yupi/__init__.py" = ['__version__ = "{version}"']
 "docs/source/conf.py" = ['release = "{version}"']
 

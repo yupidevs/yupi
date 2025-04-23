@@ -13,14 +13,19 @@ AffineParams = Tuple[float, float, float, float]
 """Affine params: theta, t_x, t_y, scale."""
 
 # ShiTomasi corner detection
-FEATURE_PARAMS = dict(maxCorners=30, qualityLevel=0.6, minDistance=30, blockSize=100)
+FEATURE_PARAMS = {
+    "maxCorners": 30,
+    "qualityLevel": 0.6,
+    "minDistance": 30,
+    "blockSize": 100,
+}
 
 # Lucas Kanade optical flow
-LK_PARAMS = dict(
-    winSize=(20, 20),
-    maxLevel=15,
-    criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 0.05),
-)
+LK_PARAMS = {
+    "winSize": (20, 20),
+    "maxLevel": 15,
+    "criteria": (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 0.05),
+}
 
 
 def _rot_matrix(theta: float, inverse: bool = False) -> np.ndarray:
@@ -152,7 +157,7 @@ def _get_affine(
     # Cancel estimation if no good points were found or tracked
     if p1_good.size == 0:
         logging.error("No good points were found or sucessfully tracked.")
-        return 3 * (0,), 3 * (0,), None
+        return 3 * (np.zeros(1),), 4 * (0,), None
 
     # Estimate points and matrix
     p_good, affine_params = _estimate_matrix(
