@@ -6,7 +6,7 @@ from yupi.core.serializers import Serializer
 from yupi.core.serializers.serializer import InvalidTrajectoryFileExtensionError
 
 
-def test_check_save_path():
+def test_check_save_path() -> None:
     invalid_ext_path = Path("traj.mp4")
 
     # Test with invalid extension
@@ -16,7 +16,7 @@ def test_check_save_path():
         assert excinfo.value.expected_extension == ".json"
 
 
-def test_check_load_path():
+def test_check_load_path() -> None:
     invalid_ext_path = Path("traj.mp4")
 
     # Test with invalid extension

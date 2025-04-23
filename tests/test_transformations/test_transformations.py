@@ -11,22 +11,22 @@ from yupi.transformations import (
 
 
 @pytest.fixture
-def x():
+def x() -> list[int]:
     return list(range(10))
 
 
 @pytest.fixture
-def traj(x):
+def traj(x: list[int]) -> Trajectory:
     return Trajectory(x=x)
 
 
 @pytest.fixture
-def non_zero_origin():
+def non_zero_origin() -> list[int]:
     return [7, 7, 7]  # Initial position
 
 
 @pytest.fixture
-def constant_v_non_zero_origin_traj(non_zero_origin):
+def constant_v_non_zero_origin_traj(non_zero_origin: np.ndarray) -> Trajectory:
     num_steps = 500
     noise_std = 0.8  # Standard deviation of Gaussian noise
     velocity = np.array([1.0, 0.5, 0.2])
@@ -41,13 +41,13 @@ def constant_v_non_zero_origin_traj(non_zero_origin):
     return Trajectory(points=trajectory, t=t_vals)
 
 
-def test_subsample(x, traj):
+def test_subsample(x: list[int], traj: Trajectory) -> None:
     sub_sample = subsample(traj, 2)
 
     assert len(sub_sample) == len(x) // 2
 
 
-def test_resample_new_dt(x, traj):
+def test_resample_new_dt(x: list[int], traj: Trajectory) -> None:
     new_dt = 0.5
     new_traj = resample(traj, new_dt=new_dt)
 
@@ -56,7 +56,7 @@ def test_resample_new_dt(x, traj):
     assert new_traj.r[0] == pytest.approx(traj.r[0])
 
 
-def test_resample_new_t(x, traj):
+def test_resample_new_t(x: list[int], traj: Trajectory) -> None:
     new_t = [0, 1, 4, 7, 9]
     new_traj = resample(traj, new_t=new_t)
 
@@ -64,7 +64,7 @@ def test_resample_new_t(x, traj):
     assert new_traj.r.x == pytest.approx([0, 1, 4, 7, 9])
 
 
-def test_threshold():
+def test_threshold() -> None:
     dt = 1 / 3
     traj1 = Trajectory(x=np.arange(742), dt=dt)
     traj2 = Trajectory(x=np.arange(743), dt=dt)
@@ -72,14 +72,18 @@ def test_threshold():
     subsample(traj2)
 
 
-def test_exp_convolution_origin(constant_v_non_zero_origin_traj, non_zero_origin):
+def test_exp_convolution_origin(
+    constant_v_non_zero_origin_traj: Trajectory, non_zero_origin: list[int]
+) -> None:
     smooted_trajectory = exp_convolutional_filter(
         constant_v_non_zero_origin_traj, 1 / 100
     )
     assert smooted_trajectory.r[0] == pytest.approx(non_zero_origin)
 
 
-def test_ema_origin(constant_v_non_zero_origin_traj, non_zero_origin):
+def test_ema_origin(
+    constant_v_non_zero_origin_traj: Trajectory, non_zero_origin: list[int]
+) -> None:
     smooted_trajectory = exp_moving_average_filter(
         constant_v_non_zero_origin_traj, alpha=1 / 100
     )
