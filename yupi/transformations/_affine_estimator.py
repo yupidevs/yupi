@@ -151,7 +151,7 @@ def _get_affine(
     )
 
     # Change origin and select tracked points
-    p1_frame, p2_frame = [*p1_region, x_0, y_0], [*p2_region, x_0, y_0]
+    p1_frame, p2_frame = p1_region + [x_0, y_0], p2_region + [x_0, y_0]
     p1_good, p2_good = p1_frame[st == 1], p2_frame[st == 1]
 
     # Cancel estimation if no good points were found or tracked
