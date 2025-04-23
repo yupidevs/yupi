@@ -406,7 +406,7 @@ class ObjectTracker:
         self.algorithm = algorithm
         self.preprocessing = preprocessing
         self.history: list[Centroid] = []
-        self.mask: np.ndarray
+        self.mask: np.ndarray | None
 
     def _init_roi(self, frame: np.ndarray) -> bool:
         return self.roi._initialize(self.name, frame)
@@ -579,7 +579,7 @@ class TrackingScenario:
         self.video_path: str
         self.cap: Any
         self.frame_count: int
-        self.fps: int
+        self.fps: float
         self.width: int
         self.height: int
         self.dim: tuple[int, int]

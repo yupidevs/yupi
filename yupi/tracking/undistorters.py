@@ -45,7 +45,7 @@ class Undistorter(metaclass=abc.ABCMeta):
 
     def __init__(self, camera_file: str, turn: bool = False):
         # Read camera undistort matrix
-        self.cam_file = np.load(camera_file)
+        self.cam_file: np.ndarray = np.load(camera_file)
 
         # Initialize camera parameters
         c_h = self.cam_file["h"]
@@ -65,7 +65,7 @@ class Undistorter(metaclass=abc.ABCMeta):
         )
         self.c_mapx, self.c_mapy = c_map
         self.mask = None
-        self.background = None
+        self.background: np.ndarray | None = None
 
     @abc.abstractmethod
     def undistort(self, frame: np.ndarray) -> np.ndarray:

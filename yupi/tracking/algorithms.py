@@ -209,8 +209,13 @@ class ColorMatching(TrackingAlgorithm):
         max_pixels: Optional[int] = None,
     ):
         super().__init__()
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
+
+        self.lower_bound = np.array(
+            lower_bound if isinstance(lower_bound, tuple) else 3 * (lower_bound,)
+        )
+        self.upper_bound = np.array(
+            upper_bound if isinstance(upper_bound, tuple) else 3 * (upper_bound,)
+        )
         self.color_space = color_space
         self.max_pixels = max_pixels
 
@@ -332,7 +337,10 @@ class FrameDifferencing(TrackingAlgorithm):
         gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
         # Convert the grayscale image to binary image
-        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)
+
+        # cv2.inRange accepts scalars as lowerb and upperb.
+        # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)  # type: ignore[call-overload]
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -416,7 +424,10 @@ class BackgroundSubtraction(TrackingAlgorithm):
         gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
         # Convert the grayscale image to binary image
-        mask = cv2.inRange(gray_image, self.background_threshold, 255)
+
+        # cv2.inRange accepts scalars as lowerb and upperb.
+        # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+        mask = cv2.inRange(gray_image, self.background_threshold, 255)  # type: ignore[call-overload]
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -584,6 +595,7 @@ class OpticalFlow(TrackingAlgorithm):
             cframe = cv2.cvtColor(cframe, cv2.COLOR_BGR2GRAY)
             pframe = cv2.cvtColor(pframe, cv2.COLOR_BGR2GRAY)
 
+            # cv2.calcOpticalFlowFarneback accepts None as output flow parameter
             diff = cv2.calcOpticalFlowFarneback(
                 prev=pframe,
                 next=cframe,
@@ -595,11 +607,15 @@ class OpticalFlow(TrackingAlgorithm):
                 poly_n=5,
                 poly_sigma=1.2,
                 flags=0,
-            )
+            )  # type: ignore[call-overload]
+
             mag, _ = cv2.cartToPolar(diff[..., 0], diff[..., 1])
 
             # Convert the grayscale image to binary image
-            mask = cv2.inRange(mag, self.threshold, 255.0)
+
+            # cv2.inRange accepts scalars as lowerb and upperb.
+            # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+            mask = cv2.inRange(mag, self.threshold, 255.0)  # type: ignore[call-overload]
 
             # Compute the centroid of the pixels over threshold
             centroid = self.get_centroid(mask)
