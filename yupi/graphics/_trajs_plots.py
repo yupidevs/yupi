@@ -4,7 +4,6 @@ This contains spatial plotting functions for the trajectories.
 
 import itertools
 import logging
-import warnings
 from typing import Any, Callable, Collection, List, Optional, Union
 
 import matplotlib.pyplot as plt
@@ -12,6 +11,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
+from yupi.exceptions import TrajectoryError
 from yupi.graphics._style import LINE, YUPI_COLORS
 from yupi.trajectory import Trajectory
 
@@ -97,12 +97,10 @@ def plot_2d(
 
     for i, traj in enumerate(trajs):
         if traj.dim != 2:
-            logging.warning(
-                "Using plot_2d with a trajectory of %i dimensions"
-                " Trajectory No. %i with id %s",
-                traj.dim,
-                i,
-                traj.traj_id,
+            raise TrajectoryError(
+                traj,
+                f"Using plot_2d with a trajectory of {traj.dim} dimensions"
+                f" Trajectory No. {i} with id {traj.traj_id}",
             )
 
         # Plotting
@@ -210,8 +208,7 @@ def plot_3d(
         elif isinstance(color, list):
             colors = itertools.cycle(color)
 
-    if ax is None:
-        ax = plt.axes(projection="3d")
+    ax = plt.axes(projection="3d") if ax is None else ax
 
     assert isinstance(ax, Axes3D), "ax must be a 3D Axes"
 
@@ -232,12 +229,10 @@ def plot_3d(
 
     for i, traj in enumerate(trajs):
         if traj.dim != 3:
-            logging.warning(
-                "Using plot_3d with a trajectory of %i dimensions"
-                " Trajectory No. %i with id %s",
-                traj.dim,
-                i,
-                traj.traj_id,
+            raise TrajectoryError(
+                traj,
+                f"Using plot_3d with a trajectory of {traj.dim} dimensions"
+                f" Trajectory No. {i} with id {traj.traj_id}",
             )
 
         # Plotting

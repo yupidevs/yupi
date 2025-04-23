@@ -6,6 +6,13 @@ from one of the aforementioned modules.
 import logging
 import warnings
 
+from yupi._checkers import (
+    DifferentDimensionError,
+    DifferentDtError,
+    DifferentLengthError,
+    DifferentTimeVectorError,
+    NotUniformTimeSpacedError,
+)
 from yupi._differentiation import DiffMethod, WindowType
 from yupi.trajectory import Trajectory, TrajectoryPoint
 from yupi.vector import Vector
@@ -19,6 +26,11 @@ logging.basicConfig(
 
 __all__ = [
     "DiffMethod",
+    "DifferentDimensionError",
+    "DifferentDtError",
+    "DifferentLengthError",
+    "DifferentTimeVectorError",
+    "NotUniformTimeSpacedError",
     "Trajectory",
     "TrajectoryPoint",
     "Vector",
