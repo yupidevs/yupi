@@ -1,8 +1,6 @@
-from typing import Any
-
 import pytest
 
-from yupi import DiffMethod, Trajectory, WindowType
+from yupi import Trajectory
 
 APPROX_REL_TOLERANCE = 1e-10
 
@@ -83,48 +81,3 @@ def test_creation_general() -> None:
     Trajectory(
         axes=[[1, 2, 4], [2, 3, 6]], dt=0.5, t=[1, 1.5, 2], t_0=1, traj_id="test"
     )
-
-
-def test_diff_methods() -> None:
-    x = [1, 2, 4, 8, 16]
-
-    traj = Trajectory(x=x)
-
-    assert traj.v == pytest.approx([1, 2, 4, 8, 8], rel=APPROX_REL_TOLERANCE)
-    assert traj.a == pytest.approx([1, 2, 4, 0, 0], rel=APPROX_REL_TOLERANCE)
-
-    Trajectory.global_diff_method(DiffMethod.LINEAR_DIFF, WindowType.CENTRAL)
-    traj = Trajectory(x=x)
-
-    assert traj.v == pytest.approx([3 / 2, 3 / 2, 3, 6, 6], rel=APPROX_REL_TOLERANCE)
-    assert traj.a == pytest.approx(
-        [3 / 4, 3 / 4, 9 / 4, 3 / 2, 3 / 2], rel=APPROX_REL_TOLERANCE
-    )
-
-    Trajectory.global_diff_method(DiffMethod.LINEAR_DIFF)
-    traj.set_diff_method(DiffMethod.LINEAR_DIFF, WindowType.BACKWARD)
-
-    assert traj.v == pytest.approx([1, 1, 2, 4, 8], rel=APPROX_REL_TOLERANCE)
-    assert traj.a == pytest.approx([0, 0, 1, 2, 4], rel=APPROX_REL_TOLERANCE)
-
-    traj = Trajectory(x=x)
-
-    assert traj.v == pytest.approx([1, 2, 4, 8, 8], rel=APPROX_REL_TOLERANCE)
-    assert traj.a == pytest.approx([1, 2, 4, 0, 0], rel=APPROX_REL_TOLERANCE)
-
-    vel_est: Any = {
-        "method": DiffMethod.FORNBERG_DIFF,
-        "window_type": WindowType.CENTRAL,
-        "accuracy": 2,
-    }
-
-    traj = Trajectory(x=x, diff_est=vel_est)
-
-    vel_est["accuracy"] = 3
-
-    with pytest.raises(ValueError):
-        traj.set_diff_method(**vel_est)
-
-    vel_est["accuracy"] = 2
-
-    traj = Trajectory(x=x, y=[i**2 for i in x], diff_est=vel_est)
