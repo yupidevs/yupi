@@ -44,6 +44,19 @@ def test_plot_hists(monkeypatch: MonkeyPatch) -> None:
 
     plot_hists([[1, 2, 3], [3, 4, 5]], labels=["A", "B"], histtype="step", filled=True)
 
+    plot_hists(
+        [[1, 2, 3], [3, 4, 5]],
+        labels=["A", "B"],
+        histtype="step",
+        filled=True,
+        legend=True,
+        xlim=(0, 10),
+        ylim=(0, 10),
+        xscale="log",
+        yscale="log",
+        title="Title",
+    )
+
 
 def test_plot_speed_hist(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setattr(plt, "show", lambda: None)

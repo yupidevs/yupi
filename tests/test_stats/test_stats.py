@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from yupi import DiffMethod, NotUniformTimeSpacedError, Trajectory, WindowType
+from yupi import NotUniformTimeSpacedError, Trajectory
 from yupi._checkers import (
     DifferentDimensionError,
     DifferentDtError,
@@ -17,6 +17,7 @@ from yupi.stats import (
     turning_angles_ensemble,
     vacf,
 )
+from yupi.stats._stats import kurtosis_reference
 
 APPROX_REL_TOLERANCE = 1e-10
 
@@ -24,39 +25,19 @@ APPROX_REL_TOLERANCE = 1e-10
 @pytest.fixture
 def traj() -> Trajectory:
     points = [[0, 0], [1, 0], [1, 1], [2, 1]]
-    return Trajectory(
-        points=points,
-        diff_est={
-            "method": DiffMethod.LINEAR_DIFF,
-            "window_type": WindowType.FORWARD,
-        },
-    )
+    return Trajectory(points=points)
 
 
 @pytest.fixture
 def traj1() -> Trajectory:
     x = [0, 8, 5, 11]
-    return Trajectory(
-        x=x,
-        dt=2,
-        diff_est={
-            "method": DiffMethod.LINEAR_DIFF,
-            "window_type": WindowType.FORWARD,
-        },
-    )
+    return Trajectory(x=x, dt=2)
 
 
 @pytest.fixture
 def traj2() -> Trajectory:
     x = [0, 8.5, 4.9, 10.5]
-    return Trajectory(
-        x=x,
-        dt=2,
-        diff_est={
-            "method": DiffMethod.LINEAR_DIFF,
-            "window_type": WindowType.FORWARD,
-        },
-    )
+    return Trajectory(x=x, dt=2)
 
 
 def test_turning_angles(traj: Trajectory) -> None:
@@ -83,6 +64,10 @@ def test_msd(traj1: Trajectory, traj2: Trajectory) -> None:
     assert msd_t[0] == pytest.approx([37.595, 15.5025])
     assert msd_t[1] == pytest.approx([1.26166667, 1.4975])
 
+    with pytest.raises(ValueError):
+        # Setting time_avg=True without lag
+        msd([traj1, traj2], time_avg=True)
+
 
 def test_vacf(traj1: Trajectory, traj2: Trajectory) -> None:
     vacf_e = vacf([traj1, traj2], time_avg=False)
@@ -93,8 +78,18 @@ def test_vacf(traj1: Trajectory, traj2: Trajectory) -> None:
     assert vacf_t[0] == pytest.approx([-3.54166667, 0.0])
     assert vacf_t[1] == pytest.approx([0.29166667, 0.0])
 
+    with pytest.raises(ValueError):
+        # Setting time_avg=True without lag
+        vacf([traj1, traj2], time_avg=True)
 
-def test_kurtosis(traj1: Trajectory, traj2: Trajectory) -> None:
+
+def test_kurtosis(traj: Trajectory, traj1: Trajectory, traj2: Trajectory) -> None:
+    r0 = kurtosis_reference([traj])
+    assert r0 == 8
+
+    r1 = kurtosis_reference([traj1, traj2])
+    assert r1 == 1.0
+
     kurt_e = kurtosis([traj1, traj2], time_avg=False)
     assert kurt_e[0] == pytest.approx([0, 1, 1, 1])
 
@@ -102,6 +97,10 @@ def test_kurtosis(traj1: Trajectory, traj2: Trajectory) -> None:
     kurt_t = kurtosis([traj1, traj2], time_avg=True, lag=lag)
     assert kurt_t[0] == pytest.approx([0, 1.5])
     assert kurt_t[1] == pytest.approx([0, 0])
+
+    with pytest.raises(ValueError):
+        # Setting time_avg=True without lag
+        kurtosis([traj1, traj2], time_avg=True)
 
 
 def test_psd(traj1: Trajectory) -> None:
@@ -184,6 +183,22 @@ def test_collect(traj: Trajectory, traj1: Trajectory) -> None:
     true_val = (traj1.r[step:] - traj1.r[:-step]) / (traj1.dt)
     assert np.allclose(traj1_v, true_val)
 
+    # Collect at parameter
+    traj1_r = collect([traj1], at=1)
+    true_r = traj1.r[traj1.t == 1]
+    assert np.allclose(traj1_r, true_r)
+
+    # Collect with at and func
+    traj1_r = collect([traj1], at=0, func=lambda vec: vec + 1)
+    true_r = traj1.r[traj1.t == 0] + 1
+    pytest.approx(traj1_r, true_r)
+
+    traj1_r = collect([traj1], lag=2.0, func=lambda vec: vec + 1)
+    pytest.approx(traj1_r, traj1.r[1:] - traj1.r[:-1] + 1)
+
     # Collect with lag and at parameters at the same time
     with pytest.raises(ValueError):
         collect([traj1], lag=2.0, at=1.5)
+
+    # Should log a warning
+    collect([traj1], at=100)
