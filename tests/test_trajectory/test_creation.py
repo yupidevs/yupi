@@ -10,16 +10,16 @@ def test_creation_by_xyz() -> None:
     Trajectory(x=[1, 2, 4], y=[2, 3, 6])
     Trajectory(x=[1, 2, 4], y=[2, 3, 6], z=[1, 4, 7])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(x=[1, 2], y=[2])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(x=[1, 2], y=[2], z=[2, 5])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(x=[1, 2], y=[2, 6], z=[5])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(x=[2], y=[2, 6], z=[5, 8])
 
 
@@ -29,16 +29,16 @@ def test_creation_by_axes() -> None:
     Trajectory(axes=[[1, 2, 1], [2, 3, 9], [1, 4, 3]])
     Trajectory(axes=[[1, 2, 5], [2, 3, 3], [1, 4, 8], [7, 8, 7]])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(axes=[[1, 2], [2]])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(axes=[[1, 2], [2], [2, 5]])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(axes=[[1, 2], [2, 6], [5]])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(axes=[[2], [2, 6], [5, 8]])
 
 
@@ -47,10 +47,10 @@ def test_creation_by_points() -> None:
     Trajectory(points=[[1, 2, 4], [2, 3, 2], [1, 4, 8], [2, 6, 8]])
     Trajectory(points=[[1, 2, 7, 3], [2, 3, 5, 3], [3, 7, 2, 1]])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(points=[[1, 2], [2]])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Trajectory(points=[[1, 2], [2], [2, 5]])
 
     with pytest.raises(ValueError):
@@ -69,9 +69,6 @@ def test_creation_with_time() -> None:
 
     with pytest.raises(ValueError):
         Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 0.1, 0.2], dt=0.2)
-
-    with pytest.raises(ValueError):
-        Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0.4, 0.5, 0.6], dt=0.1)
 
 
 def test_creation_general() -> None:

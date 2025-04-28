@@ -9,6 +9,7 @@ from typing import (
     Collection,
     Iterator,
     NamedTuple,
+    Sequence,
     cast,
 )
 
@@ -19,10 +20,10 @@ from yupi.vector import Vector
 
 _THRESHOLD = 1e-12
 
-Axis = Collection[float]
+Axis = Sequence[float] | np.ndarray
 """Represents the data for a single axis."""
 
-Point = Collection[float]
+Point = Sequence[float] | np.ndarray
 """Represents a single point."""
 
 
@@ -59,21 +60,21 @@ class Trajectory:
         Array containing position data of Y axis, by default None.
     z : Axis | None
         Array containing position data of X axis, by default None.
-    points : Collection[Point] | None
+    points : Sequence[Point] | np.ndarray | None
         Array containing position data as a list of points, by default
         None
-    axes : Collection[Axis] | None
+    axes : Sequence[Axis] | np.ndarray | None
         Array containing position data as a list of axis, by default
         None
-    t : Collection[float] | None
+    t : Sequence[float] | np.ndarray | None
         Array containing time data, by default None.
-    dt : float
+    dt : float | None
         If no time data is given this represents the time between each
         position data value.
-    t_0 : float
+    t_0 : float | None
         If no time data is given this represents the initial time value,
         by default 0.
-    traj_id : str
+    traj_id : Any
         Id of the trajectory.
     lazy : bool
         Defines if the velocity vector is not recalculated every time
@@ -124,8 +125,6 @@ class Trajectory:
     Raises
     ------
     ValueError
-        If positional data is given in more than one way.
-    ValueError
         If no positional data is given.
     ValueError
         If all the given input data (``x``, ``y``, ``z``, ``t``)
@@ -135,6 +134,9 @@ class Trajectory:
     ValueError
         If ``t`` and ``dt`` given but ``dt`` does not match ``t``
         values delta.
+    ValueError
+        if ``t`` and ``t_0`` are given but ``t_0`` is not the same as
+        the first value of ``t``.
     """
 
     general_diff_est: dict[str, Any] = {
@@ -147,74 +149,193 @@ class Trajectory:
         x: Axis | None = None,
         y: Axis | None = None,
         z: Axis | None = None,
-        points: Collection[Point] | None = None,
-        axes: Collection[Axis] | None = None,
-        t: Collection[float] | None = None,
+        points: Sequence[Point] | np.ndarray | None = None,
+        axes: Sequence[Axis] | np.ndarray | None = None,
+        t: Sequence[float] | np.ndarray | None = None,
         dt: float | None = None,
-        t_0: float = 0.0,
+        t_0: float | None = None,
         traj_id: Any = "",
         lazy: bool = False,
         diff_est: dict[str, Any] | None = None,
     ):
-        # Position data validation
-        from_xyz = x is not None
-        from_points = points is not None
-        from_axes = axes is not None
+        # Positional data
+        self.r: Vector
+        self.__init_positional_data(x=x, y=y, z=z, points=points, axes=axes)
 
-        if from_xyz + from_points + from_axes > 1:
-            raise ValueError(
-                "Positional data must come only from one way: "
-                "'xyz' data, 'points' data or 'axes' data."
-            )
+        # Time data
+        self.__t: Vector | None
+        self.__dt: float | None
+        self.t_0: float
+        self.dt_mean: float
+        self.dt_std: float
+        self.__init_time_data(t=t, dt=dt, t_0=t_0)
 
-        # Set position data
-        lengths = [len(t)] if t is not None else []
-
-        # xyz data is converted to axes
-        if from_xyz:
-            axes = [d for d in [x, y, z] if d is not None]
-
-        # Check if positional data is given
-        r = None
-        if axes is not None and len(axes) > 0:
-            lengths.extend([len(d) for d in axes])
-            r = Vector(axes, dtype=float, copy=True).T
-        elif points is not None:
-            lengths.append(len(points))
-            r = Vector(points, dtype=float, copy=True)
-        else:
-            raise ValueError("No position data were given.")
-
-        self.r: Vector = r
-
-        # Check if all the given data has the same shape
-        if lengths.count(lengths[0]) != len(lengths):
-            raise ValueError("All input arrays must have the same lenght.")
-        if len(self.r) < 2:
-            raise ValueError("The trajectory must contain at least 2 points.")
-
-        self.__dt = dt
-        self.t_0 = t_0
-        self.__t = None if t is None else Vector(t, dtype=float, copy=True)
-        self.__v: Vector | None = None
-        self.__a: Vector | None = None
+        # Other data
+        self.__v: Vector
+        self.__a: Vector
         self.traj_id = traj_id
         self.lazy = lazy
-
-        # Set time data
-        if self.__t is None:
-            self.dt_mean = dt if dt is not None else 1.0
-            self.dt_std = 0
-        else:
-            self.dt_mean = np.mean(np.array(self.__t.delta))
-            self.dt_std = np.std(np.array(self.__t.delta))
 
         # Differentiation method
         self.diff_est = Trajectory.general_diff_est.copy()
         if diff_est is not None:
             self.diff_est.update(diff_est)
 
-        # Time parameters validation
+    def __init_positional_data(
+        self,
+        x: Axis | None = None,
+        y: Axis | None = None,
+        z: Axis | None = None,
+        points: Sequence[Point] | np.ndarray | None = None,
+        axes: Sequence[Axis] | np.ndarray | None = None,
+    ) -> None:
+        """
+        Initializes the positional data from the given x, y, and z
+        coordinates or from a list of points or axes.
+
+        Parameters
+        ----------
+        x : Axis | None
+            Array containing position data of X axis.
+        y : Axis | None
+            Array containing position data of Y axis.
+        z : Axis | None
+            Array containing position data of Z axis.
+        points : Sequence[Point] | np.ndarray | None
+            Array containing position data as a list of points.
+        axes : Sequence[Axis] | np.ndarray | None
+            Array containing position data as a list of axes.
+        """
+        if x is not None:
+            self.__init_positional_data_xyz(x, y, z)
+        elif points is not None:
+            self.__init_positional_data_points(points)
+        elif axes is not None:
+            self.__init_positional_data_axes(axes)
+        else:
+            raise ValueError("No positional data were given.")
+
+        if len(self.r) < 2:
+            raise ValueError("The trajectory must contain at least 2 points.")
+
+    def __init_positional_data_xyz(
+        self,
+        x: Axis,
+        y: Axis | None = None,
+        z: Axis | None = None,
+    ) -> None:
+        """
+        Initializes the positional data from the given x, y, and z
+        coordinates.
+
+        Parameters
+        ----------
+        x : Axis
+            Array containing position data of X axis.
+        y : Axis | None
+            Array containing position data of Y axis.
+        z : Axis | None
+            Array containing position data of Z axis.
+        """
+        if y is None and z is not None:
+            raise ValueError("If 'x' and 'z' are given, 'y' must be given too.")
+
+        t_len = len(x)
+        axis = [data for data in [x, y, z] if data is not None]
+
+        if any(len(data) != t_len for data in axis):
+            raise ValueError(
+                "All positional data (x, y, and z) must have the same length. "
+            )
+
+        self.r = Vector(axis, dtype=float, copy=True).T
+
+    def __init_positional_data_points(
+        self,
+        points: Sequence[Point] | np.ndarray,
+    ) -> None:
+        """
+        Initializes the positional data from a list of points.
+
+        Parameters
+        ----------
+        points : Sequence[Point] | np.ndarray
+            Array containing position data as a list of points.
+        """
+
+        if len(points) < 2:
+            raise ValueError("The trajectory must contain at least 2 points.")
+        t_dim = len(points[0])
+        if any(len(data) != t_dim for data in points):
+            raise ValueError(
+                "All positional data (points) must have the same length (dimension). "
+            )
+        self.r = Vector(points, dtype=float, copy=True)
+
+    def __init_positional_data_axes(
+        self,
+        axes: Sequence[Axis] | np.ndarray,
+    ) -> None:
+        """
+        Initializes the positional data from a list of axes.
+
+        Parameters
+        ----------
+        axes : list[Axis] | tuple[Axis] | np.ndarray
+            List of axes containing the positional data.
+        """
+
+        t_len = len(axes[0])
+        if any(len(data) != t_len for data in axes):
+            raise ValueError("All positional data (axes) must have the same length. ")
+        self.r = Vector(axes, dtype=float, copy=True).T
+
+    def __init_time_data(
+        self,
+        t: Sequence[float] | np.ndarray | None = None,
+        dt: float | None = None,
+        t_0: float | None = None,
+    ) -> None:
+        """
+        Initializes the time data.
+
+        Parameters
+        ----------
+        t : Collection[float] | None
+            Array containing time data.
+        dt : float | None
+            If no time data is given this represents the time between
+            each position data value.
+        t_0 : float | None
+            If no time data is given this represents the initial time
+            value.
+        """
+
+        assert self.r is not None, "Positional data must be initialized first."
+
+        self.__dt = dt
+        self.__t = None if t is None else Vector(t, dtype=float, copy=True)
+
+        # Set time data
+        if self.__t is None:
+            self.dt_mean = dt if dt is not None else 1.0
+            self.dt_std = 0
+        else:
+            if len(self.__t) != len(self.r):
+                raise ValueError(
+                    "The length of the time data must be the same as "
+                    "the length of the position data."
+                )
+            if t_0 is not None and abs(self.__t[0] - t_0) > _THRESHOLD:
+                raise ValueError(
+                    "You are giving 't' and 't_0' but 't_0' is not "
+                    "the same as the first value of 't'."
+                )
+
+            self.dt_mean = np.mean(np.array(self.__t.delta))
+            self.dt_std = np.std(np.array(self.__t.delta))
+
+        # Parameters validation
         if self.__t is not None and dt is not None:
             if abs(self.dt_mean - dt) > _THRESHOLD:
                 raise ValueError(
@@ -225,11 +346,8 @@ class Trajectory:
                 raise ValueError(
                     "You are giving 'dt' and 't' but 't' is not uniformly spaced."
                 )
-            if abs(self.__t[0] - t_0) > _THRESHOLD:
-                raise ValueError(
-                    "You are giving 'dt' and 't' but 't_0' is not "
-                    "the same as the first value of 't'."
-                )
+
+        self.t_0 = t_0 if t_0 is not None else 0.0
 
     def set_diff_method(
         self,
