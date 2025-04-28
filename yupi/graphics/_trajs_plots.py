@@ -4,7 +4,7 @@ This contains spatial plotting functions for the trajectories.
 
 import itertools
 import logging
-from typing import Any, Callable, Collection, List, Optional, Union
+from typing import Any, Callable, Collection
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,9 +17,9 @@ from yupi.trajectory import Trajectory
 
 
 def plot_2d(
-    trajs: Union[List[Trajectory], Trajectory],
+    trajs: list[Trajectory] | Trajectory,
     line_style: str = LINE,
-    title: Optional[str] = None,
+    title: str | None = None,
     legend: bool = True,
     show: bool = True,
     connected: bool = False,
@@ -33,7 +33,7 @@ def plot_2d(
 
     Parameters
     ----------
-    trajs : Union[List[Trajectory], Trajectory]
+    trajs : list[Trajectory] | Trajectory
         Input trajectories.
     line_style : str
         Type of the trajectory line to plot. It uses the matplotlib,
@@ -147,9 +147,9 @@ def plot_2d(
 
 
 def plot_3d(
-    trajs: Union[List[Trajectory], Trajectory],
+    trajs: list[Trajectory] | Trajectory,
     line_style: str = LINE,
-    title: Optional[str] = None,
+    title: str | None = None,
     legend: bool = True,
     show: bool = True,
     connected: bool = False,
@@ -163,7 +163,7 @@ def plot_3d(
 
     Parameters
     ----------
-    trajs : Union[List[Trajectory], Trajectory]
+    trajs : list[Trajectory] | Trajectory
         Input trajectories.
     line_style : str
         Type of the trajectory line to plot. It uses the matplotlib,
@@ -282,12 +282,12 @@ def plot_3d(
 
 
 def plot_vs_time(
-    trajs: Union[List[Trajectory], Trajectory],
+    trajs: list[Trajectory] | Trajectory,
     key: Callable[[Trajectory], Collection[float]],
     line_style: str = LINE,
     x_units: str = "s",
-    y_label: Union[str, None] = None,
-    title: Optional[str] = None,
+    y_label: str | None = None,
+    title: str | None = None,
     legend: bool = True,
     color: Any = None,
     show: bool = True,

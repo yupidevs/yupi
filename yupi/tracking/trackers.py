@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import cv2
 import numpy as np
@@ -27,7 +27,7 @@ class ROI:
 
     Parameters
     ----------
-    size : Tuple[float, float]
+    size : tuple[float, float]
         Size of the region of interest.
 
         If both tuple's values are grater than 1 then they are rounded
@@ -124,7 +124,7 @@ class ROI:
             "init_mode={self.init_mode} scale={self.scale}"
         )
 
-    def _recenter(self, centroid: Optional[Centroid]) -> None:
+    def _recenter(self, centroid: Centroid | None) -> None:
         """
         Recenters ROI position.
 
@@ -240,9 +240,7 @@ class ROI:
         roi_initialized = False
 
         # Callback handler to manually set the roi
-        def on_click(
-            event: int, x: int, y: int, _flags: int, _param: Any | None
-        ) -> None:
+        def on_click(event: int, x: int, y: int, _flags: int, _param: Any) -> None:
             if event == cv2.EVENT_LBUTTONDOWN:
                 # Global roi center coordinates
                 self._centroid = int(x / self.scale), int(y / self.scale)
@@ -387,9 +385,9 @@ class ObjectTracker:
         Algorithm used to track the object.
     roi : ROI
         Region of interest where the object will be tracked.
-    history : List[Centroid]
+    history : list[Centroid]
         ROI's position in every frame of the video.
-    preprocessing : Optional[Callable[[np.ndarray], np.ndarray]]
+    preprocessing : Callable[[np.ndarray], np.ndarray] | None
         Preprocessing function aplied to the frame before being used by
         the algorithm.
     """
@@ -399,7 +397,7 @@ class ObjectTracker:
         name: str,
         algorithm: TrackingAlgorithm,
         roi: ROI,
-        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+        preprocessing: Callable[[np.ndarray], np.ndarray] | None = None,
     ):
         self.name = name
         self.roi = roi
@@ -455,7 +453,7 @@ class CameraTracker:
     roi : ROI
         Region of interest where the background changes will be
         detected.
-    affine_params_history : List[AffineParams]
+    affine_params_history : list[AffineParams]
         History of all the affine parameters
     """
 
@@ -480,7 +478,7 @@ class CameraTracker:
         ----------
         prev_frame, frame : np.ndarray
             Frames used to detect background movement.
-        igonerd_regions : List[Bounds]
+        igonerd_regions : list[Bounds]
             Tracked object's boundaries.
 
             Tracked object's does not form part of the background so
@@ -563,8 +561,8 @@ class TrackingScenario:
     def __init__(
         self,
         object_trackers: list[ObjectTracker],
-        camera_tracker: Optional[CameraTracker] = None,
-        undistorter: Optional[Undistorter] = None,
+        camera_tracker: CameraTracker | None = None,
+        undistorter: Undistorter | None = None,
         preview_scale: float = 1,
         auto_mode: bool = True,
     ):
@@ -585,7 +583,7 @@ class TrackingScenario:
         self.dim: tuple[int, int]
         self.prev_frame: np.ndarray
         self.first_frame: int
-        self.last_frame: Optional[int] = None
+        self.last_frame: int | None = None
 
     def _digest_video_path(self, video_path: str) -> None:
         if not Path.exists(Path(video_path)):
@@ -892,9 +890,9 @@ class TrackingScenario:
         self,
         video_path: str,
         start_frame: int = 0,
-        end_frame: Optional[int] = None,
+        end_frame: int | None = None,
         pix_per_m: int = 1,
-    ) -> tuple[bool, Optional[list[Trajectory]]]:
+    ) -> tuple[bool, list[Trajectory] | None]:
         """
         Starts the tracking process.
 
@@ -904,7 +902,7 @@ class TrackingScenario:
             Path of the video used to track the objects.
         start_frame : int, optional
             Initial frame in which starts the processing, by default 0.
-        end_frame : Optional[int]
+        end_frame : int | None
             Last frame being processed, if nothing is passed all frames
             until the end of the video will be processed, by default
             None.
@@ -918,7 +916,7 @@ class TrackingScenario:
         -------
         bool
             Whether or not the tracking process ended succefully.
-        List[Trajectory]
+        list[Trajectory]
             List of all the trajectories extracted in the tracking
             process.
         """

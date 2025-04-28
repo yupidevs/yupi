@@ -7,13 +7,8 @@ from __future__ import annotations
 from typing import (
     Any,
     Collection,
-    Dict,
     Iterator,
-    List,
     NamedTuple,
-    Optional,
-    Tuple,
-    Union,
     cast,
 )
 
@@ -58,19 +53,19 @@ class Trajectory:
 
     Parameters
     ----------
-    x : Optional[Axis]
+    x : Axis | None
         Array containing position data of X axis, by default None
-    y : Optional[Axis]
+    y : Axis | None
         Array containing position data of Y axis, by default None.
-    z : Optional[Axis]
+    z : Axis | None
         Array containing position data of X axis, by default None.
-    points : Optional[Collection[Point]]
+    points : Collection[Point] | None
         Array containing position data as a list of points, by default
         None
-    axes : Optional[Collection[Axis]]
+    axes : Collection[Axis] | None
         Array containing position data as a list of axis, by default
         None
-    t : Optional[Collection[float]]
+    t : Collection[float] | None
         Array containing time data, by default None.
     dt : float
         If no time data is given this represents the time between each
@@ -83,7 +78,7 @@ class Trajectory:
     lazy : bool
         Defines if the velocity vector is not recalculated every time
         is asked. By default False.
-    diff_est : Dict[str, Any]
+    diff_est : dict[str, Any]
         Dictionary containing the parameters for the differentiation
         estimation method used to calculate velocity.
 
@@ -142,24 +137,24 @@ class Trajectory:
         values delta.
     """
 
-    general_diff_est: Dict[str, Any] = {
+    general_diff_est: dict[str, Any] = {
         "method": diff.DiffMethod.LINEAR_DIFF,
         "window_type": diff.WindowType.FORWARD,
     }
 
     def __init__(
         self,
-        x: Optional[Axis] = None,
-        y: Optional[Axis] = None,
-        z: Optional[Axis] = None,
-        points: Optional[Collection[Point]] = None,
-        axes: Optional[Collection[Axis]] = None,
-        t: Optional[Collection[float]] = None,
-        dt: Optional[float] = None,
+        x: Axis | None = None,
+        y: Axis | None = None,
+        z: Axis | None = None,
+        points: Collection[Point] | None = None,
+        axes: Collection[Axis] | None = None,
+        t: Collection[float] | None = None,
+        dt: float | None = None,
         t_0: float = 0.0,
         traj_id: Any = "",
-        lazy: Optional[bool] = False,
-        diff_est: Optional[Dict[str, Any]] = None,
+        lazy: bool = False,
+        diff_est: dict[str, Any] | None = None,
     ):
         # Position data validation
         from_xyz = x is not None
@@ -201,8 +196,8 @@ class Trajectory:
         self.__dt = dt
         self.t_0 = t_0
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
-        self.__v: Optional[Vector] = None
-        self.__a: Optional[Vector] = None
+        self.__v: Vector | None = None
+        self.__a: Vector | None = None
         self.traj_id = traj_id
         self.lazy = lazy
 
@@ -311,7 +306,7 @@ class Trajectory:
     def __len__(self) -> int:
         return self.r.shape[0]
 
-    def __getitem__(self, index: int | slice) -> Union[Trajectory, TrajectoryPoint]:
+    def __getitem__(self, index: int | slice) -> Trajectory | TrajectoryPoint:
         if isinstance(index, int):
             # r, v, t
             data = [self.r[index], None, None]
@@ -344,8 +339,8 @@ class Trajectory:
             yield cast(TrajectoryPoint, self[i])
 
     @property
-    def bounds(self) -> List[Tuple[float, float]]:
-        """List[Tuple[float]] : List of tuples indicanting the min and
+    def bounds(self) -> list[tuple[float, float]]:
+        """list[tuple[float]] : List of tuples indicanting the min and
         max values of each dimension"""
         _bounds = []
         for dim in range(self.dim):
@@ -530,9 +525,7 @@ class Trajectory:
             diff_est=self.diff_est,
         )
 
-    def _operable_with(
-        self, other: Trajectory, threshold: Optional[float] = None
-    ) -> bool:
+    def _operable_with(self, other: Trajectory, threshold: float | None = None) -> bool:
         if self.r.shape != other.r.shape:
             return False
 

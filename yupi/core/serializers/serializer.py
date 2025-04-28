@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import abc
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yupi
 from yupi.exceptions import YupiExceptionError
@@ -77,7 +77,7 @@ class Serializer(abc.ABC):
 
     @staticmethod
     def check_save_path(
-        file_path: str | Path, overwrite: bool, extension: Optional[str]
+        file_path: str | Path, overwrite: bool, extension: str | None
     ) -> None:
         """
         Checks if the file can be saved.
@@ -88,7 +88,7 @@ class Serializer(abc.ABC):
             The path of the file to save.
         overwrite : bool
             If True, overwrites the file if it already exists.
-        extension : Optional[str]
+        extension : str | None
             If given, it checks that the file has the given extension.
         """
         _path = Path(file_path) if isinstance(file_path, str) else file_path
@@ -103,7 +103,7 @@ class Serializer(abc.ABC):
         _path.parent.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
-    def check_load_path(file_path: str | Path, extension: Optional[str]) -> None:
+    def check_load_path(file_path: str | Path, extension: str | None) -> None:
         """
         Checks if the file can be loaded.
 
@@ -111,7 +111,7 @@ class Serializer(abc.ABC):
         ----------
         file_path : str | Path
             The path of the file to loaded.
-        extension : Optional[str]
+        extension : str | None
             If given, it checks that the file has the given extension.
         """
         _path = Path(file_path) if isinstance(file_path, str) else file_path

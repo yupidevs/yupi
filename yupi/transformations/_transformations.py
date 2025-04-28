@@ -1,5 +1,3 @@
-from typing import Optional, Tuple
-
 import numpy as np
 
 from yupi.trajectory import Trajectory
@@ -8,7 +6,7 @@ from yupi.transformations._affine_estimator import _affine_matrix
 
 def _affine2camera(
     theta: np.ndarray, t_x: np.ndarray, t_y: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     x_cam2lab, y_cam2lab, theta_cam2lab = np.zeros((3, theta.shape[0] + 1))
     theta_cam2lab[1:] = np.cumsum(theta)
 
@@ -28,7 +26,7 @@ def _camera2obj(
     x_cam2lab: np.ndarray,
     y_cam2lab: np.ndarray,
     theta_cam2lab: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     x_obj2lab, y_obj2lab = np.empty((2, x_obj2cam.size))
 
     for i in range(x_obj2cam.size):
@@ -47,7 +45,7 @@ def _affine2obj(
     t_y: np.ndarray,
     x_obj2cam: np.ndarray,
     y_obj2cam: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     x_cam2lab, y_cam2lab, theta_cam2lab = _affine2camera(theta, t_x, t_y)
     x_obj2lab, y_obj2lab = _camera2obj(
         x_obj2cam, y_obj2cam, x_cam2lab, y_cam2lab, theta_cam2lab
@@ -57,9 +55,9 @@ def _affine2obj(
 
 def add_moving_FoR(  # noqa: N802 Frame of Reference
     traj: Trajectory,
-    reference: Tuple[np.ndarray, np.ndarray, np.ndarray],
+    reference: tuple[np.ndarray, np.ndarray, np.ndarray],
     start_at_origin: bool = True,
-    new_traj_id: Optional[str] = None,
+    new_traj_id: str | None = None,
 ) -> Trajectory:
     """
     This function fuses the information of a trajectory with an
@@ -73,7 +71,7 @@ def add_moving_FoR(  # noqa: N802 Frame of Reference
     ----------
     traj : Trajectory
         Input trajectory.
-    reference : Tuple[np.ndarray,np.ndarray,np.ndarray]
+    reference : tuple[np.ndarray,np.ndarray,np.ndarray]
         Angular and translational parameters of the form
         ``(ang:np.ndarray, tx:np.ndarray, ty:np.ndarray)`` that
         accounts for the orientation and displacement of the reference.

@@ -3,13 +3,12 @@ This contains all the affine estimator related functions.
 """
 
 import logging
-from typing import Optional, Tuple
 
 import cv2
 import nudged
 import numpy as np
 
-AffineParams = Tuple[float, float, float, float]
+AffineParams = tuple[float, float, float, float]
 """Affine params: theta, t_x, t_y, scale."""
 
 # ShiTomasi corner detection
@@ -47,7 +46,7 @@ def _affine_matrix(
 
 def _estimate_params(
     p_1: np.ndarray, p_2: np.ndarray
-) -> Tuple[float, float, float, float]:
+) -> tuple[float, float, float, float]:
     transf = nudged.estimate(p_1, p_2)
     t_x, t_y = transf.get_translation()
     theta, scale = transf.get_rotation(), transf.get_scale()
@@ -80,9 +79,9 @@ def _get_mask_r(r: np.ndarray, quantile: float = 1.5) -> np.ndarray:
 def _delete_far_points(
     p_1: np.ndarray,
     p_2: np.ndarray,
-    p_3: Optional[np.ndarray] = None,
+    p_3: np.ndarray | None = None,
     quantile: float = 1.5,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     # Distance amoung p1 and p2, or p2 and p3
     r = _get_r(p_1, p_2) if p_3 is None else _get_r(p_2, p_3)
     # Mask that filters outliers for a given quantile value
@@ -95,9 +94,9 @@ def _delete_far_points(
 def _estimate_matrix(
     p_1: np.ndarray,
     p_2: np.ndarray,
-    quantile1: Optional[float] = None,
-    quantile2: Optional[float] = None,
-) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray], AffineParams]:
+    quantile1: float | None = None,
+    quantile2: float | None = None,
+) -> tuple[tuple[np.ndarray, np.ndarray, np.ndarray], AffineParams]:
     # Validate tracked features deletting outliers
     if quantile1 is not None:
         p_1, p_2 = _delete_far_points(p_1, p_2, quantile=quantile1)
@@ -124,9 +123,9 @@ def _get_rmse(p_2: np.ndarray, p_3: np.ndarray) -> float:
 def _get_affine(
     img1: np.ndarray,
     img2: np.ndarray,
-    region: Tuple[int, int, int, int],
-    mask: Optional[np.ndarray] = None,
-) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray], AffineParams, Optional[float]]:
+    region: tuple[int, int, int, int],
+    mask: np.ndarray | None = None,
+) -> tuple[tuple[np.ndarray, np.ndarray, np.ndarray], AffineParams, float | None]:
     x_0, x_f, y_0, y_f = region
 
     # Get main regions

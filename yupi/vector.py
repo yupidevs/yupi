@@ -4,7 +4,7 @@ This contains the Vector structure used across the library to store data.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 from numpy.linalg import norm as nrm
@@ -18,7 +18,7 @@ class Vector(np.ndarray):
     def __new__(
         cls: type[Vector],
         arr: Any,
-        dtype: Optional[Any] = None,
+        dtype: Any = None,
         copy: bool = False,
     ) -> Vector:
         try:
@@ -50,7 +50,7 @@ class Vector(np.ndarray):
         return super().__imul__(other).view(Vector)
 
     @property
-    def norm(self) -> Union[Vector, float]:
+    def norm(self) -> Vector | float:
         """Vector : Calculates the norm of the vector. If the vector
         is alist of vectors then the norm of each item is calculated"""
         if len(self.shape) < 2:

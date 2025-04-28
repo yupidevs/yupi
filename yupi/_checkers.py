@@ -4,7 +4,7 @@ the trajectories according to different criteria.
 """
 
 from functools import wraps
-from typing import Any, Callable, List, TypeVar
+from typing import Any, Callable, TypeVar
 
 import numpy as np
 
@@ -64,7 +64,7 @@ def check_uniform_time_spaced(func: Callable[..., T]) -> Callable[..., T]:
     """Check that the trajectories are uniformly time-spaced."""
 
     @wraps(func)
-    def wrapper(trajs: List[Trajectory], *args: Any, **kwargs: Any) -> T:
+    def wrapper(trajs: list[Trajectory], *args: Any, **kwargs: Any) -> T:
         first_non_uniform_time_spaced = next(
             (t for t in trajs if abs(t.dt_std) > _THRESHOLD), None
         )
@@ -79,7 +79,7 @@ def check_same_dt(func: Callable[..., T]) -> Callable[..., T]:
     """Check that the trajectories have the same dt."""
 
     @wraps(func)
-    def wrapper(trajs: List[Trajectory], *args: Any, **kwargs: Any) -> T:
+    def wrapper(trajs: list[Trajectory], *args: Any, **kwargs: Any) -> T:
         dt = trajs[0].dt
         first_unequal_dt = next((t for t in trajs if abs(t.dt - dt) > _THRESHOLD), None)
         if first_unequal_dt is not None:
@@ -93,7 +93,7 @@ def check_same_dim(func: Callable[..., T]) -> Callable[..., T]:
     """Check that the trajectories have the same dimension."""
 
     @wraps(func)
-    def wrapper(trajs: List[Trajectory], *args: Any, **kwargs: Any) -> T:
+    def wrapper(trajs: list[Trajectory], *args: Any, **kwargs: Any) -> T:
         dim = trajs[0].dim
         first_unequal_dim = next((t for t in trajs if t.dim != dim), None)
         if first_unequal_dim is not None:
@@ -116,7 +116,7 @@ def check_exact_dim(dim: int) -> Callable[[Callable[..., T]], Callable[..., T]]:
     def _check_exact_dim_decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         def wrapper(
-            trajs: List[Trajectory], *args: Any, dim: int = dim, **kwargs: Any
+            trajs: list[Trajectory], *args: Any, dim: int = dim, **kwargs: Any
         ) -> T:
             first_unequal_dim = next((t for t in trajs if t.dim != dim), None)
             if first_unequal_dim is not None:
@@ -132,7 +132,7 @@ def check_same_length(func: Callable[..., T]) -> Callable[..., T]:
     """Check that the trajectories have the same lenght."""
 
     @wraps(func)
-    def wrapper(trajs: List[Trajectory], *args: Any, **kwargs: Any) -> T:
+    def wrapper(trajs: list[Trajectory], *args: Any, **kwargs: Any) -> T:
         if trajs:
             length = len(trajs[0])
             first_unequal_length = next((t for t in trajs if len(t) != length), None)
@@ -148,7 +148,7 @@ def check_same_t(func: Callable[..., T]) -> Callable[..., T]:
 
     @wraps(func)
     @check_same_length
-    def wrapper(trajs: List[Trajectory], *args: Any, **kwargs: Any) -> T:
+    def wrapper(trajs: list[Trajectory], *args: Any, **kwargs: Any) -> T:
         if trajs:
             time_vec = trajs[0].t
             first_unequal_t = next(

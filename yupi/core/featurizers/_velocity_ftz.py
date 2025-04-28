@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 
 from yupi.core.featurizers.featurizer import (
@@ -40,7 +38,7 @@ class VelocityStopRateFeaturizer(Featurizer):
     def count(self) -> int:
         return 1
 
-    def featurize(self, trajs: List[Trajectory]) -> np.ndarray:
+    def featurize(self, trajs: list[Trajectory]) -> np.ndarray:
         feats = np.empty((len(trajs), self.count))
         for i, traj in enumerate(trajs):
             vel = traj.v.norm
@@ -69,7 +67,7 @@ class VelocityChangeRateFeaturizer(Featurizer):
     def count(self) -> int:
         return 1
 
-    def featurize(self, trajs: List[Trajectory]) -> np.ndarray:
+    def featurize(self, trajs: list[Trajectory]) -> np.ndarray:
         feats = np.empty((len(trajs), self.count))
         for i, traj in enumerate(trajs):
             vel = traj.v.norm

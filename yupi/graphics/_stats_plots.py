@@ -3,7 +3,7 @@ This contains the plotting functions of the statistical observables.
 """
 
 import itertools
-from typing import Any, List, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -55,8 +55,8 @@ def plot_hist(values: np.ndarray, **kwargs: Any) -> Axes:
 @_plot_basic_properties
 def plot_hists(
     values_list: list[np.ndarray],
-    kwargs_list: Optional[List[dict]] = None,
-    labels: Optional[List[str]] = None,
+    kwargs_list: list[dict] | None = None,
+    labels: list[str] | None = None,
     filled: bool = False,
     **general_kwargs: Any,
 ) -> Axes:
@@ -65,14 +65,14 @@ def plot_hists(
 
     Parameters
     ----------
-    values_list : List[np.ndarray]
+    values_list : list[np.ndarray]
         Collection of values.
-    kwargs_list : Optional[List[dict]]
+    kwargs_list : list[dict] | None
         kwargs of each plot, by default []
 
         If given, the length must be the same as the length of
         ``values``.
-    labels : Optional[List[str]]
+    labels : list[str] | None
         Labels of each plot, by default None
     filled : bool
         If True, the histogram is filled. By default False.
@@ -271,9 +271,9 @@ def plot_msd(
 
 def plot_kurtosis(
     kurtosis: np.ndarray,
-    dt: Optional[float] = None,
-    t_array: Optional[np.ndarray] = None,
-    kurtosis_ref: Optional[float] = None,
+    dt: float | None = None,
+    t_array: np.ndarray | None = None,
+    kurtosis_ref: float | None = None,
     units: str = "s",
     show: bool = True,
     ref_color: Any = LIGHT_GREEN,
@@ -408,7 +408,7 @@ def plot_vacf(
 def plot_psd(
     psd_mean: np.ndarray,
     frec: np.ndarray,
-    psd_std: Optional[np.ndarray] = None,
+    psd_std: np.ndarray | None = None,
     omega: bool = True,
     show: bool = True,
     **kwargs: Any,

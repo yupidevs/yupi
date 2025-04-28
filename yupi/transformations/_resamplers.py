@@ -2,7 +2,7 @@
 This constains resampling functions for trajectories.
 """
 
-from typing import Collection, List, Optional
+from typing import Collection
 
 import numpy as np
 
@@ -46,9 +46,9 @@ def _interpolate_axis(
 
 def resample(
     traj: Trajectory,
-    new_dt: Optional[float] = None,
-    new_t: Optional[Collection[float]] = None,
-    new_traj_id: Optional[str] = None,
+    new_dt: float | None = None,
+    new_t: Collection[float] | None = None,
+    new_traj_id: str | None = None,
     order: int = 1,
 ) -> Trajectory:
     """
@@ -60,11 +60,11 @@ def resample(
     ----------
     traj : Trajectory
         Input trajectory.
-    new_dt: Optional[float]
+    new_dt: float | None
         New dt. By default None.
-    new_t: Optional[Collection[float]]
+    new_t: Collection[float] | None
         New sample rate or array of time. By default None.
-    new_traj_id : Optional[str]
+    new_traj_id : str | None
         New trajectory ID. By default None.
     order : int, optional
         How many points to use for the interpolation of each value. By default 2.
@@ -94,7 +94,7 @@ def resample(
         if new_dt is not None
         else np.array(new_t)
     )
-    new_dims: List[Collection[float]] = []
+    new_dims: list[Collection[float]] = []
     old_t = traj.t
 
     for dim in range(traj.dim):
@@ -118,7 +118,7 @@ def resample(
 
 
 def subsample(
-    traj: Trajectory, step: int = 1, new_traj_id: Optional[str] = None
+    traj: Trajectory, step: int = 1, new_traj_id: str | None = None
 ) -> Trajectory:
     """
     Sample the trajectory ``traj`` by removing evenly spaced
@@ -130,7 +130,7 @@ def subsample(
         Input trajectory.
     step : int, optional
         Number of sample points or period. By default 1.
-    new_traj_id : Optional[str]
+    new_traj_id : str | None
         New trajectory ID. By default None.
 
     Returns

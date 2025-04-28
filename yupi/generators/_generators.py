@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Callable, Collection, Optional, Tuple
+from typing import Any, Callable, Collection
 
 import numpy as np
 
@@ -51,7 +51,7 @@ class Generator(metaclass=abc.ABCMeta):
         dim: int = 1,
         N: int = 1,
         dt: float = 1.0,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ):
         # Simulation parameters
         self.T = T  # Total time
@@ -91,7 +91,7 @@ class RandomWalkGenerator(Generator):
         to be taken, according to every axis. If this parameter is not
         passed the walker will assume uniform probability for each
         action, by default None.
-    step_length_func : Callable[[Tuple], np.ndarray], optional
+    step_length_func : Callable[[tuple], np.ndarray], optional
         Function that returns the distribution of step lengths that
         will be taken by the walker on each time step, dimension and
         instance of a trajectory. Expected shape of the return value is
@@ -108,8 +108,8 @@ class RandomWalkGenerator(Generator):
         N: int = 1,
         dt: float = 1,
         actions_prob: np.ndarray | list[list[float]] | None = None,
-        step_length_func: Callable[[Tuple], np.ndarray] = np.ones,
-        seed: Optional[int] = None,
+        step_length_func: Callable[[tuple], np.ndarray] = np.ones,
+        seed: int | None = None,
         **step_length_kwargs: Any,
     ) -> None:
         super().__init__(T, dim, N, dt, seed)
@@ -196,7 +196,7 @@ class _LangevinGenerator(Generator):
         sigma: float = 1.0,
         v0: InitialPosition | None = None,
         r0: InitialVelocity | None = None,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ):
         super().__init__(T, dim, N, dt, seed)
 
@@ -316,15 +316,15 @@ class LangevinGenerator(_LangevinGenerator):
         Drag parameter or inverse of the persistence time, by default 1.
     sigma : float, optional
         Noise intensity (i.e., scale parameter of noise pdf), by default 1.
-    bounds: Optional[np.ndarray]
+    bounds: np.ndarray | None
         Lower and upper reflecting boundaries that confine the trajectories.
         Must have shape (2, dim). The first row contains the lower
         boundaries and the second row contains the upper boundaries.
         If None is passed, trajectories are simulated in a free space.
         By default None.
-    bounds_extent: Optional[np.ndarray]
+    bounds_extent: np.ndarray | None
         Decay length of boundary forces, by default None.
-    bounds_strength: Optional[np.ndarray]
+    bounds_strength: np.ndarray | None
         Boundaries strength, by default None.
     v0 : Collection[float] | float | None
         Initial velocities, by default None.
@@ -344,12 +344,12 @@ class LangevinGenerator(_LangevinGenerator):
         dt: float = 1.0,
         gamma: float = 1.0,
         sigma: float = 1.0,
-        bounds: Optional[np.ndarray] = None,
-        bounds_extent: Optional[np.ndarray] = None,
-        bounds_strength: Optional[np.ndarray] = None,
+        bounds: np.ndarray | None = None,
+        bounds_extent: np.ndarray | None = None,
+        bounds_strength: np.ndarray | None = None,
         v0: InitialVelocity | None = None,
         r0: InitialPosition | None = None,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ):
         super().__init__(T, dim, N, dt, gamma, sigma, v0, r0, seed)
 
@@ -483,7 +483,7 @@ class _DiffDiffGenerator(Generator):
         sigma: float = 1.0,
         dim_aux: int = 1,
         r0: InitialPosition | None = None,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ):
         super().__init__(T, dim, N, dt, seed)
 
@@ -588,15 +588,15 @@ class DiffDiffGenerator(_DiffDiffGenerator):
     dim_aux: int, optional
         Dimension of the auxiliary process, which is the square of
         the diffusivity, by default 1.
-    bounds: Optional[np.ndarray]
+    bounds: np.ndarray | None
         Lower and upper reflecting boundaries that confine the trajectories.
         Must have shape (2, dim). The first row contains the lower
         boundaries and the second row contains the upper boundaries.
         If None is passed, trajectories are simulated in a free space.
         By default None.
-    bounds_extent: Optional[np.ndarray]
+    bounds_extent: np.ndarray | None
         Decay length of boundary forces, by default None.
-    bounds_strength: Optional[np.ndarray]
+    bounds_strength: np.ndarray | None
         Boundaries strength, by default None.
     r0 :
         Initial positions, by default None.
@@ -611,11 +611,11 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         tau: float = 1.0,
         sigma: float = 1.0,
         dim_aux: int = 1,
-        bounds: Optional[np.ndarray] = None,
-        bounds_extent: Optional[np.ndarray] = None,
-        bounds_strength: Optional[np.ndarray] = None,
+        bounds: np.ndarray | None = None,
+        bounds_extent: np.ndarray | None = None,
+        bounds_strength: np.ndarray | None = None,
         r0: InitialPosition | None = None,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ):
         super().__init__(T, dim, N, dt, tau, sigma, dim_aux, r0, seed)
 

@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 import pytest
 
@@ -12,7 +10,7 @@ class SimpleSpacialFeaturizer(Featurizer):
     def count(self) -> int:
         return 2
 
-    def featurize(self, trajs: List[Trajectory]) -> np.ndarray:
+    def featurize(self, trajs: list[Trajectory]) -> np.ndarray:
         feats = np.empty((len(trajs), self.count))
         for i, traj in enumerate(trajs):
             feats[i, 0] = float(np.sum(traj.r.delta.norm))  # distance
@@ -25,7 +23,7 @@ class ComplexSpacialFeaturizer(Featurizer):
     def count(self) -> int:
         return 4
 
-    def featurize(self, trajs: List[Trajectory]) -> np.ndarray:
+    def featurize(self, trajs: list[Trajectory]) -> np.ndarray:
         feats = np.empty((len(trajs), self.count))
         for i, traj in enumerate(trajs):
             feats[i, 0] = float(np.mean(traj.r.delta.norm))  # jump distance average

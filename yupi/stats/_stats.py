@@ -5,7 +5,7 @@ This contains all the statistical functions.
 # pylint: disable=too-many-arguments
 
 import logging
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable
 
 import numpy as np
 
@@ -22,11 +22,11 @@ from yupi.vector import Vector
 
 
 def collect_at_step(
-    trajs: List[Trajectory],
+    trajs: list[Trajectory],
     step: int,
     warnings: bool = True,
     velocity: bool = False,
-    func: Optional[Callable[[Vector], Vector]] = None,
+    func: Callable[[Vector], Vector] | None = None,
 ) -> np.ndarray:
     """
     Collects the positional data (or velocity) of each trajectory at a given
@@ -34,7 +34,7 @@ def collect_at_step(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         List of trajectories.
     step : int
         Index of the collected vector of each trajectory.
@@ -43,7 +43,7 @@ def collect_at_step(
         True.
     velocity : bool
         If True, the velocity of the trajectory is used, by default False.
-    func : Optional[Callable[[Vector], Vector]]
+    func : Callable[[Vector], Vector] | None
         Function to apply to the collected vector of each trajectory.
         By default, the identity function.
 
@@ -60,11 +60,11 @@ def collect_at_step(
 
 
 def collect_at_time(
-    trajs: List[Trajectory],
+    trajs: list[Trajectory],
     time: float,
     warnings: bool = True,
     velocity: bool = False,
-    func: Optional[Callable[[Vector], Vector]] = None,
+    func: Callable[[Vector], Vector] | None = None,
 ) -> np.ndarray:
     """
     Collects the positional data (or velocity) of each trajectory at a given
@@ -72,7 +72,7 @@ def collect_at_time(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         List of trajectories.
     time : float
         Time of the collected vector of each trajectory.
@@ -83,7 +83,7 @@ def collect_at_time(
         True.
     velocity : bool
         If True, the velocity of the trajectory is used, by default False.
-    func : Optional[Callable[[Vector], Vector]]
+    func : Callable[[Vector], Vector] | None
         Function to apply to the collected vector of each trajectory.
         By default, the identity function.
 
@@ -102,12 +102,12 @@ def collect_at_time(
 
 
 def collect_step_lagged(
-    trajs: List[Trajectory],
+    trajs: list[Trajectory],
     step: int,
     warnings: bool = True,
     velocity: bool = False,
     concat: bool = True,
-    func: Optional[Callable[[Vector], Vector]] = None,
+    func: Callable[[Vector], Vector] | None = None,
 ) -> np.ndarray:
     """
     Collects the positional data (or velocity) of each trajectory lagged by a
@@ -115,7 +115,7 @@ def collect_step_lagged(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         List of trajectories.
     step : int
         Number of steps to lag.
@@ -126,7 +126,7 @@ def collect_step_lagged(
         If True, the velocity of the trajectory is used, by default False.
     concat : bool
         If True, the data is concatenated, by default True.
-    func : Optional[Callable[[Vector], Vector]]
+    func : Callable[[Vector], Vector] | None
         Function to apply to the collected vector of each trajectory.
         By default, the identity function.
 
@@ -150,12 +150,12 @@ def collect_step_lagged(
 
 
 def collect_time_lagged(
-    trajs: List[Trajectory],
+    trajs: list[Trajectory],
     time: float,
     warnings: bool = True,
     velocity: bool = False,
     concat: bool = True,
-    func: Optional[Callable[[Vector], Vector]] = None,
+    func: Callable[[Vector], Vector] | None = None,
 ) -> np.ndarray:
     """
     Collects the positional data (or velocity) of each trajectory lagged by a
@@ -163,7 +163,7 @@ def collect_time_lagged(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         List of trajectories.
     time : float
         Time to lag.
@@ -174,7 +174,7 @@ def collect_time_lagged(
         If True, the velocity of the trajectory is used, by default False.
     concat : bool
         If True, the data is concatenated, by default True.
-    func : Optional[Callable[[Vector], Vector]]
+    func : Callable[[Vector], Vector] | None
         Function to apply to the collected vector of each trajectory.
         By default, the identity function.
 
@@ -198,13 +198,13 @@ def collect_time_lagged(
 
 
 def collect(
-    trajs: List[Trajectory],
-    lag: Optional[Union[int, float]] = None,
+    trajs: list[Trajectory],
+    lag: int | float | None = None,
     concat: bool = True,
     warnings: bool = True,
     velocity: bool = False,
-    func: Optional[Callable[[Vector], Vector]] = None,
-    at: Optional[Union[int, float]] = None,  # pylint: disable=invalid-name
+    func: Callable[[Vector], Vector] | None = None,
+    at: int | float | None = None,  # pylint: disable=invalid-name
 ) -> np.ndarray:
     """
     Collect general function.
@@ -217,9 +217,9 @@ def collect(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Group of trajectories.
-    lag : Optional[Union[int, float]]
+    lag : int | float | None
         If int, the number of samples to lag. If float, the time to lag.
     concat : bool, optional
         If true each trajectory stracted data will be concatenated in
@@ -230,9 +230,9 @@ def collect(
     velocity : bool, optional
         If true, the velocity will be returned (calculated using the
         lag if given), by default False.
-    func : Optional[Callable[[Vector], Vector]]
+    func : Callable[[Vector], Vector] | None
         Function to apply to each resulting vector, by default None.
-    at : Optional[Union[int, float]]
+    at : int | float | None
         If int, the index of the collected vector in the trajectory. If
         float, it is taken as time and the index is calculated using
         the trajectory's dt.
@@ -309,7 +309,7 @@ def collect(
 @check_exact_dim(2)
 @check_uniform_time_spaced
 def turning_angles_ensemble(
-    trajs: List[Trajectory],
+    trajs: list[Trajectory],
     accumulate: bool = False,
     degrees: bool = False,
     centered: bool = False,
@@ -321,7 +321,7 @@ def turning_angles_ensemble(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     accumulate : bool, optional
         If True, turning angles are measured with respect to an axis
@@ -349,7 +349,7 @@ def turning_angles_ensemble(
 
 
 @check_same_dim
-def speed_ensemble(trajs: List[Trajectory], step: int = 1) -> np.ndarray:
+def speed_ensemble(trajs: list[Trajectory], step: int = 1) -> np.ndarray:
     """
     Estimate speeds of the list of trajectories, ``trajs``,
     by computing displacements according to a certain sample
@@ -357,7 +357,7 @@ def speed_ensemble(trajs: List[Trajectory], step: int = 1) -> np.ndarray:
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     step : int
         Numer of sample points.
@@ -373,7 +373,7 @@ def speed_ensemble(trajs: List[Trajectory], step: int = 1) -> np.ndarray:
 
 
 @check_same_t
-def msd_ensemble(trajs: List[Trajectory]) -> np.ndarray:
+def msd_ensemble(trajs: list[Trajectory]) -> np.ndarray:
     """
     Compute the square displacements for every Trajectory object
     stored in ``trajs`` as the square of the current position vector
@@ -383,7 +383,7 @@ def msd_ensemble(trajs: List[Trajectory]) -> np.ndarray:
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
 
     Returns
@@ -410,7 +410,7 @@ def msd_ensemble(trajs: List[Trajectory]) -> np.ndarray:
 
 @check_same_dt
 @check_uniform_time_spaced
-def msd_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
+def msd_time(trajs: list[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the mean square displacement for every Trajectory
     object stored in ``trajs`` as the average of the square of
@@ -421,7 +421,7 @@ def msd_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     lag : int
         Number of steps that multiplied by ``dt`` defines the lag
@@ -458,8 +458,8 @@ def msd_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
 
 @check_same_dim
 def msd(
-    trajs: List[Trajectory], time_avg: bool = True, lag: Optional[int] = None
-) -> Tuple[np.ndarray, np.ndarray]:
+    trajs: list[Trajectory], time_avg: bool = True, lag: int | None = None
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Estimate the mean square displacement of the list of Trajectory
     objects, ``trajs``, providing the options of averaging over the
@@ -467,14 +467,14 @@ def msd(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     time_avg : bool, optional
         If True, mean square displacement is estimated averaging over
         time. Otherwise, an ensemble average will be performed and all
         Trajectory objects will have to have the same length. By default
         True.
-    lag : Optional[int]
+    lag : int | None
         If None, ``time_avg`` should be set to ``False`` indicating
         ensemble average. Otherwise, ``lag`` is taken as the number
         of steps that multiplied by ``dt`` defines the lag time. By
@@ -482,7 +482,7 @@ def msd(
 
     Returns
     -------
-    Tuple[np.ndarray, np.ndarray]
+    tuple[np.ndarray, np.ndarray]
         Tuple containing the array of mean square displacements and
         the array of standard deviations.
     """
@@ -500,14 +500,14 @@ def msd(
 
 
 @check_same_t
-def vacf_ensemble(trajs: List[Trajectory]) -> np.ndarray:
+def vacf_ensemble(trajs: list[Trajectory]) -> np.ndarray:
     """
     Compute the pair-wise dot product between initial and current
     velocity vectors for every Trajectory object stored in ``trajs``.
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
 
     Returns
@@ -535,7 +535,7 @@ def vacf_ensemble(trajs: List[Trajectory]) -> np.ndarray:
 
 @check_same_dt
 @check_uniform_time_spaced
-def vacf_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
+def vacf_time(trajs: list[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the velocity autocorrelation function for every
     Trajectory object stored in ``trajs`` as the average of the
@@ -547,7 +547,7 @@ def vacf_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     lag : int
         Number of steps that multiplied by ``dt`` defines the lag
@@ -587,8 +587,8 @@ def vacf_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
 
 @check_same_dim
 def vacf(
-    trajs: List[Trajectory], time_avg: bool = True, lag: Optional[int] = None
-) -> Tuple[np.ndarray, np.ndarray]:
+    trajs: list[Trajectory], time_avg: bool = True, lag: int | None = None
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Estimate the velocity autocorrelation function of the list of
     Trajectory objects, ``trajs``, providing the options of averaging
@@ -596,14 +596,14 @@ def vacf(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     time_avg : bool, optional
         If True, velocity autocorrelation function is estimated
         averaging over time. Otherwise, an ensemble average will be
         performed and all Trajectory objects will have to have the
         same length. By default True.
-    lag : Optional[int]
+    lag : int | None
         If None, ``time_avg`` should be set to ``False`` indicating
         ensemble average. Otherwise, ``lag`` is taken as the number
         of steps that multiplied by ``dt`` defines the lag time.
@@ -611,7 +611,7 @@ def vacf(
 
     Returns
     -------
-    Tuple[np.ndarray, np.ndarray]
+    tuple[np.ndarray, np.ndarray]
         Tuple containing the array of velocity autocorrelation function
         and the array of standard deviations.
     """
@@ -687,14 +687,14 @@ def _kurtosis(arr: np.ndarray) -> float:
 
 
 @check_same_t
-def kurtosis_ensemble(trajs: List[Trajectory]) -> np.ndarray:
+def kurtosis_ensemble(trajs: list[Trajectory]) -> np.ndarray:
     """Estimate kurtosis as a function of time of the
     list of Trajectory objects, ``trajs``. The average
     is perform over the ensemble of realizations.
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
 
     Returns
@@ -718,14 +718,14 @@ def kurtosis_ensemble(trajs: List[Trajectory]) -> np.ndarray:
 
 @check_same_dt
 @check_uniform_time_spaced
-def kurtosis_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
+def kurtosis_time(trajs: list[Trajectory], lag: int) -> np.ndarray:
     """
     Estimate the kurtosis for every Trajectory object stored
     in ``trajs``.
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     lag : int
         Number of steps that multiplied by ``dt`` defines the lag
@@ -754,8 +754,8 @@ def kurtosis_time(trajs: List[Trajectory], lag: int) -> np.ndarray:
 
 @check_same_dim
 def kurtosis(
-    trajs: List[Trajectory], time_avg: bool = True, lag: Optional[int] = None
-) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+    trajs: list[Trajectory], time_avg: bool = True, lag: int | None = None
+) -> tuple[np.ndarray, np.ndarray | None]:
     """
     Estimate the kurtosis of the list of Trajectory objects, ``trajs``,
     providing the options of averaging over the ensemble of realizations
@@ -763,13 +763,13 @@ def kurtosis(
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     time_avg : bool, optional
         If True, kurtosis is estimated averaging over time. Otherwise,
         an ensemble average will be performed and all Trajectory objects
         will have to have the same length. By default True.
-    lag : Optional[int]
+    lag : int | None
         If None, ``time_avg`` should be set to ``False`` indicating
         ensemble average. Otherwise, ``lag`` is taken as the number
         of steps that multiplied by ``dt`` defines the lag time.
@@ -777,7 +777,7 @@ def kurtosis(
 
     Returns
     -------
-    Tuple[np.ndarray, Optional[np.ndarray]]
+    tuple[np.ndarray, np.ndarray] | None
         Tuple containgin the kurtosis and the standar deviations.
     """
 
@@ -793,14 +793,14 @@ def kurtosis(
 
 
 @check_same_dim
-def kurtosis_reference(trajs: List[Trajectory]) -> float:
+def kurtosis_reference(trajs: list[Trajectory]) -> float:
     """Get the sampled kurtosis for the case of
     ``len(trajs)`` trajectories whose position
     vectors are normally distributed.
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input trajectories.
 
     Returns
@@ -820,15 +820,15 @@ def kurtosis_reference(trajs: List[Trajectory]) -> float:
 @check_same_dt
 @check_uniform_time_spaced
 def psd(
-    trajs: List[Trajectory], lag: int, omega: bool = True
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    trajs: list[Trajectory], lag: int, omega: bool = True
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Estimate the power spectral density of a list of Trajectory object
     as the Fourier transform of its velocity autocorrelation function.
 
     Parameters
     ----------
-    trajs : List[Trajectory]
+    trajs : list[Trajectory]
         Input list of trajectories.
     lag : int
         Number of steps that multiplied by ``dt`` defines the lag

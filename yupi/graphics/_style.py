@@ -3,7 +3,7 @@ This contains styling utilities for the library plots.
 """
 
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -52,10 +52,10 @@ def _plot_basic_properties(func: Callable) -> Callable:
         grid: bool = False,
         show: bool = True,
         legend: bool = False,
-        xscale: Optional[str] = None,
-        yscale: Optional[str] = None,
-        xlim: Optional[tuple] = None,
-        ylim: Optional[tuple] = None,
+        xscale: str | None = None,
+        yscale: str | None = None,
+        xlim: tuple | None = None,
+        ylim: tuple | None = None,
         **kwargs: Any,
     ) -> Axes | PolarAxes:
         ax = func(*args, **kwargs)

@@ -4,7 +4,7 @@ of a trajectory.
 """
 
 import enum
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -30,7 +30,7 @@ class WindowType(enum.Enum):
 
 
 def _get_coeff(
-    x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None, M: int = 2
+    x_0: float, a: np.ndarray, coeff_arr: np.ndarray | None = None, M: int = 2
 ) -> np.ndarray:
     # The variables where named as in the original algorithm.
 

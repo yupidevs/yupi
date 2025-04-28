@@ -4,7 +4,7 @@ JSON trajctory serializer.
 
 import json
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 import yupi._differentiation as diff
 from yupi.core.serializers.serializer import Serializer
@@ -48,7 +48,7 @@ class JSONSerializer(Serializer):
 
     @staticmethod
     def save_ensemble(
-        trajs: List[Trajectory],
+        trajs: list[Trajectory],
         file_path: str | Path,
         overwrite: bool = False,
         **kwargs: Any,
@@ -61,7 +61,7 @@ class JSONSerializer(Serializer):
 
         Parameters
         ----------
-        trajs : List[Trajectory]
+        trajs : list[Trajectory]
             The ensemble to write to the file.
         file_path : str | Path
             The path of the file to write.
@@ -115,7 +115,7 @@ class JSONSerializer(Serializer):
             return JSONSerializer.from_json(data)
 
     @staticmethod
-    def load_ensemble(file_path: str | Path, **kwargs: Any) -> List[Trajectory]:
+    def load_ensemble(file_path: str | Path, **kwargs: Any) -> list[Trajectory]:
         """
         Loads an ensemble from a file.
 
@@ -133,7 +133,7 @@ class JSONSerializer(Serializer):
 
         Returns
         -------
-        List[Trajectory]
+        list[Trajectory]
             The ensemble loaded from the file.
         """
         _path = Path(file_path) if isinstance(file_path, str) else file_path

@@ -2,15 +2,13 @@
 This contains filtering functions for the trajectories.
 """
 
-from typing import Optional
-
 import numpy as np
 
 from yupi.trajectory import _THRESHOLD, Trajectory
 
 
 def exp_convolutional_filter(
-    traj: Trajectory, gamma: float, new_traj_id: Optional[str] = None
+    traj: Trajectory, gamma: float, new_traj_id: str | None = None
 ) -> Trajectory:
     """
     Returns a smoothed version of the trajectory `traj`
@@ -23,7 +21,7 @@ def exp_convolutional_filter(
     gamma : float
         Inverse of the characteristic time window of
         the average.
-    new_traj_id : Optional[str]
+    new_traj_id : str | None
         New trajectory ID. By default None.
 
     Returns
@@ -48,8 +46,8 @@ def exp_convolutional_filter(
 def exp_moving_average_filter(
     traj: Trajectory,
     alpha: float,
-    tau: Optional[float] = None,
-    new_traj_id: Optional[str] = None,
+    tau: float | None = None,
+    new_traj_id: str | None = None,
 ) -> Trajectory:
     """
     Returns a smoothed version of the trajectory `traj`
@@ -73,7 +71,7 @@ def exp_moving_average_filter(
         Exponential smoothing paramter.
     tau: float [optional, default=None]
         Smoothing factor that must be provided if the trajectory timeseries is non-uniform.
-    new_traj_id : Optional[str]
+    new_traj_id : str | None
         New trajectory ID. By default None.
 
     Returns
