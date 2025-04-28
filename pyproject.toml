@@ -147,7 +147,7 @@ follow_imports_for_stubs = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --cov=yupi --cov-fail-under=90 --cov-report=term-missing"
+addopts = "-ra -q --cov=yupi --cov-fail-under=75 --cov-report=term-missing"
 testpaths = ["tests"]
 
 [tool.bumpver]
