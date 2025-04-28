@@ -151,5 +151,5 @@ cameras
 .vscode
 .pylintrc
 
-# Poetry
-poetry.lock
+# uv
+uv.lock

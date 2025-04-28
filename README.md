@@ -3,7 +3,7 @@
 </p>
 
 <div align="center">
-<a href="https://www.python.org/downloads/release/python-3912/"><img src="https://img.shields.io/badge/python-3.9-blue" alt="Python"></a>
+<a href="https://www.python.org/downloads/release/python-3912/"><img src="https://img.shields.io/badge/python-3.10-blue" alt="Python"></a>
 <a href="https://zenodo.org/badge/latestdoi/304602979"><img src="https://zenodo.org/badge/304602979.svg" alt="DOI"></a>
 <a href="https://pypi.org/project/yupi/"><img src="https://img.shields.io/pypi/v/yupi" alt="PyPI"></a>
 <a href="https://yupi.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/yupi" alt="ReadTheDocs"></a>
@@ -20,7 +20,7 @@ for collecting, generating and processing trajectory data.
 - **Artificial trajectory generation** ... *several models implemented*
 - **Trajectory basic operations** ... *rotation, shift, scaling, ...*
 - **Trajectory transformations** ... *filters, resamplers, ...*
-- **Statistical analysis rom trajectories ensembles** ... *turning angles histogram, velocity autocorrelation function, power spectral density, and much more ...*
+- **Statistical analysis from trajectories ensembles** ... *turning angles histogram, velocity autocorrelation function, power spectral density, and much more ...*
 - **Results visualization** ... *each statistical observable has a related plot function*
 - **Spacial projection of trajectories** ... *for 2D and 3D trajectories*
 
@@ -34,7 +34,7 @@ pip install yupi
 
 ## Compatibility
 
-- Python 3.9 or later
+- Python 3.10 or later
 - Ubuntu 18.04 or later
 - Windows 7 or later
 - macOS 10.12.6 (Sierra) or later.
