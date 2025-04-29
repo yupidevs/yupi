@@ -16,6 +16,7 @@ from typing import (
 import numpy as np
 
 import yupi._differentiation as diff
+from yupi.units import Units
 from yupi.vector import Vector
 
 _THRESHOLD = 1e-12
@@ -180,6 +181,7 @@ class Trajectory:
         t: Sequence[float] | np.ndarray | None = None,
         dt: float | None = None,
         t_0: float | None = None,
+        units: Units | None = None,
         traj_id: Any = "",
         lazy: bool = False,
         diff_est: dict[str, Any] | None = None,
@@ -197,6 +199,9 @@ class Trajectory:
         self.dt_mean: float
         self.dt_std: float
         self.__init_time_data(t=t, dt=dt, t_0=t_0)
+
+        # Units
+        self.units = units if units is not None else Units("m", "s")
 
         # Other data
         self.__v: Vector | None = None
@@ -382,6 +387,7 @@ class Trajectory:
                 raise ValueError(
                     "You are giving 't' and 't_0' but 't_0' is not "
                     "the same as the first value of 't'."
+                    f"t[0] = {self.__t[0]} != t_0 = {t_0}"
                 )
 
             self.dt_mean = np.mean(np.array(self.__t.delta))
@@ -400,7 +406,10 @@ class Trajectory:
                     "You are giving 'dt' and 't' but 't' is not uniformly spaced."
                 )
 
-        self.t_0 = t_0 if t_0 is not None else 0.0
+        if t_0 is None:
+            self.t_0 = float(self.__t[0]) if self.__t is not None else 0.0
+        else:
+            self.t_0 = t_0
 
     def __getattribute__(self, name: str) -> Any:
         try:
@@ -821,6 +830,59 @@ class Trajectory:
 
     def __rmul__(self, other: int | float) -> Trajectory:
         return self * other
+
+    def to(self, units: Units | str, inplace: bool = False) -> Trajectory:
+        """
+        Converts the trajectory to the given units.
+
+        Parameters
+        ----------
+        units : Units
+            Units to convert the trajectory to.
+        inplace : bool, optional
+            If True, the conversion is done in place. Otherwise, a new
+            trajectory is returned. By default False.
+
+        Returns
+        -------
+        Trajectory
+            Converted trajectory.
+        """
+        _units = Units.parse(units)
+        if inplace:
+            self.r *= self.units.dist_to(_units.dist)
+            self.__t = (
+                self.__t * self.units.time_to(_units.time)
+                if self.__t is not None
+                else None
+            )
+            self.__dt = (
+                self.__dt * self.units.time_to(_units.time) if self.__dt else None
+            )
+            self.dt_mean *= self.units.time_to(_units.time)
+            self.dt_std *= self.units.time_to(_units.time)
+            self.t_0 *= self.units.time_to(_units.time)
+            self.units = _units
+
+            # invalidate cached velocity and acceleration
+            self.__v = None
+            self.__a = None
+            return self
+
+        return Trajectory(
+            points=self.r * self.units.dist_to(_units.dist),
+            extra=self.extra,
+            t=self.__t * self.units.time_to(_units.time)
+            if self.__t is not None
+            else None,
+            dt=self.__dt * self.units.time_to(_units.time)
+            if self.__dt is not None
+            else None,
+            t_0=self.t_0 * self.units.time_to(_units.time),
+            diff_est=self.diff_est,
+            units=_units,
+            **self.metadata,
+        )
 
     def turning_angles(
         self,

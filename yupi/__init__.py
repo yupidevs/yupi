@@ -15,6 +15,7 @@ from yupi._checkers import (
 )
 from yupi._differentiation import DiffMethod, WindowType
 from yupi.trajectory import Trajectory, TrajectoryPoint
+from yupi.units import DistU, TimeU, Units
 from yupi.vector import Vector
 
 warnings.filterwarnings("default", category=DeprecationWarning, module="yupi")
@@ -30,9 +31,12 @@ __all__ = [
     "DifferentDtError",
     "DifferentLengthError",
     "DifferentTimeVectorError",
+    "DistU",
     "NotUniformTimeSpacedError",
+    "TimeU",
     "Trajectory",
     "TrajectoryPoint",
+    "Units",
     "Vector",
     "WindowType",
 ]

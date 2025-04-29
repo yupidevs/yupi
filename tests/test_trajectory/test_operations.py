@@ -4,6 +4,7 @@ from pytest import approx, fixture
 
 from yupi import Trajectory, WindowType
 from yupi.trajectory import TrajectoryPoint
+from yupi.units import Units
 
 APPROX_REL_TOLERANCE = 1e-12
 
@@ -281,3 +282,24 @@ def test_indexing(timed_traj: Trajectory, traj_with_extra: Trajectory) -> None:
 
     with pytest.raises(TypeError):
         _ = timed_traj["foo"]  # type: ignore[index]
+
+
+def test_units_conversion() -> None:
+    # m/s by default
+    traj = Trajectory(
+        x=[1000, 2000, 3000, 4000, 5000], t=[3600, 7200, 10800, 14400, 18000]
+    )
+
+    _, _ = traj.v, traj.a  # to cache calculate velocity and acceleration
+
+    new_traj = traj.to("km/h")
+
+    assert new_traj.r.x == approx([1, 2, 3, 4, 5])
+    assert new_traj.t == approx([1, 2, 3, 4, 5])
+    assert new_traj.v == approx([1, 1, 1, 1, 1])
+
+    traj.to(Units("km", "h"), inplace=True)
+
+    assert traj.r.x == approx([1, 2, 3, 4, 5])
+    assert traj.t == approx([1, 2, 3, 4, 5])
+    assert traj.v == approx([1, 1, 1, 1, 1])

@@ -129,7 +129,7 @@ def test_properties() -> None:
 
     assert traj.dim == 2
     assert traj.dt == 1.0
-    assert traj.t_0 == 0.0
+    assert traj.t_0 == 1.0
 
     assert traj.delta_r == pytest.approx(traj.r.delta)
     assert traj.delta_v == pytest.approx(traj.v.delta)
