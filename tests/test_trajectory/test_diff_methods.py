@@ -167,3 +167,36 @@ def test_wrong_diff_parameters() -> None:
     with pytest.raises(ValueError, match="The accuracy must be an EVEN integer"):
         traj = Trajectory(x=[0, 2, 6, 10, 12], diff_est=wrong_odd_acc)
         _ = traj.a
+
+
+def test_set_diff_method() -> None:
+    traj = Trajectory(x=[0, 2, 6, 10])
+
+    traj.set_diff_method(
+        method=DiffMethod.FORNBERG_DIFF,
+        window_type=WindowType.CENTRAL,
+        accuracy=2,
+    )
+
+    assert traj.diff_est == {
+        "method": DiffMethod.FORNBERG_DIFF,
+        "window_type": WindowType.CENTRAL,
+        "accuracy": 2,
+    }
+
+    default = Trajectory.general_diff_est
+    Trajectory.global_diff_method(
+        method=DiffMethod.FORNBERG_DIFF,
+        window_type=WindowType.CENTRAL,
+        accuracy=2,
+    )
+
+    traj = Trajectory(x=[0, 2, 6, 10])
+
+    assert traj.diff_est == {
+        "method": DiffMethod.FORNBERG_DIFF,
+        "window_type": WindowType.CENTRAL,
+        "accuracy": 2,
+    }
+
+    Trajectory.global_diff_method(**default)

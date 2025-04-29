@@ -4,11 +4,11 @@ Contains the basic structures for trajectories.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import (
     Any,
     Collection,
     Iterator,
-    NamedTuple,
     Sequence,
     cast,
 )
@@ -27,7 +27,8 @@ Point = Sequence[float] | np.ndarray
 """Represents a single point."""
 
 
-class TrajectoryPoint(NamedTuple):
+@dataclass
+class TrajectoryPoint:
     """
     Represents a point of a trajectory.
 
@@ -44,6 +45,17 @@ class TrajectoryPoint(NamedTuple):
     r: Vector
     v: Vector
     t: float
+    extra: dict[str, Any]
+
+    def __getattribute__(self, name: str) -> Any:
+        try:
+            return super().__getattribute__(name)
+        except AttributeError:
+            if name in self.extra:
+                return self.extra[name]
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{name}'"
+            ) from None
 
 
 class Trajectory:
@@ -82,11 +94,25 @@ class Trajectory:
     diff_est : dict[str, Any]
         Dictionary containing the parameters for the differentiation
         estimation method used to calculate velocity.
+    extra : dict[str, Sequence[Any] | np.ndarray] | None
+        Dictionary containing extra vectors for the trajectory, by default
+        None. Each vector should have the same length as the trajectory.
+        These vectors will be used when iterating, indexing, or
+        slicing the trajectory.
+
+        You can also add any other type of non-vector information (metadata)
+        by using kwargs.
 
     Attributes
     ----------
     r : Vector
         Position vector.
+    t : Vector
+        Time vector.
+    v : Vector
+        Velocity vector.
+    a : Vector
+        Acceleration vector.
     dt_mean : float
         Mean of the time data delta.
     dt_std : float
@@ -157,6 +183,8 @@ class Trajectory:
         traj_id: Any = "",
         lazy: bool = False,
         diff_est: dict[str, Any] | None = None,
+        extra: dict[str, Sequence[Any] | np.ndarray] | None = None,
+        **kwargs: Any,
     ):
         # Positional data
         self.r: Vector
@@ -171,10 +199,14 @@ class Trajectory:
         self.__init_time_data(t=t, dt=dt, t_0=t_0)
 
         # Other data
-        self.__v: Vector
-        self.__a: Vector
+        self.__v: Vector | None = None
+        self.__a: Vector | None = None
         self.traj_id = traj_id
         self.lazy = lazy
+        self.extra: dict[str, Any]
+        self.__init_extra_data(extra=extra)
+
+        self.metadata: dict[str, Any] = kwargs if kwargs else {}
 
         # Differentiation method
         self.diff_est = Trajectory.general_diff_est.copy()
@@ -290,6 +322,26 @@ class Trajectory:
             raise ValueError("All positional data (axes) must have the same length. ")
         self.r = Vector(axes, dtype=float, copy=True).T
 
+    def __init_extra_data(self, extra: dict[str, Any] | None) -> None:
+        """
+        Initializes the extra data.
+
+        Parameters
+        ----------
+        extra : dict[str, Any]
+            Dictionary containing extra data along the trajectory.
+        """
+        assert self.r is not None, "Positional data must be initialized first."
+
+        self.extra = extra if extra is not None else {}
+
+        t_len = len(self.r)
+        for k, v in self.extra.items():
+            if len(v) != t_len:
+                raise ValueError(
+                    f"Extra data '{k}' must have the same length as the trajectory."
+                )
+
     def __init_time_data(
         self,
         t: Sequence[float] | np.ndarray | None = None,
@@ -341,6 +393,7 @@ class Trajectory:
                 raise ValueError(
                     "You are giving 'dt' and 't' but 'dt' "
                     "does not match with time values delta."
+                    f"{self.dt_mean} != {dt}"
                 )
             if abs(self.dt_std - 0) > _THRESHOLD:
                 raise ValueError(
@@ -348,6 +401,18 @@ class Trajectory:
                 )
 
         self.t_0 = t_0 if t_0 is not None else 0.0
+
+    def __getattribute__(self, name: str) -> Any:
+        try:
+            return super().__getattribute__(name)
+        except AttributeError:
+            if name in self.metadata:
+                return self.metadata[name]
+            elif name in self.extra:
+                return self.extra[name]
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{name}'"
+            ) from None
 
     def set_diff_method(
         self,
@@ -426,30 +491,36 @@ class Trajectory:
 
     def __getitem__(self, index: int | slice) -> Trajectory | TrajectoryPoint:
         if isinstance(index, int):
-            # r, v, t
-            data = [self.r[index], None, None]
-            data[1] = self.v[index - 1] if index > 0 else Vector([0] * self.dim)
-            data[2] = (
-                self.t[index] if self.__t is not None else self.t_0 + index * self.dt
-            )
+            r = self.r[index]
+            t = self.t[index] if self.__t is not None else self.t_0 + index * self.dt
+            v = self.v[index]
+            extra = {k: v[index] for k, v in self.extra.items()}
 
-            r, v, t = data
-            return TrajectoryPoint(r=r, v=v, t=t)
+            return TrajectoryPoint(r=r, v=v, t=t, extra=extra)
 
         if isinstance(index, slice):
             start, stop, step = index.indices(len(self))
             new_points = self.r[start:stop:step]
+            new_extra = {k: v[start:stop:step] for k, v in self.extra.items()}
             if self.uniformly_spaced:
                 new_dt = self.dt * step
                 new_t0 = self.t_0 + start * self.dt
                 return Trajectory(
                     points=new_points,
+                    extra=new_extra,
                     dt=new_dt,
                     t_0=new_t0,
                     diff_est=self.diff_est,
+                    **self.metadata,
                 )
             new_t = self.t[start:stop:step]
-            return Trajectory(points=new_points, t=new_t, diff_est=self.diff_est)
+            return Trajectory(
+                points=new_points,
+                extra=new_extra,
+                t=new_t,
+                diff_est=self.diff_est,
+                **self.metadata,
+            )
         raise TypeError("Index must be an integer or a slice.")
 
     def __iter__(self) -> Iterator[TrajectoryPoint]:
@@ -462,8 +533,8 @@ class Trajectory:
         max values of each dimension"""
         _bounds = []
         for dim in range(self.dim):
-            min_bound = min(self.r.component(dim))
-            max_bound = max(self.r.component(dim))
+            min_bound = float(min(self.r.component(dim)))
+            max_bound = float(max(self.r.component(dim)))
             _bounds.append((min_bound, max_bound))
         return _bounds
 
@@ -637,10 +708,13 @@ class Trajectory:
         """
         return Trajectory(
             points=self.r,
+            extra=self.extra,
             t=self.__t,
             dt=self.__dt,
+            t_0=self.t_0,
             lazy=self.lazy,
             diff_est=self.diff_est,
+            **self.metadata,
         )
 
     def _operable_with(self, other: Trajectory, threshold: float | None = None) -> bool:

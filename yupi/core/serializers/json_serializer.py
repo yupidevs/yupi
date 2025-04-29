@@ -190,6 +190,13 @@ class JSONSerializer(Serializer):
             json_dict["t_0"] = traj.t_0
         else:
             json_dict["t"] = traj.t.tolist()
+
+        if traj.extra:
+            json_dict["extra"] = traj.extra
+
+        if traj.metadata:
+            json_dict["metadata"] = traj.metadata
+
         return json_dict
 
     @staticmethod
@@ -221,6 +228,16 @@ class JSONSerializer(Serializer):
         dt = json_traj.get("dt", None)
         t_0 = json_traj.get("t_0", 0.0)
 
+        extra = json_traj.get("extra", None)
+        metadata = json_traj.get("metadata", {})
+
         return Trajectory(
-            axes=axes, t=t, dt=dt, t_0=t_0, traj_id=traj_id, diff_est=diff_est
+            axes=axes,
+            extra=extra,
+            t=t,
+            dt=dt,
+            t_0=t_0,
+            traj_id=traj_id,
+            diff_est=diff_est,
+            **metadata,
         )

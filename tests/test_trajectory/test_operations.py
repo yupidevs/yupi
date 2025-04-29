@@ -3,6 +3,7 @@ import pytest
 from pytest import approx, fixture
 
 from yupi import Trajectory, WindowType
+from yupi.trajectory import TrajectoryPoint
 
 APPROX_REL_TOLERANCE = 1e-12
 
@@ -14,7 +15,7 @@ def points() -> np.ndarray:
 
 @fixture
 def traj(points: np.ndarray) -> Trajectory:
-    return Trajectory(points=points)
+    return Trajectory(points=points, extra={"foo": [1, 2, 3, 4, 5]}, bar=42)
 
 
 @fixture
@@ -25,6 +26,17 @@ def time() -> np.ndarray:
 @fixture
 def timed_traj(points: np.ndarray, time: np.ndarray) -> Trajectory:
     return Trajectory(points=points, t=time)
+
+
+@fixture
+def traj_with_extra(points: np.ndarray) -> Trajectory:
+    return Trajectory(
+        points=points,
+        extra={
+            "foo": np.array([10, 20, 30, 40, 50]),
+            "bar": np.array([20, 40, 60, 80, 100]),
+        },
+    )
 
 
 @fixture
@@ -44,6 +56,8 @@ def test_copy(traj: Trajectory) -> None:
     assert traj.t == approx(copy_traj.t, APPROX_REL_TOLERANCE)
     assert traj.v == approx(copy_traj.v, APPROX_REL_TOLERANCE)
     assert traj.diff_est == copy_traj.diff_est
+    assert traj.extra == copy_traj.extra
+    assert traj.bar == copy_traj.bar
 
 
 def test_iteration(points: np.ndarray, traj: Trajectory) -> None:
@@ -159,7 +173,9 @@ def test_wrong_multiplication(traj: Trajectory) -> None:
         traj *= [1, 2]  # type: ignore[arg-type]
 
 
-def test_slicing(traj: Trajectory, timed_traj: Trajectory) -> None:
+def test_slicing(
+    traj: Trajectory, timed_traj: Trajectory, traj_with_extra: Trajectory
+) -> None:
     slice_1 = timed_traj[:]
     slice_2 = timed_traj[2:]
     slice_3 = timed_traj[:-2]
@@ -201,3 +217,67 @@ def test_slicing(traj: Trajectory, timed_traj: Trajectory) -> None:
     # Test dt
     assert slice_5.dt == approx(traj.dt * 2, APPROX_REL_TOLERANCE)
     assert slice_6.dt == approx(traj.dt * 2, APPROX_REL_TOLERANCE)
+
+    # Test extra data
+    assert traj_with_extra[:].extra["foo"] == approx(
+        traj_with_extra.extra["foo"], APPROX_REL_TOLERANCE
+    )
+
+    assert traj_with_extra[2:].extra["foo"] == approx(
+        traj_with_extra.extra["foo"][2:], APPROX_REL_TOLERANCE
+    )
+
+    assert traj_with_extra[:-2].extra["foo"] == approx(
+        traj_with_extra.extra["foo"][:-2], APPROX_REL_TOLERANCE
+    )
+
+    assert traj_with_extra[1:4].extra["bar"] == approx(
+        traj_with_extra.extra["bar"][1:4], APPROX_REL_TOLERANCE
+    )
+
+    assert traj_with_extra[::2].extra["bar"] == approx(
+        traj_with_extra.extra["bar"][::2], APPROX_REL_TOLERANCE
+    )
+
+
+def test_indexing(timed_traj: Trajectory, traj_with_extra: Trajectory) -> None:
+    index_1 = timed_traj[0]
+    index_2 = timed_traj[2]
+    index_3 = timed_traj[-2]
+    index_4 = traj_with_extra[0]
+    index_5 = traj_with_extra[2]
+    index_6 = traj_with_extra[-2]
+
+    assert isinstance(index_1, TrajectoryPoint)
+    assert isinstance(index_2, TrajectoryPoint)
+    assert isinstance(index_3, TrajectoryPoint)
+    assert isinstance(index_4, TrajectoryPoint)
+    assert isinstance(index_5, TrajectoryPoint)
+    assert isinstance(index_6, TrajectoryPoint)
+
+    # Test points
+    assert index_1.r == approx(timed_traj.r[0], APPROX_REL_TOLERANCE)
+    assert index_2.r == approx(timed_traj.r[2], APPROX_REL_TOLERANCE)
+    assert index_3.r == approx(timed_traj.r[-2], APPROX_REL_TOLERANCE)
+
+    assert index_1.t == approx(timed_traj.t[0], APPROX_REL_TOLERANCE)
+    assert index_2.t == approx(timed_traj.t[2], APPROX_REL_TOLERANCE)
+    assert index_3.t == approx(timed_traj.t[-2], APPROX_REL_TOLERANCE)
+
+    assert index_1.v == approx(timed_traj.v[0], APPROX_REL_TOLERANCE)
+    assert index_2.v == approx(timed_traj.v[2], APPROX_REL_TOLERANCE)
+    assert index_3.v == approx(timed_traj.v[-2], APPROX_REL_TOLERANCE)
+
+    assert index_4.foo == approx(traj_with_extra.foo[0], APPROX_REL_TOLERANCE)
+
+    assert index_5.foo == approx(traj_with_extra.foo[2], APPROX_REL_TOLERANCE)
+
+    assert index_6.extra["foo"] == approx(
+        traj_with_extra.extra["foo"][-2], APPROX_REL_TOLERANCE
+    )
+
+    with pytest.raises(AttributeError):
+        _ = index_4.non_existent
+
+    with pytest.raises(TypeError):
+        _ = timed_traj["foo"]  # type: ignore[index]
