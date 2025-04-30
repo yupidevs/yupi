@@ -2,7 +2,7 @@
 This constains resampling functions for trajectories.
 """
 
-from typing import Collection
+from typing import Collection, Sequence
 
 import numpy as np
 
@@ -94,7 +94,7 @@ def resample(
         if new_dt is not None
         else np.array(new_t)
     )
-    new_dims: list[Collection[float]] = []
+    new_dims: list[np.ndarray] = []
     old_t = traj.t
 
     for dim in range(traj.dim):

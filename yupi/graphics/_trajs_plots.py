@@ -23,7 +23,6 @@ def plot_2d(
     legend: bool = True,
     show: bool = True,
     connected: bool = False,
-    units: str = "m",
     color: Any = None,
     ax: Axes | None = None,
     **kwargs: Any,
@@ -69,7 +68,7 @@ def plot_2d(
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
-    units = "" if units is None else f" [{units}]"
+    units = f" [{trajs[0].units.dist}]"
 
     if ax is None:
         ax = plt.gca()
@@ -153,7 +152,6 @@ def plot_3d(
     legend: bool = True,
     show: bool = True,
     connected: bool = False,
-    units: str = "m",
     color: Any = None,
     ax: Axes3D | None = None,
     **kwargs: Any,
@@ -199,7 +197,7 @@ def plot_3d(
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
-    units = "" if units is None else f" [{units}]"
+    units = f" [{trajs[0].units.dist}]"
 
     colors = itertools.cycle(YUPI_COLORS)
     if color is not None:
@@ -285,7 +283,6 @@ def plot_vs_time(
     trajs: list[Trajectory] | Trajectory,
     key: Callable[[Trajectory], Collection[float]],
     line_style: str = LINE,
-    x_units: str = "s",
     y_label: str | None = None,
     title: str | None = None,
     legend: bool = True,
@@ -296,7 +293,7 @@ def plot_vs_time(
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
-    x_units = "time" + ("" if x_units is None else f" [{x_units}]")
+    x_units = f"time [{trajs[0].units.time}]"
 
     cycle = itertools.cycle(YUPI_COLORS)
     colors = [next(cycle) for _ in trajs]
