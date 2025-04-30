@@ -4,3 +4,4 @@ scipy
 nudged
 matplotlib
 PyQt5
+sphinx_rtd_theme

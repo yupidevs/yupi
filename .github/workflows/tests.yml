@@ -23,6 +23,9 @@ jobs:
       with:
         python-version-file: ".python-version"
 
+    - name: Lock file
+      run: uv lock
+
     - name: Install the project
       run: uv sync --locked --all-extras --dev
 

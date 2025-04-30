@@ -28,6 +28,9 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v5
 
+    - name: Lock file
+      run: uv lock
+
     - name: Install the project
       run: uv sync --locked --all-extras --dev
 
