@@ -11,8 +11,17 @@ of the parameters.)
 .. code-block:: python
 
     from yupi.generators import LangevinGenerator
-    lg = LangevinGenerator(500, 2, 500, 0.5, 0.5, 0.1, seed=0)
-    trajs = lg.generate()
+
+    T = 500      # Total time (number of time steps if dt==1)
+    dim = 2      # Dimension of the walker trajectories
+    N = 500      # Number of random walkers
+    dt = 0.5     # Time step
+
+    gamma = 0.5  # Drag parameter
+    sigma = 0.1  # Scale of the noise pdf
+
+    lg = LangevinGenerator(T=T, dim=dim, dt=dt, gamma=gamma, sigma=sigma, seed=0)
+    trajs = lg.generate(N)
 
 
 Two-dimensional spatial projections
@@ -47,7 +56,7 @@ Plotting in three dimensions can be achieved in a similar way. Let us generate
 .. code-block:: python
 
     from yupi.generators import LangevinGenerator
-    lg = LangevinGenerator(500, 3, 5, 0.5, 0.5, 0.1, seed=0)
+    lg = LangevinGenerator(T=T, dim=3, dt=dt, gamma=gamma, sigma=sigma, seed=0)
     trajs3D = lg.generate()
 
 
@@ -72,12 +81,9 @@ ensemble of trajectories is also possible using:
 
 .. code-block:: python
 
-    from yupi.stats import speed_ensemble
-    from yupi.graphics import plot_speed_hist
+    from yupi.stats import SpeedStat
+    SpeedStat(trajs).plot(bins=50)
 
-    v = speed_ensemble(trajs, step=1)
-    plot_speed_hist(v, bins=20)
-  
 
 .. figure:: /images/tutorial002.png
    :alt: Distribution in submodules
@@ -93,12 +99,9 @@ It can be observe with yupi by using:
 
 .. code-block:: python
 
-    from yupi.stats import turning_angles_ensemble
-    from yupi.graphics import plot_angles_hist
+    from yupi.stats import TurningAngleStat
+    TurningAngleStat(trajs).plot(bins=30)
 
-    theta = turning_angles_ensemble(trajs)
-    plot_angles_hist(theta, bins=30)
-  
 
 .. figure:: /images/tutorial003.png
    :alt: Distribution in submodules
@@ -115,12 +118,9 @@ a linear function of time. To estimate the MSD of a list of
 
 .. code-block:: python
 
-    from yupi.stats import msd
-    from yupi.graphics import plot_msd
+    from yupi.stats import MsdTimeAvgStat
+    MsdTimeAvgStat(trajs, lag=30).plot()
 
-    msd_mean, msd_std = msd(trajs, time_avg=True, lag=30)
-    plot_msd(msd_mean, msd_std, 0.5, lag=30)
-  
 
 .. figure:: /images/tutorial004.png
    :alt: Distribution in submodules
@@ -136,13 +136,9 @@ normality. It can be estimated using:
 
 .. code-block:: python
 
-    from yupi.stats import kurtosis, kurtosis_reference
-    from yupi.graphics import plot_kurtosis
+    from yupi.stats import KurtosisStat
+    KurtosisStat(trajs).plot()
 
-    kurt_ref = kurtosis_reference(trajs)
-    kurt_mean, _ = kurtosis(trajs, time_avg=False, lag=30)
-    plot_kurtosis(kurt_mean, kurtosis_ref=kurt_ref, dt=dt)
-  
 
 .. figure:: /images/tutorial005.png
    :alt: Distribution in submodules
@@ -158,12 +154,9 @@ the results, you can use:
 
 .. code-block:: python
 
-    from yupi.stats import vacf
-    from yupi.graphics import plot_vacf
+    from yupi.stats import VacfTimeAvgStat
+    VacfTimeAvgStat(trajs, lag=50).plot()
 
-    vacf_mean, _ = vacf(trajs, time_avg=True, lag=50)
-    plot_vacf(vacf_mean, dt, 50)
-  
 
 .. figure:: /images/tutorial006.png
    :alt: Distribution in submodules
@@ -180,11 +173,8 @@ enables the characterization of the motion in terms of the frequency components.
 
 .. code-block:: python
 
-    from yupi.stats import psd
-    from yupi.graphics import plot_psd
-
-    psd_mean, psd_std, frec = psd(trajs, lag=150)
-    plot_psd(psd_mean, frec, psd_std)
+    from yupi.stats import PsdStat
+    PsdStat(trajs, lag=150).plot()
 
 .. figure:: /images/tutorial009.png
    :alt: PSD IMAGE

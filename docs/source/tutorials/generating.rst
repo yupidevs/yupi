@@ -53,8 +53,8 @@ given variables and call its generate method:
 
 .. code-block:: python
 
-   rw = RandomWalkGenerator(T, dim, N, dt, prob)
-   tr = rw.generate()
+   rw = RandomWalkGenerator(T=T, dim=dim, dt=dt, action_prob=prob)
+   tr = rw.generate(N)
 
 In the variable ``tr`` we will have a list of **N**
 :py:class:`~trajectory.Trajectory` objects generated using the given configuration.
@@ -85,25 +85,25 @@ To use it, we first need to define the general parameters for a generator:
 
 .. code-block:: python
 
-    T = 500     # Total time (number of time steps if dt==1)
-    dim = 2     # Dimension of the walker trajectories
-    N = 3       # Number of random walkers
-    dt = 0.5    # Time step
+   T = 500     # Total time (number of time steps if dt==1)
+   dim = 2     # Dimension of the walker trajectories
+   N = 3       # Number of random walkers
+   dt = 0.5    # Time step
 
 Then, some specific parameters can be set before the generator initialization:
 
 .. code-block:: python
 
-    gamma = 1       # Drag parameter
-    sigma = 0.1     # Scale of the noise pdf
+   gamma = 1       # Drag parameter
+   sigma = 0.1     # Scale of the noise pdf
 
 Finally, the generator is created and the trajectories can be generated:
 
 .. code-block:: python
 
    from yupi.generators import LangevinGenerator
-   lg = LangevinGenerator(T, dim, N, dt, gamma, sigma)
-   trajectories = lg.generate()
+   lg = LangevinGenerator(T=T, dim=dim, dt=dt, gamma=gamma, sigma=sigma)
+   trajectories = lg.generate(N)
 
 The generated trajectories can be inspected using the
 :py:func:`~graphics.plot_2d` function:
@@ -144,16 +144,16 @@ Then, some specific parameters can be set before the generator initialization:
 
 .. code-block:: python
 
-    tau = 1         # Relaxation time
-    sigma = 0.1     # Scale of the noise pdf
+   tau = 1         # Relaxation time
+   sigma = 0.1     # Scale of the noise pdf
 
 The generator is created and the trajectories can be generated:
 
 .. code-block:: python
 
    from yupi.generators import DiffDiffGenerator
-   dd = DiffDiffGenerator(T, N=N, dt=dt, dim=dim, tau=tau, sigma=sigma)
-   trajs = dd.generate()
+   dd = DiffDiffGenerator(T=T, dt=dt, dim=dim, tau=tau, sigma=sigma)
+   trajs = dd.generate(N)
 
 The generated trajectories can be inspected using the
 :py:func:`~graphics.plot_2d` function:

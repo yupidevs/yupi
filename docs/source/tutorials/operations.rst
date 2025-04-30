@@ -38,17 +38,6 @@ Spatial scaling of a trajectory can be also achieved by multiplying it by a cons
 This operation can be made in-place when using the operator ``*=``.
 
 
-Rotation
-========
-
-Rotation can be made using the :py:func:`~trajectory.Trajectory.rotate` method:
-
-.. code-block:: python
-
-    traj_2 = Trajectory(points=[[0,0], [1,0]])
-    traj_2.rotate_2d(-np.pi / 2)   # traj_2 points: [[0,0], [0,1]]
-
-
 Indexing and slicing
 ====================
 

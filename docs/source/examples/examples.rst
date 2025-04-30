@@ -29,18 +29,13 @@ In this table you can easily find the examples that better suits you.
      - * Generators:
           * :py:class:`~generators.LangevinGenerator`
        * Stats:
-          * :py:func:`~stats.speed_ensemble`
-          * :py:func:`~stats.turning_angles_ensemble`
-          * :py:func:`~stats.msd`
-          * :py:func:`~stats.kurtosis`
-          * :py:func:`~stats.vacf`
+          * :py:func:`~stats.SpeedStat`
+          * :py:func:`~stats.TurningAngleStat`
+          * :py:func:`~stats.MsdTimeAvgStat`
+          * :py:func:`~stats.KurtosisStat`
+          * :py:func:`~stats.VacfTimeAvgStat`
        * Graphics:
           * :py:func:`~graphics.plot_2d`
-          * :py:func:`~graphics.plot_speed_hist`
-          * :py:func:`~graphics.plot_angles_hist`
-          * :py:func:`~graphics.plot_msd`
-          * :py:func:`~graphics.plot_kurtosis`
-          * :py:func:`~graphics.plot_vacf`
    * - | :doc:`Example 2<example2>`
        |
        | A model framework of a diffusion process with fluctuating

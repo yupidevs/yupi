@@ -62,7 +62,7 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   dd = DiffDiffGenerator(T, dt=dt, seed=0)
+   dd = DiffDiffGenerator(T=T, dt=dt, seed=0)
    trajs = dd.generate(N)
 
 
@@ -75,36 +75,39 @@ Definition of time instants:
 
 .. code-block:: python
 
-   time_instants = np.array([1, 10, 100])
+   time_instants = np.array([1.0, 10.0, 100.0])
 
 Let us obtain the position of all the trajectories in the key
 time instants:
 
 .. code-block:: python
 
-   r = [collect(trajs, at=float(t)) for t in time_instants]
+   r = [collect_at_time(trajs, time=t, func=lambda r: r.x) for t in time_instants]
 
 Then, we can plot the results:
 
 .. code-block:: python
 
-   plot_hists(r, bins=30, density=True,
-      labels=[f't = {t}' for t in time_instants],
-      xlabel='x',
-      ylabel='PDF',
+   plot_hists(
+      r,
+      bins=30,
+      density=True,
+      labels=[f"t = {t}" for t in time_instants],
+      xlabel="x",
+      ylabel="PDF",
       legend=True,
       grid=True,
-      yscale='log',
+      yscale="log",
       ylim=(1e-3, 1),
       xlim=(-20, 20),
-      filled=True
+      filled=True,
    )
 
 .. figure:: /images/example6.png
    :alt: Output of example2
    :align: center
 
-   
+
 .. _References 2:
 
 5. References
