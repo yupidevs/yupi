@@ -62,8 +62,8 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   dd = DiffDiffGenerator(T, N=N, dt=dt, seed=0)
-   trajs = dd.generate()
+   dd = DiffDiffGenerator(T, dt=dt, seed=0)
+   trajs = dd.generate(N)
 
 
 .. _Data analysis and plots 2:

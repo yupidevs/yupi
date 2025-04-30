@@ -34,11 +34,18 @@ Import all the dependencies:
 .. code-block:: python
 
    import cv2
-   from yupi.tracking import ROI, ObjectTracker, TrackingScenario
-   from yupi.tracking import ColorMatching, FrameDifferencing
-   from yupi.tracking import BackgroundEstimator, BackgroundSubtraction
-   from yupi.tracking import TemplateMatching, OpticalFlow
    from yupi.graphics import plot_2d
+   from yupi.tracking import (
+      ROI,
+      BackgroundEstimator,
+      BackgroundSubtraction,
+      ColorMatching,
+      FrameDifferencing,
+      ObjectTracker,
+      OpticalFlow,
+      TemplateMatching,
+      TrackingScenario,
+   )
 
 Set up the path to multimedia resources:
 
