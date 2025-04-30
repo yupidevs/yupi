@@ -7,6 +7,7 @@ from matplotlib.axes import Axes
 from yupi._checkers import (
     check_same_dim,
     check_same_dt,
+    check_same_length,
     check_same_t,
     check_uniform_time_spaced,
 )
@@ -175,6 +176,7 @@ class KurtosisStat:
 
     def __init__(self, trajs: list[Trajectory]) -> None:
         check_same_dim(trajs)
+        check_same_length(trajs)
         check_same_t(trajs)
         self.trajs = trajs
         self.__kurtosis: np.ndarray | None = None

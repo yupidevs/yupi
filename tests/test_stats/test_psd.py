@@ -21,4 +21,4 @@ def test_psd_stat(traj: Trajectory) -> None:
 def test_psd_stat_plot(monkeypatch: pytest.MonkeyPatch, traj: Trajectory) -> None:
     monkeypatch.setattr(plt, "show", lambda: None)
 
-    PsdStat([traj], lag=2).plot_psd()
+    PsdStat([traj], lag=2).plot()
