@@ -42,16 +42,3 @@ jobs:
 
     - name: Publish
       run: uv publish -t ${{ secrets.PYPI_RELEASE_TOKEN }}
-
-    - uses: EndBug/add-and-commit@v9
-      with:
-        default_author: user_info
-        message: 'Set version v${{ github.event.inputs.version }}'
-        pathspec_error_handling: exitImmediately
-        push: "--force"
-        tag: 'v${{ github.event.inputs.version }}'
-        tag_push: '--force'
-    - uses: ncipollo/release-action@v1
-      with:
-        tag: "v${{ github.event.inputs.version }}"
-        name: "yupi-beta v${{ github.event.inputs.version }}"

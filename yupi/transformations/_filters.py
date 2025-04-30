@@ -38,7 +38,15 @@ def exp_convolutional_filter(
         new_r[i + 1] = new_r[i] - gamma * (new_r[i] - r[i]) * dt[i]
 
     return (
-        Trajectory(points=new_r, t=traj.t, traj_id=new_traj_id, diff_est=traj.diff_est)
+        Trajectory(
+            points=new_r,
+            t=traj.t,
+            extra=traj.extra,
+            units=traj.units,
+            traj_id=new_traj_id,
+            diff_est=traj.diff_est,
+            **traj.metadata,
+        )
         + track_origin
     )
 
@@ -96,4 +104,12 @@ def exp_moving_average_filter(
             alpha = 1 - np.exp(-dt / tau)  # Adaptive smoothing factor
         ema[i] = alpha * data[i] + (1 - alpha) * ema[i - 1]
 
-    return Trajectory(points=ema, t=traj.t, traj_id=new_traj_id, diff_est=traj.diff_est)
+    return Trajectory(
+        points=ema,
+        t=traj.t,
+        extra=traj.extra,
+        units=traj.units,
+        traj_id=new_traj_id,
+        diff_est=traj.diff_est,
+        **traj.metadata,
+    )

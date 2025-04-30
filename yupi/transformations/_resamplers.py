@@ -82,6 +82,11 @@ def resample(
         If both ``new_dt`` and ``new_t`` are specified.
     """
 
+    if traj.extra:
+        raise ValueError(
+            "Resampling is not supported for trajectories with extra data."
+        )
+
     if new_t is not None and new_dt is not None:
         raise ValueError("new_t and new_dt cannot be both specified")
     if new_t is None and new_dt is None:
@@ -106,14 +111,18 @@ def resample(
         return Trajectory(
             axes=new_dims,
             dt=new_dt,
+            units=traj.units,
             traj_id=new_traj_id,
             diff_est=traj.diff_est,
+            **traj.metadata,
         )
     return Trajectory(
         axes=new_dims,
         t=new_t,
+        units=traj.units,
         traj_id=new_traj_id,
         diff_est=traj.diff_est,
+        **traj.metadata,
     )
 
 
@@ -141,11 +150,15 @@ def subsample(
 
     points = traj.r[::step]
     t = traj.t[::step] if traj.t is not None else None
+    new_extra = {k: v[::step] for k, v in traj.extra.items()}
 
     return Trajectory(
         points=points,
         t=t,
+        units=traj.units,
+        extra=new_extra,
         dt=step * traj.dt,
         traj_id=new_traj_id,
         diff_est=traj.diff_est,
+        **traj.metadata,
     )

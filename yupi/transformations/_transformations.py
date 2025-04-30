@@ -95,6 +95,9 @@ def add_moving_FoR(  # noqa: N802 Frame of Reference
         x=x_al,
         y=y_al,
         t=traj.t,
+        extra=traj.extra,
+        units=traj.units,
         traj_id=new_traj_id,
         diff_est=traj.diff_est,
+        **traj.metadata,
     )
