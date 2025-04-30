@@ -8,16 +8,12 @@ from yupi._checkers import (
     DifferentLengthError,
     DifferentTimeVectorError,
 )
-from yupi.stats import (
+from yupi.stats._stats import (
     collect,
-    kurtosis,
-    msd,
-    psd,
-    speed_ensemble,
-    turning_angles_ensemble,
-    vacf,
 )
-from yupi.stats._stats import kurtosis_reference
+from yupi.stats.msd import MsdStat
+from yupi.stats.speed import SpeedStat
+from yupi.stats.turning_angles import TurningAngleStat
 
 APPROX_REL_TOLERANCE = 1e-10
 
@@ -40,77 +36,6 @@ def traj2() -> Trajectory:
     return Trajectory(x=x, dt=2)
 
 
-def test_turning_angles(traj: Trajectory) -> None:
-    tae = turning_angles_ensemble([traj])
-    assert tae == pytest.approx([np.pi / 2, 3 * np.pi / 2], APPROX_REL_TOLERANCE)
-
-    tae = turning_angles_ensemble([traj], degrees=True, wrap=False)
-    assert tae == pytest.approx([90, -90], APPROX_REL_TOLERANCE)
-
-
-def test_speed_ensemble(traj1: Trajectory) -> None:
-    se = speed_ensemble([traj1, traj1])
-    assert se == pytest.approx([4, 1.5, 3, 3, 4, 1.5, 3, 3], APPROX_REL_TOLERANCE)
-
-
-def test_msd(traj1: Trajectory, traj2: Trajectory) -> None:
-    msd_e = msd([traj1, traj2], time_avg=False)
-
-    assert msd_e[0] == pytest.approx([0.0, 68.125, 24.505, 115.625])
-    assert msd_e[1] == pytest.approx([0, 4.125, 0.495, 5.375])
-
-    lag = 2
-    msd_t = msd([traj1, traj2], time_avg=True, lag=lag)
-    assert msd_t[0] == pytest.approx([37.595, 15.5025])
-    assert msd_t[1] == pytest.approx([1.26166667, 1.4975])
-
-    with pytest.raises(ValueError):
-        # Setting time_avg=True without lag
-        msd([traj1, traj2], time_avg=True)
-
-
-def test_vacf(traj1: Trajectory, traj2: Trajectory) -> None:
-    vacf_e = vacf([traj1, traj2], time_avg=False)
-    assert vacf_e[0] == pytest.approx([17.03125, -6.825, 11.95, 11.95])
-    assert vacf_e[1] == pytest.approx([1.03125, 0.825, 0.05, 0.05])
-
-    vacf_t = vacf([traj1, traj2], time_avg=True, lag=2)
-    assert vacf_t[0] == pytest.approx([-3.54166667, 0.0])
-    assert vacf_t[1] == pytest.approx([0.29166667, 0.0])
-
-    with pytest.raises(ValueError):
-        # Setting time_avg=True without lag
-        vacf([traj1, traj2], time_avg=True)
-
-
-def test_kurtosis(traj: Trajectory, traj1: Trajectory, traj2: Trajectory) -> None:
-    r0 = kurtosis_reference([traj])
-    assert r0 == 8
-
-    r1 = kurtosis_reference([traj1, traj2])
-    assert r1 == 1.0
-
-    kurt_e = kurtosis([traj1, traj2], time_avg=False)
-    assert kurt_e[0] == pytest.approx([0, 1, 1, 1])
-
-    lag = 2
-    kurt_t = kurtosis([traj1, traj2], time_avg=True, lag=lag)
-    assert kurt_t[0] == pytest.approx([0, 1.5])
-    assert kurt_t[1] == pytest.approx([0, 0])
-
-    with pytest.raises(ValueError):
-        # Setting time_avg=True without lag
-        kurtosis([traj1, traj2], time_avg=True)
-
-
-def test_psd(traj1: Trajectory) -> None:
-    lag = 2
-    psd_o = psd([traj1], lag=lag, omega=True)
-    assert psd_o[0] == pytest.approx([6.5, 6.5])
-    assert psd_o[1] == pytest.approx([0, 0])
-    assert psd_o[2] == pytest.approx([-9.8696044, 0.0])
-
-
 def test_checkers() -> None:
     points = [[0, 0], [1, 0], [1, 1], [2, 1]]
     simple_traj = Trajectory(points=points)
@@ -121,27 +46,27 @@ def test_checkers() -> None:
 
     # Exact dimension checker
     with pytest.raises(DifferentDimensionError):
-        turning_angles_ensemble([non_equal_dim_traj])
+        TurningAngleStat([non_equal_dim_traj])
 
     # Uniform time spaced checker
     with pytest.raises(NotUniformTimeSpacedError):
-        turning_angles_ensemble([non_equal_spacing_traj])
+        TurningAngleStat([non_equal_spacing_traj])
 
     # Same dt checker
     with pytest.raises(DifferentDtError):
-        turning_angles_ensemble([simple_traj, non_equal_dt_traj])
+        TurningAngleStat([simple_traj, non_equal_dt_traj])
 
     # Same dim checker
     with pytest.raises(DifferentDimensionError):
-        speed_ensemble([simple_traj, non_equal_dim_traj])
+        SpeedStat([simple_traj, non_equal_dim_traj])
 
     # Same length checker
     with pytest.raises(DifferentLengthError):
-        msd([simple_traj, Trajectory(points=points[:-2])], time_avg=False)
+        MsdStat([simple_traj, Trajectory(points=points[:-2])])
 
     # Same t checker
     with pytest.raises(DifferentTimeVectorError):
-        msd([simple_traj, non_equal_t0_traj], time_avg=False)
+        MsdStat([simple_traj, non_equal_t0_traj])
 
 
 def test_collect(traj: Trajectory, traj1: Trajectory) -> None:

@@ -892,34 +892,12 @@ class Trajectory:
         wrap: bool = True,
     ) -> np.ndarray:
         """
-        Return the sequence of turning angles that forms the trajectory.
+        .. deprecated:: 0.13.0
+            :func:`turning_angles` will be removed in a future version, use
+            :func:`yupi.stats.turning_angles.turning_angles` instead.
 
-        Parameters
-        ----------
-        traj : Trajectory
-            Input trajectory.
-        accumulate : bool, optional
-            If True, turning angles are measured with respect to an axis
-            defined by the initial velocity (i.e., angles between initial
-            and current velocity). Otherwise, relative turning angles
-            are computed (i.e., angles between succesive velocity
-            vectors). By default False.
-        degrees : bool, optional
-            If True, angles are given in degrees. Otherwise, the units
-            are radians. By default False.
-        centered : bool, optional
-            If True, angles are wrapped on the interval ``[-pi, pi]``.
-            Otherwise, the interval ``[0, 2*pi]`` is chosen. By default
-            False.
-        wrap : bool, optional
-            If True, angles are wrapped in a certain interval (depending
-            on ``centered`` param). By default True.
-
-        Returns
-        -------
-        np.ndarray
-            Turning angles where each position in the array correspond
-            to a given time instant.
+            If working with an ensemble of trajectories, you can also use
+            :func:`yupi.stats.turning_angles.TurningAnglesStat` class.
         """
         d_r = self.delta_r
         d_x, d_y = d_r.x, d_r.y

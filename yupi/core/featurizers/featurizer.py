@@ -4,7 +4,7 @@ import abc
 
 import numpy as np
 
-from yupi.stats._stats import _kurtosis
+from yupi.stats.kurtosis import _kurtosis
 from yupi.trajectory import Trajectory
 
 DEFAULT_ZERO_THRESHOLD = 1e-12

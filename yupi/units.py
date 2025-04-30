@@ -254,7 +254,7 @@ class Units:
         return f"Units(distance={self.dist}, time={self.time})"
 
     def __str__(self) -> str:
-        return f"{self.dist} / {self.time}"
+        return f"{self.dist}/{self.time}"
 
     @staticmethod
     def register_dist_unit(unit: str, factor: float) -> None:

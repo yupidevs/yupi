@@ -80,6 +80,8 @@ def test_plot_2d(monkeypatch: MonkeyPatch, trajs: list[Trajectory]) -> None:
         legend=True,
     )
 
+    plt.axes()
+
 
 def test_plot_3d(monkeypatch: MonkeyPatch, trajs_3d: list[Trajectory]) -> None:
     """Test the plot_3d function."""
@@ -118,6 +120,8 @@ def test_plot_3d(monkeypatch: MonkeyPatch, trajs_3d: list[Trajectory]) -> None:
         legend=True,
     )
 
+    plt.axes()
+
 
 def test_plot_vs_time(monkeypatch: MonkeyPatch, trajs: list[Trajectory]) -> None:
     """Test the plot_vs_time function."""
@@ -143,3 +147,5 @@ def test_plot_vs_time(monkeypatch: MonkeyPatch, trajs: list[Trajectory]) -> None
         color="red",
         legend=True,
     )
+
+    plt.axes()
