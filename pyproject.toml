@@ -1,6 +1,6 @@
 [project]
 name = "yupi"
-version = "0.13.0"
+version = "1.0.0"
 description = "A package for tracking and analysing objects trajectories"
 authors = [
     { name = "Gustavo Viera-López", email = "gvieralopez@gmail.com" },
@@ -155,7 +155,7 @@ addopts = "-ra -q --cov=yupi --cov-fail-under=75 --cov-report=term-missing"
 testpaths = ["tests"]
 
 [tool.bumpver]
-current_version = "0.13.0"
+current_version = "1.0.0"
 version_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
 commit = false
 tag = false
