@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from pytest import approx, fixture
 
-from yupi import Trajectory, WindowType
+from yupi import Trajectory
 from yupi.trajectory import TrajectoryPoint
 from yupi.units import Units
 
@@ -40,11 +40,6 @@ def traj_with_extra(points: np.ndarray) -> Trajectory:
     )
 
 
-@fixture
-def simple_traj() -> Trajectory:
-    return Trajectory(x=[0, 1], y=[0, 1], diff_est={"window_type": WindowType.FORWARD})
-
-
 def test_length(points: np.ndarray, traj: np.ndarray) -> None:
     assert len(traj) == len(points)
 
@@ -70,33 +65,6 @@ def test_iteration(points: np.ndarray, traj: Trajectory) -> None:
 
         assert point == approx(tp.r, APPROX_REL_TOLERANCE)  # Position
         assert t == approx(tp.t, APPROX_REL_TOLERANCE)  # Time
-
-
-def test_rotation(simple_traj: Trajectory) -> None:
-    # 45 degrees
-    ang = np.pi / 4
-
-    # [0, 0] -> [0,       0]
-    # [1, 1] -> [0, sqrt(2)]
-    simple_traj.rotate_2d(ang)
-
-    assert simple_traj.r[0] == approx([0, 0], APPROX_REL_TOLERANCE)
-    assert simple_traj.r[1] == approx([0, np.sqrt(2)], APPROX_REL_TOLERANCE)
-
-
-def test_rotation_3d() -> None:
-    traj = Trajectory(
-        x=[0, 1], y=[0, 0], z=[0, 0], diff_est={"window_type": WindowType.FORWARD}
-    )
-
-    traj.rotate_3d(-np.pi / 2, [0, 0, 3])
-
-    assert traj.r[0] == approx([0, 0, 0], APPROX_REL_TOLERANCE)
-    assert traj.r[1] == approx([0, 1, 0], APPROX_REL_TOLERANCE)
-
-    traj.rotate_3d(np.pi, [1, 0, 0])
-
-    assert traj.r[1] == approx([0, -1, 0], APPROX_REL_TOLERANCE)
 
 
 def test_constant_addition(points: np.ndarray, traj: Trajectory) -> None:

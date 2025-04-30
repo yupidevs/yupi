@@ -7,7 +7,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import (
     Any,
-    Collection,
     Iterator,
     Sequence,
     cast,
@@ -611,101 +610,6 @@ class Trajectory:
             self.__t = Vector([self.t_0 + self.dt * i for i in range(len(self))])
         return self.__t
 
-    def add_polar_offset(self, radius: float, angle: float) -> None:
-        """
-        Adds an offset given a point in polar coordinates.
-
-        Parameters
-        ----------
-        radius : float
-            Point's radius.
-        angle : float
-            Point's angle.
-
-        Raises
-        ------
-        TypeError
-            If the trajectory is not 2 dimensional.
-        """
-        if self.dim != 2:
-            raise TypeError(
-                "Polar offsets can only be applied on 2 dimensional trajectories"
-            )
-
-        # From cartesian to polar
-        x, y = self.r.x, self.r.y
-        rad, ang = np.hypot(x, y), np.arctan2(y, x)
-
-        rad += radius
-        ang += angle
-
-        # From polar to cartesian
-        x, y = rad * np.cos(ang), rad * np.sin(ang)
-        self.r = Vector([x, y]).T
-
-    def rotate_2d(self, angle: float) -> None:
-        """
-        Rotates the trajectory around the center coordinates [0,0]
-
-        Parameters
-        ----------
-        angle : float
-            Angle in radians to rotate the trajectory.
-        """
-        self.add_polar_offset(0, angle)
-
-    def rotate_3d(self, angle: float, vector: Collection[float]) -> None:
-        """
-        Rotates the trajectory around a given vector.
-
-        Parameters
-        ----------
-        vector : Collection[float]
-            Vector to rotate the trajectory around.
-        angle : float
-            Angle in radians to rotate the trajectory.
-
-        Raises
-        ------
-        TypeError
-            If the trajectory is not 3 dimensional.
-        ValueError
-            If the vector has shape different than (3,).
-        """
-        if self.dim != 3:
-            raise TypeError(
-                "3D rotations can only be applied on 3 dimensional trajectories"
-            )
-
-        vec: Vector = Vector(vector)
-        if vec.shape != (3,):
-            raise ValueError("The vector must have shape (3,)")
-
-        vec = Vector(vec / vec.norm)
-        v_x, v_y, v_z = vec[0], vec[1], vec[2]
-        a_cos, a_sin = np.cos(angle), np.sin(angle)
-
-        rot_matrix = np.array(
-            [
-                [
-                    v_x * v_x * (1 - a_cos) + a_cos,
-                    v_x * v_y * (1 - a_cos) - v_z * a_sin,
-                    v_x * v_z * (1 - a_cos) + v_y * a_sin,
-                ],
-                [
-                    v_x * v_y * (1 - a_cos) + v_z * a_sin,
-                    v_y * v_y * (1 - a_cos) + a_cos,
-                    v_y * v_z * (1 - a_cos) - v_x * a_sin,
-                ],
-                [
-                    v_x * v_z * (1 - a_cos) - v_y * a_sin,
-                    v_y * v_z * (1 - a_cos) + v_x * a_sin,
-                    v_z * v_z * (1 - a_cos) + a_cos,
-                ],
-            ]
-        )
-        self.r = Vector(np.dot(self.r, rot_matrix))
-
     def copy(self) -> Trajectory:
         """
         Returns a copy of the trajectory.
@@ -883,40 +787,3 @@ class Trajectory:
             units=_units,
             **self.metadata,
         )
-
-    def turning_angles(
-        self,
-        accumulate: bool = False,
-        degrees: bool = False,
-        centered: bool = False,
-        wrap: bool = True,
-    ) -> np.ndarray:
-        """
-        .. deprecated:: 0.13.0
-            :func:`turning_angles` will be removed in a future version, use
-            :func:`yupi.stats.turning_angles.turning_angles` instead.
-
-            If working with an ensemble of trajectories, you can also use
-            :func:`yupi.stats.turning_angles.TurningAnglesStat` class.
-        """
-        d_r = self.delta_r
-        d_x, d_y = d_r.x, d_r.y
-        theta = np.arctan2(d_y, d_x)
-
-        if not accumulate:
-            theta = np.ediff1d(theta)  # Relative turning angles
-        else:
-            theta -= theta[0]  # Accumulative turning angles
-
-        if degrees:
-            theta = np.rad2deg(theta)
-
-        if not wrap:
-            return theta
-
-        discont = 360 if degrees else 2 * np.pi
-        if not centered:
-            return theta % discont
-
-        discont_half = discont / 2
-        return -((discont_half - theta) % discont - discont_half)

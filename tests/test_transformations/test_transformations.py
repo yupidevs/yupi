@@ -6,6 +6,8 @@ from yupi.transformations import (
     exp_convolutional_filter,
     exp_moving_average_filter,
     resample,
+    rotate_2d,
+    rotate_3d,
     subsample,
 )
 
@@ -23,6 +25,11 @@ def traj(x: list[int]) -> Trajectory:
 @pytest.fixture
 def non_zero_origin() -> list[int]:
     return [7, 7, 7]  # Initial position
+
+
+@pytest.fixture
+def simple_traj() -> Trajectory:
+    return Trajectory(x=[0, 1], y=[0, 1])
 
 
 @pytest.fixture
@@ -88,3 +95,28 @@ def test_ema_origin(
         constant_v_non_zero_origin_traj, alpha=1 / 100
     )
     assert smooted_trajectory.r[0] == pytest.approx(non_zero_origin)
+
+
+def test_rotation(simple_traj: Trajectory) -> None:
+    # 45 degrees
+    ang = np.pi / 4
+
+    # [0, 0] -> [0,       0]
+    # [1, 1] -> [0, sqrt(2)]
+    rotate_2d(simple_traj, ang)
+
+    assert simple_traj.r[0] == pytest.approx([0, 0])
+    assert simple_traj.r[1] == pytest.approx([0, np.sqrt(2)])
+
+
+def test_rotation_3d() -> None:
+    traj = Trajectory(x=[0, 1], y=[0, 0], z=[0, 0])
+
+    rotate_3d(traj, -np.pi / 2, [0, 0, 3])
+
+    assert traj.r[0] == pytest.approx([0, 0, 0])
+    assert traj.r[1] == pytest.approx([0, 1, 0])
+
+    rotate_3d(traj, np.pi, [1, 0, 0])
+
+    assert traj.r[1] == pytest.approx([0, -1, 0])

@@ -5,6 +5,7 @@ from yupi.core.featurizers.featurizer import (
     CompoundFeaturizer,
     GlobalStatsFeaturizer,
 )
+from yupi.stats.turning_angles import turning_angles
 from yupi.trajectory import Trajectory
 
 
@@ -15,7 +16,7 @@ class AngleGlobalFeaturizer(GlobalStatsFeaturizer):
     """
 
     def _values(self, traj: Trajectory) -> np.ndarray:
-        return traj.turning_angles(accumulate=True)
+        return turning_angles(traj, accumulate=True)
 
 
 class TurningAngleGobalFeaturizer(GlobalStatsFeaturizer):
@@ -25,7 +26,7 @@ class TurningAngleGobalFeaturizer(GlobalStatsFeaturizer):
     """
 
     def _values(self, traj: Trajectory) -> np.ndarray:
-        return traj.turning_angles(accumulate=False)
+        return turning_angles(traj, accumulate=False)
 
 
 class TurningAngleChangeRateGlobalFeaturizer(GlobalStatsFeaturizer):
@@ -35,7 +36,7 @@ class TurningAngleChangeRateGlobalFeaturizer(GlobalStatsFeaturizer):
     """
 
     def _values(self, traj: Trajectory) -> np.ndarray:
-        angles = traj.turning_angles(accumulate=False)
+        angles = turning_angles(traj, accumulate=False)
         dt_vals = traj.t.delta
         angle_change_rate = np.diff(angles) / dt_vals[2:]
         return angle_change_rate
