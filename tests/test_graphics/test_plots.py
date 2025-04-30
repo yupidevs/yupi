@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from pytest import MonkeyPatch
 
 from yupi import Trajectory
-from yupi.exceptions import TrajectoryError
+from yupi._checkers import DifferentDimensionError
 from yupi.graphics import plot_2d
 from yupi.graphics._trajs_plots import plot_3d, plot_vs_time
 
@@ -35,16 +35,16 @@ def trajs_3d() -> list[Trajectory]:
 def test_wrong_dimension(
     trajs_1d: list[Trajectory], trajs: list[Trajectory], trajs_3d: list[Trajectory]
 ) -> None:
-    with pytest.raises(TrajectoryError):
+    with pytest.raises(DifferentDimensionError):
         plot_2d(trajs_1d, show=False)
 
-    with pytest.raises(TrajectoryError):
+    with pytest.raises(DifferentDimensionError):
         plot_2d(trajs_3d, show=False)
 
-    with pytest.raises(TrajectoryError):
+    with pytest.raises(DifferentDimensionError):
         plot_3d(trajs_1d, show=False)
 
-    with pytest.raises(TrajectoryError):
+    with pytest.raises(DifferentDimensionError):
         plot_3d(trajs, show=False)
 
 

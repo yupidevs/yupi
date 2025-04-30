@@ -2,7 +2,7 @@
 This constains resampling functions for trajectories.
 """
 
-from typing import Collection, Sequence
+from typing import Collection
 
 import numpy as np
 

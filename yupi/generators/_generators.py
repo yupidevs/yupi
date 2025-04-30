@@ -232,8 +232,8 @@ class _LangevinGenerator(Generator):
         self.v_scale = self.sigma * np.sqrt(self.t_scale)  # Speed scale
         self.r_scale = self.v_scale * self.t_scale  # Length scale
 
-    # Simulation parameters and dynamic variables
-    def _set_simulation_vars(self, N: int) -> None:
+    # Set initial conditions
+    def _set_init_cond(self, N: int) -> None:
         # Simulation parameters
         self.dt = self.dt / self.t_scale  # Dimensionless time step
         self.shape = (self.n, self.dim, N)  # Shape of dynamic variables
@@ -243,8 +243,6 @@ class _LangevinGenerator(Generator):
         self.r = np.empty(self.shape)  # Position array
         self.v = np.empty(self.shape)  # Velocity array
 
-    # Set initial conditions
-    def _set_init_cond(self, N: int) -> None:
         # Initial positions
         if np.shape(self.r0) == (self.dim,):
             self.r[0][:][:] = self.r0[:, None]
@@ -291,7 +289,6 @@ class _LangevinGenerator(Generator):
     def _simulate(self, N: int) -> None:
         # Init variables before simulate and validate initial conditions
         self._set_scaling_params()  # Set intrinsic reference parameters
-        self._set_simulation_vars(N)  # Init simulation variables
         self._set_init_cond(N)  # Set initial conditions
         self._set_noise()  # Set the attribute self.noise
 

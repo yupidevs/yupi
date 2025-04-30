@@ -11,9 +11,51 @@ import numpy as np
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
-from yupi.exceptions import TrajectoryError
+from yupi._checkers import check_exact_dim
 from yupi.graphics._style import LINE, YUPI_COLORS
 from yupi.trajectory import Trajectory
+
+
+def _resolve_colors(total: int, color: Any) -> list[Any]:
+    """
+    Resolve the colors for a plot with multiple trajectories.
+
+    Parameters
+    ----------
+    total : int
+        Total number of trajectories.
+    color : Any
+        Color to use. If None, a cycle of colors is used.
+
+    Returns
+    -------
+    list[Any]
+        List of colors for each trajectory.
+    """
+    if color is None:
+        cycle = itertools.cycle(YUPI_COLORS)
+        return [next(cycle) for _ in range(total)]
+
+    if isinstance(color, list):
+        cycle = itertools.cycle(color)
+        return [next(cycle) for _ in range(total)]
+
+    return [color] * total
+
+
+def _plot_2d_connections(trajs: list[Trajectory]) -> None:
+    lengths = list(map(len, trajs))
+    min_len = min(lengths)
+    max_len = max(lengths)
+    if min_len != max_len:
+        logging.warning("Not all the trajectories have the same length.")
+    for i in range(min_len):
+        traj_points = [t[i] for t in trajs]
+        traj_points.append(traj_points[0])
+        for tp1, tp2 in itertools.pairwise(traj_points):
+            seg_x = [tp1.r[0], tp2.r[0]]
+            seg_y = [tp1.r[1], tp2.r[1]]
+            plt.plot(seg_x, seg_y, color=(0.2, 0.2, 0.2), linewidth=0.5)
 
 
 def plot_2d(
@@ -68,44 +110,23 @@ def plot_2d(
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
+    check_exact_dim(trajs, 2)
+
     units = f" [{trajs[0].units.dist}]"
 
     if ax is None:
         ax = plt.gca()
 
-    colors = itertools.cycle(YUPI_COLORS)
-    if color is not None:
-        if isinstance(color, (str, tuple)):
-            colors = itertools.cycle([color])
-        elif isinstance(color, list):
-            colors = itertools.cycle(color)
+    colors = _resolve_colors(len(trajs), color)
 
     if connected:
-        lengths = list(map(len, trajs))
-        min_len = min(lengths)
-        max_len = max(lengths)
-        if min_len != max_len:
-            logging.warning("Not all the trajectories have the same length.")
-        for i in range(min_len):
-            traj_points = [t[i] for t in trajs]
-            traj_points.append(traj_points[0])
-            for tp1, tp2 in itertools.pairwise(traj_points):
-                seg_x = [tp1.r[0], tp2.r[0]]
-                seg_y = [tp1.r[1], tp2.r[1]]
-                plt.plot(seg_x, seg_y, color=(0.2, 0.2, 0.2), linewidth=0.5)
+        _plot_2d_connections(trajs)
 
     for i, traj in enumerate(trajs):
-        if traj.dim != 2:
-            raise TrajectoryError(
-                traj,
-                f"Using plot_2d with a trajectory of {traj.dim} dimensions"
-                f" Trajectory No. {i} with id {traj.traj_id}",
-            )
-
         # Plotting
         x_data, y_data = traj.r.x, traj.r.y
 
-        kwargs["color"] = next(colors)
+        kwargs["color"] = colors[i]
         traj_plot = plt.plot(x_data, y_data, line_style, **kwargs)
         color = traj_plot[-1].get_color()
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
@@ -143,6 +164,22 @@ def plot_2d(
         plt.show()
 
     return ax
+
+
+def _plot_3d_connections(trajs: list[Trajectory], ax: Axes) -> None:
+    lengths = list(map(len, trajs))
+    min_len = min(lengths)
+    max_len = max(lengths)
+    if min_len != max_len:
+        logging.warning("Not all the trajectories have the same length.")
+    for i in range(min_len):
+        traj_points = [t[i] for t in trajs]
+        traj_points.append(traj_points[0])
+        for tp1, tp2 in itertools.pairwise(traj_points):
+            seg_x = [tp1.r[0], tp2.r[0]]
+            seg_y = [tp1.r[1], tp2.r[1]]
+            seg_z = [tp1.r[2], tp2.r[2]]
+            ax.plot(seg_x, seg_y, seg_z, color=(0.2, 0.2, 0.2), linewidth=0.5)
 
 
 def plot_3d(
@@ -197,46 +234,24 @@ def plot_3d(
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
+    check_exact_dim(trajs, 3)
+
     units = f" [{trajs[0].units.dist}]"
 
-    colors = itertools.cycle(YUPI_COLORS)
-    if color is not None:
-        if isinstance(color, (str, tuple)):
-            colors = itertools.cycle([color])
-        elif isinstance(color, list):
-            colors = itertools.cycle(color)
+    colors = _resolve_colors(len(trajs), color)
 
     ax = plt.axes(projection="3d") if ax is None else ax
 
     assert isinstance(ax, Axes3D), "ax must be a 3D Axes"
 
     if connected:
-        lengths = list(map(len, trajs))
-        min_len = min(lengths)
-        max_len = max(lengths)
-        if min_len != max_len:
-            logging.warning("Not all the trajectories have the same length.")
-        for i in range(min_len):
-            traj_points = [t[i] for t in trajs]
-            traj_points.append(traj_points[0])
-            for tp1, tp2 in itertools.pairwise(traj_points):
-                seg_x = [tp1.r[0], tp2.r[0]]
-                seg_y = [tp1.r[1], tp2.r[1]]
-                seg_z = [tp1.r[2], tp2.r[2]]
-                ax.plot(seg_x, seg_y, seg_z, color=(0.2, 0.2, 0.2), linewidth=0.5)
+        _plot_3d_connections(trajs, ax)
 
     for i, traj in enumerate(trajs):
-        if traj.dim != 3:
-            raise TrajectoryError(
-                traj,
-                f"Using plot_3d with a trajectory of {traj.dim} dimensions"
-                f" Trajectory No. {i} with id {traj.traj_id}",
-            )
-
         # Plotting
         x_data, y_data, z_data = traj.r.x, traj.r.y, traj.r.z
 
-        kwargs["color"] = next(colors)
+        kwargs["color"] = colors[i]
         traj_plot = ax.plot(x_data, y_data, z_data, line_style, **kwargs)
         color = traj_plot[-1].get_color()
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
@@ -294,22 +309,10 @@ def plot_vs_time(
         trajs = [trajs]
 
     x_units = f"time [{trajs[0].units.time}]"
-
-    cycle = itertools.cycle(YUPI_COLORS)
-    colors = [next(cycle) for _ in trajs]
-
-    if color is not None:
-        if isinstance(color, (str, tuple)):
-            kwargs["color"] = color
-        elif isinstance(color, list):
-            colors = color
+    colors = _resolve_colors(len(trajs), color)
 
     for i, traj in enumerate(trajs):
-        if colors is not None:
-            if i < len(colors):
-                kwargs["color"] = colors[i]
-            else:
-                kwargs.pop("color")
+        kwargs["color"] = colors[i]
         y_data = np.array(key(traj))
         x_data = traj.t
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
