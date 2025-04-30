@@ -45,13 +45,13 @@ from yupi.core.featurizers.featurizer import (
 )
 
 __all__ = [
+    "DEFAULT_ZERO_THRESHOLD",
     "AccelerationChangeRateGlobalFeaturizer",
     "AccelerationFeaturizer",
     "AccelerationGlobalFeaturizer",
     "AngleFeaturizer",
     "AngleGlobalFeaturizer",
     "CompoundFeaturizer",
-    "DEFAULT_ZERO_THRESHOLD",
     "DisplacementFeaturizer",
     "DistanceFeaturizer",
     "Featurizer",

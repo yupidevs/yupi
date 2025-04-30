@@ -4,24 +4,53 @@ This contains the Vector structure used across the library to store data.
 
 from __future__ import annotations
 
-import warnings
-from typing import Union
+from typing import Any
 
 import numpy as np
-from numpy.linalg.linalg import norm as nrm
+from numpy.linalg import norm as nrm
 
 
 class Vector(np.ndarray):
     """Represents a vector"""
 
-    def __new__(cls, arr, dtype=None, copy=False):
-        vec = np.asarray(arr, dtype=dtype)
+    __array_priority__ = 100
+
+    def __new__(
+        cls: type[Vector],
+        arr: Any,
+        dtype: Any = None,
+        copy: bool = False,
+    ) -> Vector:
+        try:
+            vec = np.asarray(arr, dtype=dtype)
+        except Exception as e:
+            raise TypeError(
+                f"Input 'arr' is not convertible to a NumPy array: {e}"
+            ) from e
         if copy:
             vec = vec.copy()
         return vec.view(cls)
 
+    def __add__(self, other: Any) -> Vector:
+        return super().__add__(other).view(Vector)
+
+    def __iadd__(self, other: Any) -> Vector:
+        return super().__iadd__(other).view(Vector)
+
+    def __sub__(self, other: Any) -> Vector:  # type: ignore[override]
+        return super().__sub__(other).view(Vector)
+
+    def __isub__(self, other: Any) -> Vector:  # type: ignore[override]
+        return super().__isub__(other).view(Vector)
+
+    def __mul__(self, other: Any) -> Vector:
+        return super().__mul__(other).view(Vector)
+
+    def __imul__(self, other: Any) -> Vector:
+        return super().__imul__(other).view(Vector)
+
     @property
-    def norm(self) -> Union[Vector, float]:
+    def norm(self) -> Vector | float:
         """Vector : Calculates the norm of the vector. If the vector
         is alist of vectors then the norm of each item is calculated"""
         if len(self.shape) < 2:
@@ -48,7 +77,7 @@ class Vector(np.ndarray):
         """Vector : Z component of all vector items"""
         return self.component(2)
 
-    def component(self, dim) -> Vector:
+    def component(self, dim: int) -> Vector:
         """
         Extract a given component from all vector items.
 
@@ -87,25 +116,3 @@ class Vector(np.ndarray):
         if self.shape[1] < dim + 1:
             raise ValueError(f"Vector has not component {dim}")
         return self[:, dim].view(Vector)
-
-    @staticmethod
-    def create(*args, **kwargs) -> Vector:
-        """
-        .. deprecated:: 0.10.0
-            :func:`Vector.create` will be removed in a future version, use
-            :class:`Vector` constructor instead.
-
-        Creates a new vector.
-
-        Returns
-        -------
-        Vector
-            Vector created
-        """
-
-        warnings.warn(
-            "Vector.create is deprecated and it will be removed in a future version, "
-            "use Vector constructor instead.",
-            DeprecationWarning,
-        )
-        return np.array(*args, **kwargs).view(Vector)

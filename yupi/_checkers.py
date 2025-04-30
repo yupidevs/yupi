@@ -3,114 +3,123 @@ This contains a series of decorators that check the consistency of
 the trajectories according to different criteria.
 """
 
-from typing import List
+from typing import TypeVar
 
 import numpy as np
 
+from yupi.exceptions import TrajectoryError, TrajectoryGroupError
 from yupi.trajectory import _THRESHOLD, Trajectory
 
+T = TypeVar("T")
 
-def check_uniform_time_spaced(func):
+
+class NotUniformTimeSpacedError(TrajectoryError):
+    """Raised when a trajectory should be uniformly time spaced but it's not."""
+
+    def __init__(self, traj: Trajectory) -> None:
+        super().__init__(
+            traj, f"Trajectory {traj.traj_id} must be uniformly time spaced"
+        )
+        self.traj = traj
+
+
+class DifferentDtError(TrajectoryGroupError):
+    """Raised when the trajectories should have the same dt but they don't."""
+
+    def __init__(self, trajs: list[Trajectory]) -> None:
+        super().__init__(trajs, "All trajectories must have the same 'dt'")
+        self.trajs = trajs
+
+
+class DifferentDimensionError(TrajectoryGroupError):
+    """Raised when the trajectories should have the same dimension but they don't."""
+
+    def __init__(self, trajs: list[Trajectory], dim: int | None = None) -> None:
+        message = "All trajectories must have the same dimension"
+        if dim is not None:
+            message += f": {dim}"
+        super().__init__(trajs, message)
+        self.trajs = trajs
+        self.dim = dim
+
+
+class DifferentTimeVectorError(TrajectoryGroupError):
+    """Raised when the trajectories should have the same time vector but they don't."""
+
+    def __init__(self, trajs: list[Trajectory]) -> None:
+        super().__init__(trajs, "All trajectories must have the same time vector")
+        self.trajs = trajs
+
+
+class DifferentLengthError(TrajectoryGroupError):
+    """Raised when the trajectories should have the same length but they don't."""
+
+    def __init__(self, trajs: list[Trajectory]) -> None:
+        super().__init__(trajs, "All trajectories must have the same length")
+        self.trajs = trajs
+
+
+def check_uniform_time_spaced(trajs: list[Trajectory]) -> None:
     """Check that the trajectories are uniformly time-spaced."""
 
-    def wrapper(trajs: List[Trajectory], *args, **kwargs):
-        if any((abs(t.dt_std - 0) > _THRESHOLD for t in trajs)):
-            raise ValueError("All trajectories must be uniformly time spaced")
-        return func(trajs, *args, **kwargs)
-
-    wrapper.__doc__ = func.__doc__
-    return wrapper
+    first_non_uniform_time_spaced = next(
+        (t for t in trajs if abs(t.dt_std) > _THRESHOLD), None
+    )
+    if first_non_uniform_time_spaced is not None:
+        raise NotUniformTimeSpacedError(first_non_uniform_time_spaced)
 
 
-def check_same_dt(func):
+def check_same_dt(trajs: list[Trajectory]) -> None:
     """Check that the trajectories have the same dt."""
 
-    def wrapper(trajs: List[Trajectory], *args, **kwargs):
-        if trajs:
-            dt = trajs[0].dt
-            if any((abs(t.dt - dt) > _THRESHOLD for t in trajs)):
-                raise ValueError("All trajectories must have the same 'dt'")
-        return func(trajs, *args, **kwargs)
-
-    wrapper.__doc__ = func.__doc__
-    return wrapper
+    dt = trajs[0].dt
+    first_unequal_dt = next((t for t in trajs if abs(t.dt - dt) > _THRESHOLD), None)
+    if first_unequal_dt is not None:
+        raise DifferentDtError([trajs[0], first_unequal_dt])
 
 
-def check_same_dim(func):
+def check_same_dim(trajs: list[Trajectory]) -> None:
     """Check that the trajectories have the same dimension."""
 
-    def wrapper(trajs: List[Trajectory], *args, **kwargs):
-        if trajs:
-            dim = trajs[0].dim
-            if any((t.dim != dim for t in trajs)):
-                raise ValueError("All trajectories must have the same dimensions")
-        return func(trajs, *args, **kwargs)
-
-    wrapper.__doc__ = func.__doc__
-    return wrapper
+    dim = trajs[0].dim
+    first_unequal_dim = next((t for t in trajs if t.dim != dim), None)
+    if first_unequal_dim is not None:
+        raise DifferentDimensionError([trajs[0], first_unequal_dim])
 
 
-def check_exact_dim(dim):
+def check_exact_dim(trajs: list[Trajectory], dim: int) -> None:
     """
     Check that the trajectories have the same given dimension.
 
     Parameters
     ----------
+    trajs : list[Trajectory]
+        Input list of trajectories.
     dim : int
         The dimension to check.
     """
 
-    def _check_exact_dim_decorator(func):
-        def wrapper(trajs: List[Trajectory], *args, dim=dim, **kwargs):
-            if any((t.dim != dim for t in trajs)):
-                raise ValueError(f"All trajectories must be {dim}-dimensional")
-            return func(trajs, *args, **kwargs)
-
-        wrapper.__doc__ = func.__doc__
-        return wrapper
-
-    return _check_exact_dim_decorator
+    first_unequal_dim = next((t for t in trajs if t.dim != dim), None)
+    if first_unequal_dim is not None:
+        raise DifferentDimensionError([trajs[0], first_unequal_dim], dim)
 
 
-def check_same_r0(func):
-    """Check that the trajectories have the same initial position."""
-
-    def wrapper(trajs: List[Trajectory], *args, **kwargs):
-        if trajs:
-            r_0 = trajs[0].r[0]
-            if any((abs(t.r[0] - r_0) > _THRESHOLD for t in trajs)):
-                raise ValueError("All trajectories must have the same initial position")
-        return func(trajs, *args, **kwargs)
-
-    wrapper.__doc__ = func.__doc__
-    return wrapper
-
-
-def check_same_lenght(func):
+def check_same_length(trajs: list[Trajectory]) -> None:
     """Check that the trajectories have the same lenght."""
 
-    def wrapper(trajs: List[Trajectory], *args, **kwargs):
-        if trajs:
-            length = len(trajs[0])
-            if any((abs(len(t) - length) > _THRESHOLD for t in trajs)):
-                raise ValueError("All trajectories must have the same length")
-        return func(trajs, *args, **kwargs)
-
-    wrapper.__doc__ = func.__doc__
-    return wrapper
+    length = len(trajs[0])
+    first_unequal_length = next((t for t in trajs if len(t) != length), None)
+    if first_unequal_length is not None:
+        raise DifferentLengthError([trajs[0], first_unequal_length])
 
 
-def check_same_t(func):
+def check_same_t(trajs: list[Trajectory]) -> None:
     """Check that the trajectories have the same time data."""
 
-    def wrapper(trajs: List[Trajectory], *args, **kwargs):
-        if trajs:
-            zipped_trajs = zip(trajs[:-1], trajs[1:])
-            if not all(
-                (np.allclose(t0.t, t1.t, atol=_THRESHOLD) for t0, t1 in zipped_trajs)
-            ):
-                raise ValueError("All trajectories must have the same 't' values")
-        return func(trajs, *args, **kwargs)
-
-    wrapper.__doc__ = func.__doc__
-    return wrapper
+    time_vec = trajs[0].t
+    first_unequal_t = next(
+        (traj for traj in trajs if not np.allclose(time_vec, traj.t, atol=_THRESHOLD)),
+        None,
+    )
+    if first_unequal_t is not None:
+        raise DifferentTimeVectorError([trajs[0], first_unequal_t])

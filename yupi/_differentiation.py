@@ -4,11 +4,14 @@ of a trajectory.
 """
 
 import enum
-from typing import Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from yupi.vector import Vector
+
+if TYPE_CHECKING:
+    from yupi.trajectory import Trajectory
 
 
 class DiffMethod(enum.Enum):
@@ -27,9 +30,8 @@ class WindowType(enum.Enum):
 
 
 def _get_coeff(
-    x_0: float, a: np.ndarray, coeff_arr: Optional[np.ndarray] = None, M: int = 2
-):
-    # pylint: disable=invalid-name
+    x_0: float, a: np.ndarray, coeff_arr: np.ndarray | None = None, M: int = 2
+) -> np.ndarray:
     # The variables where named as in the original algorithm.
 
     N = len(a)
@@ -59,25 +61,31 @@ def _get_coeff(
     return coeff_arr
 
 
-def _validate_traj_vel(traj, method, window_type, accuracy):
+def _validate_traj_vel(
+    traj: "Trajectory", method: DiffMethod, window_type: WindowType, accuracy: int
+) -> bool:
     length = len(traj)
     if method == DiffMethod.LINEAR_DIFF:
         return length >= 3 if window_type == WindowType.CENTRAL else length >= 2
     if method == DiffMethod.FORNBERG_DIFF:
         return length >= accuracy + 1
-    raise ValueError("Invalid method to estimate the velocity.")
+    return True  # Assume valid for unkown methods, the error will be catched later
 
 
-def _validate_traj_acc(traj, method, window_type, accuracy):
+def _validate_traj_acc(
+    traj: "Trajectory", method: DiffMethod, window_type: WindowType, accuracy: int
+) -> bool:
     length = len(traj)
     if method == DiffMethod.LINEAR_DIFF:
         return length >= 4 if window_type == WindowType.CENTRAL else length >= 3
     if method == DiffMethod.FORNBERG_DIFF:
         return length >= accuracy + 2
-    raise ValueError("Invalid method to estimate the velocity.")
+    return True  # Assume valid for unkown methods, the error will be catched later
 
 
-def _linear_diff(data_values, axis_values, window_type):
+def _linear_diff(
+    data_values: np.ndarray, axis_values: np.ndarray, window_type: WindowType
+) -> Vector:
     diff_ans = np.zeros_like(data_values)
     if window_type == WindowType.FORWARD:
         diff = (
@@ -102,11 +110,11 @@ def _linear_diff(data_values, axis_values, window_type):
         diff_ans[0] = diff[0]
         diff_ans[-1] = diff[-1]
     else:
-        raise ValueError("Invalid window type to estimate the velocity.")
+        raise ValueError("Invalid window type.")
     return Vector(diff_ans)
 
 
-def _fornberg_diff_forward(traj, n, deriv=1):  # pylint: disable=invalid-name
+def _fornberg_diff_forward(traj: "Trajectory", n: int, deriv: int = 1) -> Vector:
     vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
@@ -114,11 +122,11 @@ def _fornberg_diff_forward(traj, n, deriv=1):  # pylint: disable=invalid-name
         alpha = traj.t[i : i + a_len] if i < len(traj.r) - a_len else traj.t[-a_len:]
         _y = traj.r[i : i + a_len] if i < len(traj.r) - a_len else traj.r[-a_len:]
         _coeff = _get_coeff(traj.t[i], alpha, _coeff, M=deriv + 1)
-        vel[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
+        vel[i] = np.sum(_coeff[deriv, n, :] * _y.T, axis=1)
     return Vector(vel)
 
 
-def _fornberg_diff_backward(traj, n, deriv=1):  # pylint: disable=invalid-name
+def _fornberg_diff_backward(traj: "Trajectory", n: int, deriv: int = 1) -> Vector:
     vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
@@ -126,11 +134,11 @@ def _fornberg_diff_backward(traj, n, deriv=1):  # pylint: disable=invalid-name
         alpha = traj.t[i - a_len : i] if i >= a_len else traj.t[:a_len]
         _y = traj.r[i - a_len : i] if i >= a_len else traj.r[:a_len]
         _coeff = _get_coeff(traj.t[i], alpha, _coeff, M=deriv + 1)
-        vel[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
+        vel[i] = np.sum(_coeff[deriv, n, :] * _y.T, axis=1)
     return Vector(vel)
 
 
-def _fornberg_diff_central(traj, n, deriv=1):  # pylint: disable=invalid-name
+def _fornberg_diff_central(traj: "Trajectory", n: int, deriv: int = 1) -> Vector:
     vel = np.zeros_like(traj.r)
     _coeff = None
     a_len = n + 1
@@ -146,12 +154,12 @@ def _fornberg_diff_central(traj, n, deriv=1):  # pylint: disable=invalid-name
             alpha = traj.t[-a_len:]
             _y = traj.r[-a_len:]
         _coeff = _get_coeff(traj.t[i], alpha, _coeff, M=deriv + 1)
-        vel[i] = np.sum(_coeff[1, n, :] * _y.T, axis=1)
+        vel[i] = np.sum(_coeff[deriv, n, :] * _y.T, axis=1)
     return Vector(vel)
 
 
 def estimate_velocity(
-    traj,
+    traj: "Trajectory",
     method: DiffMethod,
     window_type: WindowType = WindowType.CENTRAL,
     accuracy: int = 1,
@@ -185,7 +193,7 @@ def estimate_velocity(
 
     if method == DiffMethod.LINEAR_DIFF:
         return _linear_diff(traj.r, traj.t, window_type)
-    if method == DiffMethod.FORNBERG_DIFF:
+    elif method == DiffMethod.FORNBERG_DIFF:
         if window_type == WindowType.FORWARD:
             return _fornberg_diff_forward(traj, accuracy)
         if window_type == WindowType.BACKWARD:
@@ -202,7 +210,7 @@ def estimate_velocity(
 
 
 def estimate_accelereation(
-    traj,
+    traj: "Trajectory",
     method: DiffMethod,
     window_type: WindowType = WindowType.CENTRAL,
     accuracy: int = 1,
@@ -232,7 +240,7 @@ def estimate_accelereation(
         If the trajectory is too short to estimate the velocity.
     """
     if not _validate_traj_acc(traj, method, window_type, accuracy):
-        raise ValueError("Trajectory is too short to estimate the velocity.")
+        raise ValueError("Trajectory is too short to estimate the acceleration.")
 
     if method == DiffMethod.LINEAR_DIFF:
         diff = _linear_diff(traj.r, traj.t, window_type)
@@ -250,5 +258,5 @@ def estimate_accelereation(
                     " central window type in FORNBERG_DIFF method."
                 )
             return _fornberg_diff_central(traj, accuracy, deriv=2)
-        raise ValueError("Invalid window type to estimate the velocity.")
-    raise ValueError("Invalid method to estimate the velocity.")
+        raise ValueError("Invalid window type to estimate the acceleration.")
+    raise ValueError("Invalid method to estimate the acceleration.")

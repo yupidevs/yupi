@@ -6,14 +6,16 @@ from one of the aforementioned modules.
 import logging
 import warnings
 
-import yupi.core
-import yupi.generators
-import yupi.graphics
-import yupi.stats
-import yupi.tracking
-import yupi.transformations
+from yupi._checkers import (
+    DifferentDimensionError,
+    DifferentDtError,
+    DifferentLengthError,
+    DifferentTimeVectorError,
+    NotUniformTimeSpacedError,
+)
 from yupi._differentiation import DiffMethod, WindowType
 from yupi.trajectory import Trajectory, TrajectoryPoint
+from yupi.units import DistU, TimeU, Units
 from yupi.vector import Vector
 
 warnings.filterwarnings("default", category=DeprecationWarning, module="yupi")
@@ -24,10 +26,18 @@ logging.basicConfig(
 )
 
 __all__ = [
+    "DiffMethod",
+    "DifferentDimensionError",
+    "DifferentDtError",
+    "DifferentLengthError",
+    "DifferentTimeVectorError",
+    "DistU",
+    "NotUniformTimeSpacedError",
+    "TimeU",
     "Trajectory",
     "TrajectoryPoint",
+    "Units",
     "Vector",
-    "DiffMethod",
     "WindowType",
 ]
 

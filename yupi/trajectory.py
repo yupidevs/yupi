@@ -4,41 +4,31 @@ Contains the basic structures for trajectories.
 
 from __future__ import annotations
 
-import csv
-import json
-import logging
-import os
-import warnings
-from pathlib import Path
+from dataclasses import dataclass
 from typing import (
     Any,
-    Collection,
-    Dict,
     Iterator,
-    List,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Union,
+    Sequence,
     cast,
 )
 
 import numpy as np
 
 import yupi._differentiation as diff
-from yupi.exceptions import LoadTrajectoryError
+from yupi.units import Units
 from yupi.vector import Vector
 
 _THRESHOLD = 1e-12
 
-Axis = Collection[float]
+Axis = Sequence[float] | np.ndarray
 """Represents the data for a single axis."""
 
-Point = Collection[float]
+Point = Sequence[float] | np.ndarray
 """Represents a single point."""
 
 
-class TrajectoryPoint(NamedTuple):
+@dataclass
+class TrajectoryPoint:
     """
     Represents a point of a trajectory.
 
@@ -55,6 +45,17 @@ class TrajectoryPoint(NamedTuple):
     r: Vector
     v: Vector
     t: float
+    extra: dict[str, Any]
+
+    def __getattribute__(self, name: str) -> Any:
+        try:
+            return super().__getattribute__(name)
+        except AttributeError:
+            if name in self.extra:
+                return self.extra[name]
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{name}'"
+            ) from None
 
 
 class Trajectory:
@@ -65,39 +66,53 @@ class Trajectory:
 
     Parameters
     ----------
-    x : Optional[Axis]
+    x : Axis | None
         Array containing position data of X axis, by default None
-    y : Optional[Axis]
+    y : Axis | None
         Array containing position data of Y axis, by default None.
-    z : Optional[Axis]
+    z : Axis | None
         Array containing position data of X axis, by default None.
-    points : Optional[Collection[Point]]
+    points : Sequence[Point] | np.ndarray | None
         Array containing position data as a list of points, by default
         None
-    axes : Optional[Collection[Axis]]
+    axes : Sequence[Axis] | np.ndarray | None
         Array containing position data as a list of axis, by default
         None
-    t : Optional[Collection[float]]
+    t : Sequence[float] | np.ndarray | None
         Array containing time data, by default None.
-    dt : float
+    dt : float | None
         If no time data is given this represents the time between each
         position data value.
-    t_0 : float
+    t_0 : float | None
         If no time data is given this represents the initial time value,
         by default 0.
-    traj_id : str
+    traj_id : Any
         Id of the trajectory.
     lazy : bool
         Defines if the velocity vector is not recalculated every time
         is asked. By default False.
-    diff_est : Dict[str, Any]
+    diff_est : dict[str, Any]
         Dictionary containing the parameters for the differentiation
         estimation method used to calculate velocity.
+    extra : dict[str, Sequence[Any] | np.ndarray] | None
+        Dictionary containing extra vectors for the trajectory, by default
+        None. Each vector should have the same length as the trajectory.
+        These vectors will be used when iterating, indexing, or
+        slicing the trajectory.
+
+        You can also add any other type of non-vector information (metadata)
+        by using kwargs.
 
     Attributes
     ----------
     r : Vector
         Position vector.
+    t : Vector
+        Time vector.
+    v : Vector
+        Velocity vector.
+    a : Vector
+        Acceleration vector.
     dt_mean : float
         Mean of the time data delta.
     dt_std : float
@@ -136,8 +151,6 @@ class Trajectory:
     Raises
     ------
     ValueError
-        If positional data is given in more than one way.
-    ValueError
         If no positional data is given.
     ValueError
         If all the given input data (``x``, ``y``, ``z``, ``t``)
@@ -147,123 +160,274 @@ class Trajectory:
     ValueError
         If ``t`` and ``dt`` given but ``dt`` does not match ``t``
         values delta.
+    ValueError
+        if ``t`` and ``t_0`` are given but ``t_0`` is not the same as
+        the first value of ``t``.
     """
 
-    general_diff_est: Dict[str, Any] = {
+    general_diff_est: dict[str, Any] = {
         "method": diff.DiffMethod.LINEAR_DIFF,
         "window_type": diff.WindowType.FORWARD,
     }
 
     def __init__(
         self,
-        x: Optional[Axis] = None,
-        y: Optional[Axis] = None,
-        z: Optional[Axis] = None,
-        points: Optional[Collection[Point]] = None,
-        axes: Optional[Collection[Axis]] = None,
-        t: Optional[Collection[float]] = None,
-        dt: Optional[float] = None,
-        t_0: float = 0.0,
-        traj_id: str = "",
-        lazy: Optional[bool] = False,
-        diff_est: Optional[Dict[str, Any]] = None,
-        vel_est: Optional[Dict[str, Any]] = None,
-        t0: Optional[float] = None,  # pylint: disable=invalid-name
-    ):  # pylint: disable=too-many-arguments
+        x: Axis | None = None,
+        y: Axis | None = None,
+        z: Axis | None = None,
+        points: Sequence[Point] | np.ndarray | None = None,
+        axes: Sequence[Axis] | np.ndarray | None = None,
+        t: Sequence[float] | np.ndarray | None = None,
+        dt: float | None = None,
+        t_0: float | None = None,
+        units: Units | None = None,
+        traj_id: Any = "",
+        lazy: bool = False,
+        diff_est: dict[str, Any] | None = None,
+        extra: dict[str, Sequence[Any] | np.ndarray] | None = None,
+        **kwargs: Any,
+    ):
+        # Positional data
+        self.r: Vector
+        self.__init_positional_data(x=x, y=y, z=z, points=points, axes=axes)
 
-        # Position data validation
-        from_xyz = x is not None
-        from_points = points is not None
-        from_axes = axes is not None
+        # Time data
+        self.__t: Vector | None
+        self.__dt: float | None
+        self.t_0: float
+        self.dt_mean: float
+        self.dt_std: float
+        self.__init_time_data(t=t, dt=dt, t_0=t_0)
 
-        if from_xyz + from_points + from_axes > 1:
-            raise ValueError(
-                "Positional data must come only from one way: "
-                "'xyz' data, 'points' data or 'axes' data."
-            )
+        # Units
+        self.units = units if units is not None else Units("m", "s")
 
-        # Set position data
-        lengths = [len(t)] if t is not None else []
+        # Other data
+        self.__v: Vector | None = None
+        self.__a: Vector | None = None
+        self.traj_id = traj_id
+        self.lazy = lazy
+        self.extra: dict[str, Any]
+        self.__init_extra_data(extra=extra)
 
-        # xyz data is converted to axes
-        if from_xyz:
-            axes = [d for d in [x, y, z] if d is not None]
+        self.metadata: dict[str, Any] = kwargs if kwargs else {}
 
-        # Check if positional data is given
-        if axes is not None and len(axes) > 0:
-            lengths.extend([len(d) for d in axes])
-            self.r = Vector(axes, dtype=float, copy=True).T
+        # Differentiation method
+        self.diff_est = Trajectory.general_diff_est.copy()
+        if diff_est is not None:
+            self.diff_est.update(diff_est)
+
+    def __init_positional_data(
+        self,
+        x: Axis | None = None,
+        y: Axis | None = None,
+        z: Axis | None = None,
+        points: Sequence[Point] | np.ndarray | None = None,
+        axes: Sequence[Axis] | np.ndarray | None = None,
+    ) -> None:
+        """
+        Initializes the positional data from the given x, y, and z
+        coordinates or from a list of points or axes.
+
+        Parameters
+        ----------
+        x : Axis | None
+            Array containing position data of X axis.
+        y : Axis | None
+            Array containing position data of Y axis.
+        z : Axis | None
+            Array containing position data of Z axis.
+        points : Sequence[Point] | np.ndarray | None
+            Array containing position data as a list of points.
+        axes : Sequence[Axis] | np.ndarray | None
+            Array containing position data as a list of axes.
+        """
+        if x is not None:
+            self.__init_positional_data_xyz(x, y, z)
         elif points is not None:
-            lengths.append(len(points))
-            self.r = Vector(points, dtype=float, copy=True)
+            self.__init_positional_data_points(points)
+        elif axes is not None:
+            self.__init_positional_data_axes(axes)
         else:
-            raise ValueError("No position data were given.")
+            raise ValueError("No positional data were given.")
 
-        # Check if all the given data has the same shape
-        if lengths.count(lengths[0]) != len(lengths):
-            raise ValueError("All input arrays must have the same lenght.")
         if len(self.r) < 2:
             raise ValueError("The trajectory must contain at least 2 points.")
 
-        if t0 is not None:
-            t_0 = t0
-            warnings.warn(
-                "'t0' is deprecated and will be removed in a future version, "
-                "use 't_0' instead.",
-                DeprecationWarning,
+    def __init_positional_data_xyz(
+        self,
+        x: Axis,
+        y: Axis | None = None,
+        z: Axis | None = None,
+    ) -> None:
+        """
+        Initializes the positional data from the given x, y, and z
+        coordinates.
+
+        Parameters
+        ----------
+        x : Axis
+            Array containing position data of X axis.
+        y : Axis | None
+            Array containing position data of Y axis.
+        z : Axis | None
+            Array containing position data of Z axis.
+        """
+        if y is None and z is not None:
+            raise ValueError("If 'x' and 'z' are given, 'y' must be given too.")
+
+        t_len = len(x)
+        axis = [data for data in [x, y, z] if data is not None]
+
+        if any(len(data) != t_len for data in axis):
+            raise ValueError(
+                "All positional data (x, y, and z) must have the same length. "
             )
 
+        self.r = Vector(axis, dtype=float, copy=True).T
+
+    def __init_positional_data_points(
+        self,
+        points: Sequence[Point] | np.ndarray,
+    ) -> None:
+        """
+        Initializes the positional data from a list of points.
+
+        Parameters
+        ----------
+        points : Sequence[Point] | np.ndarray
+            Array containing position data as a list of points.
+        """
+
+        if len(points) < 2:
+            raise ValueError("The trajectory must contain at least 2 points.")
+        t_dim = len(points[0])
+        if any(len(data) != t_dim for data in points):
+            raise ValueError(
+                "All positional data (points) must have the same length (dimension). "
+            )
+        self.r = Vector(points, dtype=float, copy=True)
+
+    def __init_positional_data_axes(
+        self,
+        axes: Sequence[Axis] | np.ndarray,
+    ) -> None:
+        """
+        Initializes the positional data from a list of axes.
+
+        Parameters
+        ----------
+        axes : list[Axis] | tuple[Axis] | np.ndarray
+            List of axes containing the positional data.
+        """
+
+        t_len = len(axes[0])
+        if any(len(data) != t_len for data in axes):
+            raise ValueError("All positional data (axes) must have the same length. ")
+        self.r = Vector(axes, dtype=float, copy=True).T
+
+    def __init_extra_data(self, extra: dict[str, Any] | None) -> None:
+        """
+        Initializes the extra data.
+
+        Parameters
+        ----------
+        extra : dict[str, Any]
+            Dictionary containing extra data along the trajectory.
+        """
+        assert self.r is not None, "Positional data must be initialized first."
+
+        self.extra = extra if extra is not None else {}
+
+        t_len = len(self.r)
+        for k, v in self.extra.items():
+            if len(v) != t_len:
+                raise ValueError(
+                    f"Extra data '{k}' must have the same length as the trajectory."
+                )
+
+    def __init_time_data(
+        self,
+        t: Sequence[float] | np.ndarray | None = None,
+        dt: float | None = None,
+        t_0: float | None = None,
+    ) -> None:
+        """
+        Initializes the time data.
+
+        Parameters
+        ----------
+        t : Collection[float] | None
+            Array containing time data.
+        dt : float | None
+            If no time data is given this represents the time between
+            each position data value.
+        t_0 : float | None
+            If no time data is given this represents the initial time
+            value.
+        """
+
+        assert self.r is not None, "Positional data must be initialized first."
+
         self.__dt = dt
-        self.t_0 = t_0
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
-        self.__v: Optional[Vector] = None
-        self.__a: Optional[Vector] = None
-        self.traj_id = traj_id
-        self.lazy = lazy
 
         # Set time data
         if self.__t is None:
             self.dt_mean = dt if dt is not None else 1.0
             self.dt_std = 0
         else:
+            if len(self.__t) != len(self.r):
+                raise ValueError(
+                    "The length of the time data must be the same as "
+                    "the length of the position data."
+                )
+            if t_0 is not None and abs(self.__t[0] - t_0) > _THRESHOLD:
+                raise ValueError(
+                    "You are giving 't' and 't_0' but 't_0' is not "
+                    "the same as the first value of 't'."
+                    f"t[0] = {self.__t[0]} != t_0 = {t_0}"
+                )
+
             self.dt_mean = np.mean(np.array(self.__t.delta))
             self.dt_std = np.std(np.array(self.__t.delta))
 
-        # Differentiation method
-        if vel_est is not None:
-            diff_est = vel_est
-            warnings.warn(
-                "'vel_est' is deprecated and will be removed in a future version, "
-                "use 'diff_est' instead.",
-                DeprecationWarning,
-            )
-        self.diff_est = Trajectory.general_diff_est.copy()
-        if diff_est is not None:
-            self.diff_est.update(diff_est)
-
-        # Time parameters validation
+        # Parameters validation
         if self.__t is not None and dt is not None:
             if abs(self.dt_mean - dt) > _THRESHOLD:
                 raise ValueError(
                     "You are giving 'dt' and 't' but 'dt' "
                     "does not match with time values delta."
+                    f"{self.dt_mean} != {dt}"
                 )
             if abs(self.dt_std - 0) > _THRESHOLD:
                 raise ValueError(
                     "You are giving 'dt' and 't' but 't' is not uniformly spaced."
                 )
-            if abs(self.__t[0] - t_0) > _THRESHOLD:
-                raise ValueError(
-                    "You are giving 'dt' and 't' but 't_0' is not "
-                    "the same as the first value of 't'."
-                )
+
+        if t_0 is None:
+            self.t_0 = float(self.__t[0]) if self.__t is not None else 0.0
+        else:
+            self.t_0 = t_0
+
+    def __getattribute__(self, name: str) -> Any:
+        try:
+            return super().__getattribute__(name)
+        except AttributeError:
+            if name in self.metadata:
+                return self.metadata[name]
+            elif name in self.extra:
+                return self.extra[name]
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{name}'"
+            ) from None
 
     def set_diff_method(
         self,
         method: diff.DiffMethod,
         window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
-    ):
+    ) -> None:
         """
         Set the local diferentiation method.
 
@@ -285,30 +449,12 @@ class Trajectory:
         }
         self.recalculate_velocity()
 
-    def set_vel_method(
-        self,
-        method: diff.DiffMethod,
-        window_type: diff.WindowType = diff.WindowType.FORWARD,
-        accuracy: int = 1,
-    ):
-        """
-        .. deprecated:: 0.10.0
-            :func:`set_vel_method` is deprecated and will be removed in
-            version 1.0.0, use :func:`set_diff_method` instead.
-        """
-        warnings.warn(
-            "'set_vel_method' is deprecated and will be removed in a future version, "
-            "use 'set_diff_method' instead.",
-            DeprecationWarning,
-        )
-        self.set_diff_method(method, window_type, accuracy)
-
     @staticmethod
     def global_diff_method(
         method: diff.DiffMethod,
         window_type: diff.WindowType = diff.WindowType.FORWARD,
         accuracy: int = 1,
-    ):
+    ) -> None:
         """
         Set the global diferentiation method.
 
@@ -328,24 +474,6 @@ class Trajectory:
             "window_type": window_type,
             "accuracy": accuracy,
         }
-
-    @staticmethod
-    def global_vel_method(
-        method: diff.DiffMethod,
-        window_type: diff.WindowType = diff.WindowType.FORWARD,
-        accuracy: int = 1,
-    ):
-        """
-        .. deprecated:: 0.10.0
-            :func:`global_vel_method` is deprecated and will be removed in
-            version 1.0.0, use :func:`global_diff_method` instead.
-        """
-        warnings.warn(
-            "'global_vel_method' is deprecated and will be removed in "
-            "version 1.0.0, use 'global_diff_method' instead.",
-            DeprecationWarning,
-        )
-        Trajectory.global_diff_method(method, window_type, accuracy)
 
     @property
     def dt(self) -> float:
@@ -369,32 +497,38 @@ class Trajectory:
     def __len__(self) -> int:
         return self.r.shape[0]
 
-    def __getitem__(self, index) -> Union[Trajectory, TrajectoryPoint]:
+    def __getitem__(self, index: int | slice) -> Trajectory | TrajectoryPoint:
         if isinstance(index, int):
-            # r, v, t
-            data = [self.r[index], None, None]
-            data[1] = self.v[index - 1] if index > 0 else Vector([0] * self.dim)
-            data[2] = (
-                self.t[index] if self.__t is not None else self.t_0 + index * self.dt
-            )
+            r = self.r[index]
+            t = self.t[index] if self.__t is not None else self.t_0 + index * self.dt
+            v = self.v[index]
+            extra = {k: v[index] for k, v in self.extra.items()}
 
-            r, v, t = data
-            return TrajectoryPoint(r=r, v=v, t=t)
+            return TrajectoryPoint(r=r, v=v, t=t, extra=extra)
 
         if isinstance(index, slice):
             start, stop, step = index.indices(len(self))
             new_points = self.r[start:stop:step]
+            new_extra = {k: v[start:stop:step] for k, v in self.extra.items()}
             if self.uniformly_spaced:
                 new_dt = self.dt * step
                 new_t0 = self.t_0 + start * self.dt
                 return Trajectory(
                     points=new_points,
+                    extra=new_extra,
                     dt=new_dt,
                     t_0=new_t0,
                     diff_est=self.diff_est,
+                    **self.metadata,
                 )
             new_t = self.t[start:stop:step]
-            return Trajectory(points=new_points, t=new_t, diff_est=self.diff_est)
+            return Trajectory(
+                points=new_points,
+                extra=new_extra,
+                t=new_t,
+                diff_est=self.diff_est,
+                **self.metadata,
+            )
         raise TypeError("Index must be an integer or a slice.")
 
     def __iter__(self) -> Iterator[TrajectoryPoint]:
@@ -402,13 +536,13 @@ class Trajectory:
             yield cast(TrajectoryPoint, self[i])
 
     @property
-    def bounds(self) -> List[Tuple[float, float]]:
-        """List[Tuple[float]] : List of tuples indicanting the min and
+    def bounds(self) -> list[tuple[float, float]]:
+        """list[tuple[float]] : List of tuples indicanting the min and
         max values of each dimension"""
         _bounds = []
         for dim in range(self.dim):
-            min_bound = min(self.r.component(dim))
-            max_bound = max(self.r.component(dim))
+            min_bound = float(min(self.r.component(dim)))
+            max_bound = float(max(self.r.component(dim)))
             _bounds.append((min_bound, max_bound))
         return _bounds
 
@@ -476,127 +610,6 @@ class Trajectory:
             self.__t = Vector([self.t_0 + self.dt * i for i in range(len(self))])
         return self.__t
 
-    def add_polar_offset(self, radius: float, angle: float) -> None:
-        """
-        Adds an offset given a point in polar coordinates.
-
-        Parameters
-        ----------
-        radius : float
-            Point's radius.
-        angle : float
-            Point's angle.
-
-        Raises
-        ------
-        TypeError
-            If the trajectory is not 2 dimensional.
-        """
-        if self.dim != 2:
-            raise TypeError(
-                "Polar offsets can only be applied on 2 dimensional trajectories"
-            )
-
-        # From cartesian to polar
-        x, y = self.r.x, self.r.y
-        rad, ang = np.hypot(x, y), np.arctan2(y, x)
-
-        rad += radius
-        ang += angle
-
-        # From polar to cartesian
-        x, y = rad * np.cos(ang), rad * np.sin(ang)
-        self.r = Vector([x, y]).T
-
-    def rotate_2d(self, angle: float):
-        """
-        Rotates the trajectory around the center coordinates [0,0]
-
-        Parameters
-        ----------
-        angle : float
-            Angle in radians to rotate the trajectory.
-        """
-        self.add_polar_offset(0, angle)
-
-    def rotate2d(self, angle: float):
-        """
-        .. deprecated:: 0.10.0
-            :func:`rotate2d` will be removed in a future version, use
-            :func:`rotate_2d` instead.
-        """
-        warnings.warn(
-            "rotate2d is deprecated and will be removed in a future version, "
-            "use rotate_2d instead",
-            DeprecationWarning,
-        )
-        self.rotate_2d(angle)
-
-    def rotate_3d(self, angle: float, vector: Collection[float]):
-        """
-        Rotates the trajectory around a given vector.
-
-        Parameters
-        ----------
-        vector : Collection[float]
-            Vector to rotate the trajectory around.
-        angle : float
-            Angle in radians to rotate the trajectory.
-
-        Raises
-        ------
-        TypeError
-            If the trajectory is not 3 dimensional.
-        ValueError
-            If the vector has shape different than (3,).
-        """
-        if self.dim != 3:
-            raise TypeError(
-                "3D rotations can only be applied on 3 dimensional trajectories"
-            )
-
-        vec = Vector(vector)
-        if vec.shape != (3,):
-            raise ValueError("The vector must have shape (3,)")
-
-        vec = vec / vec.norm
-        v_x, v_y, v_z = vec[0], vec[1], vec[2]
-        a_cos, a_sin = np.cos(angle), np.sin(angle)
-
-        rot_matrix = np.array(
-            [
-                [
-                    v_x * v_x * (1 - a_cos) + a_cos,
-                    v_x * v_y * (1 - a_cos) - v_z * a_sin,
-                    v_x * v_z * (1 - a_cos) + v_y * a_sin,
-                ],
-                [
-                    v_x * v_y * (1 - a_cos) + v_z * a_sin,
-                    v_y * v_y * (1 - a_cos) + a_cos,
-                    v_y * v_z * (1 - a_cos) - v_x * a_sin,
-                ],
-                [
-                    v_x * v_z * (1 - a_cos) - v_y * a_sin,
-                    v_y * v_z * (1 - a_cos) + v_x * a_sin,
-                    v_z * v_z * (1 - a_cos) + a_cos,
-                ],
-            ]
-        )
-        self.r = Vector(np.dot(self.r, rot_matrix))
-
-    def rotate3d(self, angle: float, vector: Union[list, np.ndarray]):
-        """
-        .. deprecated:: 0.10.0
-            :func:`rotate3d` will be removed in a future version, use
-            :func:`rotate_3d` instead.
-        """
-        warnings.warn(
-            "rotate3d is deprecated and will be removed in a future version, "
-            "use rotate_3d instead",
-            DeprecationWarning,
-        )
-        self.rotate_3d(angle, vector)
-
     def copy(self) -> Trajectory:
         """
         Returns a copy of the trajectory.
@@ -608,15 +621,16 @@ class Trajectory:
         """
         return Trajectory(
             points=self.r,
+            extra=self.extra,
             t=self.__t,
             dt=self.__dt,
+            t_0=self.t_0,
             lazy=self.lazy,
             diff_est=self.diff_est,
+            **self.metadata,
         )
 
-    def _operable_with(
-        self, other: Trajectory, threshold: Optional[float] = None
-    ) -> bool:
+    def _operable_with(self, other: Trajectory, threshold: float | None = None) -> bool:
         if self.r.shape != other.r.shape:
             return False
 
@@ -626,7 +640,9 @@ class Trajectory:
         diff = np.abs(np.subtract(self_time, other_time))
         return all(diff < threshold)
 
-    def __iadd__(self, other):
+    def __iadd__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         if isinstance(other, (int, float)):
             self.r += other
             return self
@@ -651,7 +667,9 @@ class Trajectory:
             f"'{type(other).__name__}'"
         )
 
-    def __isub__(self, other):
+    def __isub__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         if isinstance(other, (int, float)):
             self.r -= other
             return self
@@ -676,23 +694,31 @@ class Trajectory:
             f"'{type(other).__name__}'"
         )
 
-    def __add__(self, other):
+    def __add__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         traj = self.copy()
         traj += other
         return traj
 
-    def __sub__(self, other):
+    def __sub__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         traj = self.copy()
         traj -= other
         return traj
 
-    def __radd__(self, other):
+    def __radd__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         return self + other
 
-    def __rsub__(self, other):
+    def __rsub__(
+        self, other: int | float | tuple | np.ndarray | Trajectory
+    ) -> Trajectory:
         return self - other
 
-    def __imul__(self, other):
+    def __imul__(self, other: int | float) -> Trajectory:
         if isinstance(other, (int, float)):
             self.r *= other
             return self
@@ -701,341 +727,63 @@ class Trajectory:
             f"'{type(other).__name__}'"
         )
 
-    def __mul__(self, other):
+    def __mul__(self, other: int | float) -> Trajectory:
         traj = self.copy()
         traj *= other
         return traj
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: int | float) -> Trajectory:
         return self * other
 
-    def turning_angles(
-        self, accumulate=False, degrees=False, centered=False, wrap=True
-    ):
+    def to(self, units: Units | str, inplace: bool = False) -> Trajectory:
         """
-        Return the sequence of turning angles that forms the trajectory.
+        Converts the trajectory to the given units.
 
         Parameters
         ----------
-        traj : Trajectory
-            Input trajectory.
-        accumulate : bool, optional
-            If True, turning angles are measured with respect to an axis
-            defined by the initial velocity (i.e., angles between initial
-            and current velocity). Otherwise, relative turning angles
-            are computed (i.e., angles between succesive velocity
-            vectors). By default False.
-        degrees : bool, optional
-            If True, angles are given in degrees. Otherwise, the units
-            are radians. By default False.
-        centered : bool, optional
-            If True, angles are wrapped on the interval ``[-pi, pi]``.
-            Otherwise, the interval ``[0, 2*pi]`` is chosen. By default
-            False.
-        wrap : bool, optional
-            If True, angles are wrapped in a certain interval (depending
-            on ``centered`` param). By default True.
-
-        Returns
-        -------
-        np.ndarray
-            Turning angles where each position in the array correspond
-            to a given time instant.
-        """
-        d_r = self.delta_r
-        d_x, d_y = d_r.x, d_r.y
-        theta = np.arctan2(d_y, d_x)
-
-        if not accumulate:
-            theta = np.ediff1d(theta)  # Relative turning angles
-        else:
-            theta -= theta[0]  # Accumulative turning angles
-
-        if degrees:
-            theta = np.rad2deg(theta)
-
-        if not wrap:
-            return theta
-
-        discont = 360 if degrees else 2 * np.pi
-        if not centered:
-            return theta % discont
-
-        discont_half = discont / 2
-        return -((discont_half - theta) % discont - discont_half)
-
-    def _save_json(self, path: Union[str, Path]) -> None:
-        def convert_to_list(vec: Optional[Vector]):
-            if vec is None:
-                return vec
-            if len(vec.shape) == 1:
-                return list(vec)
-            return {d: list(v) for d, v in enumerate(vec)}
-
-        diff_est = {
-            "method": self.diff_est.get("method", diff.DiffMethod.LINEAR_DIFF).value,
-            "window_type": self.diff_est.get("window", diff.WindowType.FORWARD).value,
-            "accuracy": self.diff_est.get("accuracy", 1),
-        }
-
-        json_dict = {
-            "id": self.traj_id,
-            "dt": self.__dt,
-            "r": convert_to_list(self.r.T),
-            "t": convert_to_list(self.__t),
-            "diff_est": diff_est,
-        }
-        with open(str(path), "w", encoding="utf-8") as traj_file:
-            json.dump(json_dict, traj_file)
-
-    def _save_csv(self, path: Union[str, Path]) -> None:
-        with open(str(path), "w", newline="", encoding="utf-8") as traj_file:
-            writer = csv.writer(traj_file, delimiter=",")
-            writer.writerow([self.traj_id, self.__dt, self.dim])
-
-            default_diff_method = diff.DiffMethod.LINEAR_DIFF
-            default_diff_window = diff.WindowType.FORWARD
-            default_diff_accuracy = 1
-            method = self.diff_est.get("method", default_diff_method).value
-            window = self.diff_est.get("window", default_diff_window).value
-            accuracy = self.diff_est.get("accuracy", default_diff_accuracy)
-            writer.writerow([method, window, accuracy])
-
-            for t_p in self:
-                row = np.hstack([t_p.r, t_p.t])
-                writer.writerow(row)
-
-    def save(
-        self,
-        file_name: str,
-        path: str = ".",
-        file_type: str = "json",
-        overwrite: bool = True,
-    ):
-        """
-        .. deprecated:: 0.10.0
-            :func:`save` will be removed in a future version, use a Serializer
-            from ``yupi.core`` instead (e.g., JSONSerializer).
-
-        Saves the trajectory to disk.
-
-        Parameters
-        ----------
-        file_name : str
-            Name of the file.
-        path : str
-            Path where to save the trajectory, by default ``'.'``.
-        file_time : str
-            Type of the file, by default ``json``.
-
-            The only types avaliable are: ``json`` and ``csv``.
-        overwrite : bool
-            Wheter or not to overwrite the file if it already exists,
-            by default True.
-
-        Raises
-        ------
-        ValueError
-            If ``override`` parameter is ``False`` and the file already
-            exists.
-        ValueError
-            If ``file_type`` is not ``json`` or ``csv``.
-
-        Examples
-        --------
-        >>> t = Trajectory(x=[0.37, 1.24, 1.5])
-        >>> t.save('my_track')
-        """
-        warnings.warn(
-            "`save` is deprecated and will be removed in a future version, use a "
-            "Serializer from `yupi.core` instead (e.g., JSONSerializer).",
-            DeprecationWarning,
-        )
-
-        # Build full path
-        full_path = Path(path) / Path(f"{file_name}.{file_type}")
-
-        # Check file existance
-        if not overwrite and full_path.exists():
-            raise FileExistsError(f"File '{str(full_path)}' already exist")
-
-        if file_type == "json":
-            self._save_json(full_path)
-        elif file_type == "csv":
-            self._save_csv(full_path)
-        else:
-            raise ValueError(f"Invalid export file type '{file_type}'")
-
-    @staticmethod
-    def save_trajectories(
-        trajs: List[Trajectory],
-        folder_path: str = ".",
-        file_type: str = "json",
-        overwrite: bool = True,
-    ):
-        """
-        Saves a list of trajectories to disk. Each Trajectory object
-        will be saved in a separate file inside the given folder.
-
-        Parameters
-        ----------
-        trajs : list[Trajectory]
-            List of Trajectory objects that will be saved.
-        folder_path : str
-            Path where to save all the trajectory, by default ``'.'``.
-        file_type : str
-            Type of the file, by default ``jon``.
-
-            The only types avaliable are: ``json`` and ``csv``.
-        overwrite : bool
-            Wheter or not to overwrite the file if it already exists,
-            by default True.
-
-        Examples
-        --------
-        >>> t1 = Trajectory(x=[0.37, 1.24, 1.5])
-        >>> t2 = Trajectory(x=[1, 2, 3], y=[3, 4, 5])
-        >>> Trajectory.save_trajectories([t1, t2])
-        """
-        for i, traj in enumerate(trajs):
-            path = str(Path(folder_path))
-            name = str(Path(f"trajectory_{i}"))
-            traj.save(name, path, file_type, overwrite)
-
-    @staticmethod
-    def _load_json(path: str):
-        with open(path, "r", encoding="utf-8") as traj_file:
-            data = json.load(traj_file)
-
-            traj_id = data["id"]
-            t, dt = data["t"], data["dt"]
-            axes = list(data["r"].values())
-            diff_est = data.get("diff_est", None)
-            if diff_est is None:
-                diff_est = Trajectory.general_diff_est
-            else:
-                diff_est["method"] = diff.DiffMethod(diff_est["method"])
-                diff_est["window_type"] = diff.WindowType(diff_est["window_type"])
-
-            return Trajectory(axes=axes, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
-
-    @staticmethod
-    def _load_csv(path: str):
-        with open(path, "r", encoding="utf-8") as traj_file:
-
-            def check_empty_val(val, cast_value=True) -> Union[None, float]:
-                if val == "":
-                    return None
-                return float(val) if cast_value else val
-
-            r: List[List[float]] = []
-            t: List[float] = []
-            traj_id: Optional[str] = None
-            dt, dim = 1.0, 1
-            diff_est = Trajectory.general_diff_est
-
-            for i, row in enumerate(csv.reader(traj_file)):
-                if i == 0:
-                    traj_id = row[0] if row[0] != "" else None
-                    dt = check_empty_val(row[1])
-                    dim = int(row[2])
-                    r = [[] for _ in range(dim)]
-                    continue
-
-                if i == 1:
-                    diff_est = {
-                        "method": diff.DiffMethod(int(row[0])),
-                        "window_type": diff.WindowType(int(row[1])),
-                        "accuracy": int(row[2]),
-                    }
-                    continue
-
-                for j in range(dim):
-                    r[j].append(float(row[j]))
-
-                t.append(float(row[-1]))
-
-            return Trajectory(axes=r, t=t, dt=dt, traj_id=traj_id, diff_est=diff_est)
-
-    @staticmethod
-    def load(file_path: str):
-        """
-        .. deprecated:: 0.10.0
-            :func:`load` will be removed in a future version, use a Serializer
-            from ``yupi.core`` instead (e.g., JSONSerializer).
-
-        Loads a trajectory
-
-        Parameters
-        ----------
-        file_path : str
-            Path of the trajectory file
+        units : Units
+            Units to convert the trajectory to.
+        inplace : bool, optional
+            If True, the conversion is done in place. Otherwise, a new
+            trajectory is returned. By default False.
 
         Returns
         -------
         Trajectory
-            Loaded Trajectory object.
-
-        Raises
-        ------
-        ValueError
-            If ``file_path`` is a non existing path.
-        ValueError
-            If ``file_path`` is a not a file.
-        ValueError
-            If ``file_path`` extension is not ``json`` or ```csv``.
+            Converted trajectory.
         """
+        _units = Units.parse(units)
+        if inplace:
+            self.r *= self.units.dist_to(_units.dist)
+            self.__t = (
+                self.__t * self.units.time_to(_units.time)
+                if self.__t is not None
+                else None
+            )
+            self.__dt = (
+                self.__dt * self.units.time_to(_units.time) if self.__dt else None
+            )
+            self.dt_mean *= self.units.time_to(_units.time)
+            self.dt_std *= self.units.time_to(_units.time)
+            self.t_0 *= self.units.time_to(_units.time)
+            self.units = _units
 
-        warnings.warn(
-            "`load` is deprecated and will be removed in a future version, use a "
-            "Serializer from `yupi.core` instead (e.g., JSONSerializer).",
-            DeprecationWarning,
+            # invalidate cached velocity and acceleration
+            self.__v = None
+            self.__a = None
+            return self
+
+        return Trajectory(
+            points=self.r * self.units.dist_to(_units.dist),
+            extra=self.extra,
+            t=self.__t * self.units.time_to(_units.time)
+            if self.__t is not None
+            else None,
+            dt=self.__dt * self.units.time_to(_units.time)
+            if self.__dt is not None
+            else None,
+            t_0=self.t_0 * self.units.time_to(_units.time),
+            diff_est=self.diff_est,
+            units=_units,
+            **self.metadata,
         )
-
-        path = Path(file_path)
-        # Check valid path
-        if not path.exists():
-            raise ValueError("Path does not exist.")
-        if not path.is_file():
-            raise ValueError("Path must be a file.")
-
-        file_type = path.suffix
-
-        try:
-            if file_type == ".json":
-                return Trajectory._load_json(file_path)
-            if file_type == ".csv":
-                return Trajectory._load_csv(file_path)
-            raise ValueError("Invalid file type.")
-        except (json.JSONDecodeError, KeyError, ValueError, IndexError) as exc:
-            raise LoadTrajectoryError(str(path)) from exc
-
-    @staticmethod
-    def load_folder(folder_path=".", recursively: bool = False):
-        """
-        Loads all the trajectories from a folder.
-
-        Parameters
-        ----------
-        folder_path : str
-            Path of the trajectories folder.
-        recursively : bool
-            If True then subfolders are analized recursively, by
-            default False.
-
-        Returns
-        -------
-        List[Trajectory]
-            List of the loaded trajectories.
-        """
-        trajs = []
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                path = str(Path(root) / Path(file))
-                try:
-                    trajs.append(Trajectory.load(path))
-                except LoadTrajectoryError as load_exception:
-                    logging.warning("Ignoring: '%s'", load_exception.path)
-            if not recursively:
-                break
-        return trajs

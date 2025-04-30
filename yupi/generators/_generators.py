@@ -1,10 +1,14 @@
 import abc
-from typing import Callable, Optional, Tuple
+from typing import Any, Callable, Collection
 
 import numpy as np
 
 from yupi._differentiation import DiffMethod, WindowType
 from yupi.trajectory import Trajectory
+from yupi.units import Units
+
+InitialPosition = Collection[Collection[float]] | Collection[float] | float
+InitialVelocity = Collection[Collection[float]] | Collection[float] | float
 
 
 class Generator(metaclass=abc.ABCMeta):
@@ -18,8 +22,9 @@ class Generator(metaclass=abc.ABCMeta):
         Total duration of each Trajectory.
     dim : int, optional
         Dimension of each Trajectory, by default 1.
-    N : int, optional
-        Number of trajectories, by default 1.
+    units: Units | None
+        Units of the Trajectory, by default None. If None, the units
+        are set to the default ones (i.e., m/s).
     dt : float, optional
         Time step of the Trajectory, by default 1.0.
     seed : int, optional
@@ -32,8 +37,6 @@ class Generator(metaclass=abc.ABCMeta):
         Total duration of each Trajectory.
     dim : int, optional
         Dimension of each Trajectory, by default 1.
-    N : int, optional
-        Number of trajectories, by default 1.
     dt : float, optional
         Time step of the Trajectory, by default 1.0.
     n  : int
@@ -45,27 +48,31 @@ class Generator(metaclass=abc.ABCMeta):
     def __init__(
         self,
         T: float,
+        units: Units | None = None,
         dim: int = 1,
-        N: int = 1,
         dt: float = 1.0,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ):
-        # Simulation parameters
-        self.T = T  # Total time
-        self.dim = dim  # Trajectory dimension
-        self.N = N  # Number of trajectories
-        self.dt = dt  # Time step of the simulation
-        self.n = int(T / dt)  # Number of time steps
+        self.T = T
+        self.units = units
+        self.dim = dim
+        self.dt = dt
+        self.n = int(T / dt)
         self.rng = (
             np.random.default_rng(seed) if seed is not None else np.random.default_rng()
         )
 
     @abc.abstractmethod
-    def generate(self):
+    def generate(self, N: int) -> list[Trajectory]:
         """
         Abstract method that is implemented on inheriting classes.
         It should compute a list of ``N`` Trajectory objects with the
         given parameters using a method specific to the inheriting class.
+
+        Parameters
+        ----------
+        N : int
+            Number of Trajectory objects to be generated.
         """
 
 
@@ -79,8 +86,9 @@ class RandomWalkGenerator(Generator):
         Total duration of each Trajectory.
     dim : int, optional
         Dimension of each Trajectory, by default 1.
-    N : int, optional
-        Number of trajectories, by default 1.
+    units: Units | None
+        Units of the Trajectory, by default None. If None, the units
+        are set to the default ones (i.e., m/s).
     dt : float, optional
         Time step of the Trajectory, by default 1.0.
     actions_prob : np.ndarray, optional
@@ -88,7 +96,7 @@ class RandomWalkGenerator(Generator):
         to be taken, according to every axis. If this parameter is not
         passed the walker will assume uniform probability for each
         action, by default None.
-    step_length_func : Callable[[Tuple], np.ndarray], optional
+    step_length_func : Callable[[tuple], np.ndarray], optional
         Function that returns the distribution of step lengths that
         will be taken by the walker on each time step, dimension and
         instance of a trajectory. Expected shape of the return value is
@@ -101,23 +109,24 @@ class RandomWalkGenerator(Generator):
     def __init__(
         self,
         T: float,
+        units: Units | None = None,
         dim: int = 1,
-        N: int = 1,
         dt: float = 1,
-        actions_prob: Optional[np.ndarray] = None,
-        step_length_func: Callable[[Tuple], np.ndarray] = np.ones,
-        seed: Optional[int] = None,
-        **step_length_kwargs,
-    ):
-
-        super().__init__(T, dim, N, dt, seed)
+        actions_prob: np.ndarray | list[list[float]] | None = None,
+        step_length_func: Callable[[tuple], np.ndarray] = np.ones,
+        seed: int | None = None,
+        **step_length_kwargs: Any,
+    ) -> None:
+        super().__init__(T=T, units=units, dim=dim, dt=dt, seed=seed)
 
         # Main id of generated trajectories
         self.traj_id = "RandomWalk"
+        self.t: np.ndarray
+        self.r: np.ndarray
+        self.step_length: np.ndarray
 
-        # Dynamic variables
-        self.t = np.arange(self.n) * dt  # Time array
-        self.r = np.zeros((self.n, dim, N))  # Position array
+        self.step_length_func = step_length_func
+        self.step_length_kwargs = step_length_kwargs
 
         # Model parameters
         actions = np.array([-1, 0, 1])
@@ -127,27 +136,31 @@ class RandomWalkGenerator(Generator):
 
         actions_prob = np.asarray(actions_prob, dtype=np.float32)
 
-        if actions_prob.shape[0] != dim:
+        if actions_prob.shape[0] != dim or actions_prob.shape[1] != actions.shape[0]:
             raise ValueError("actions_prob must have shape like (dims, 3)")
-        if actions_prob.shape[1] != actions.shape[0]:
-            raise ValueError("actions_prob must have shape like (dims, 3)")
-
-        shape_tuple = (self.n - 1, dim, N)
-        step_length = step_length_func(shape_tuple, **step_length_kwargs)
 
         self.actions = actions
         self.actions_prob = actions_prob
+
+    def _set_init_cond(self, N: int) -> None:
+        self.t = np.arange(self.n) * self.dt  # Time array
+        self.r = np.zeros((self.n, self.dim, N))  # Position array
+
+        shape_tuple = (self.n - 1, self.dim, N)
+        step_length = self.step_length_func(shape_tuple, **self.step_length_kwargs)
         self.step_length = step_length
 
     # Compute vector position as a function of time for
     # All the walkers of the ensemble
-    def _get_r(self):
+    def _get_r(self, N: int) -> np.ndarray:
         # Get displacement for every coordinates according
         # to the probabilities in self.actions_prob
-        delta_r = [
-            self.rng.choice(self.actions, p=p, size=(self.n - 1, self.N))
-            for p in self.actions_prob
-        ]
+        delta_r = np.array(
+            [
+                self.rng.choice(self.actions, p=p, size=(self.n - 1, N))
+                for p in self.actions_prob
+            ]
+        )
 
         # Set time/coordinates as the first/second axis
         delta_r = np.swapaxes(delta_r, 0, 1)
@@ -160,19 +173,23 @@ class RandomWalkGenerator(Generator):
         return self.r
 
     # Get position vectors and generate RandomWalk object
-    def generate(self):
+    def generate(self, N: int) -> list[Trajectory]:
+        # Set parameters
+        self._set_init_cond(N)
+
         # Get position vectors
-        r = self._get_r()
+        r = self._get_r(N)
 
         # Generate RandomWalk object
         trajs = []
-        for i in range(self.N):
+        for i in range(N):
             points = r[:, :, i]
             trajs.append(
                 Trajectory(
                     points=points,
                     dt=self.dt,
                     t=self.t,
+                    units=self.units,
                     traj_id=f"{self.traj_id} {i + 1}",
                     diff_est={
                         "method": DiffMethod.LINEAR_DIFF,
@@ -187,17 +204,16 @@ class _LangevinGenerator(Generator):
     def __init__(
         self,
         T: float,
+        units: Units | None = None,
         dim: int = 1,
-        N: int = 1,
         dt: float = 1.0,
         gamma: float = 1.0,
         sigma: float = 1.0,
-        v0: Optional[np.ndarray] = None,
-        r0: Optional[np.ndarray] = None,
-        seed: Optional[int] = None,
+        v0: InitialPosition | None = None,
+        r0: InitialVelocity | None = None,
+        seed: int | None = None,
     ):
-
-        super().__init__(T, dim, N, dt, seed)
+        super().__init__(T=T, units=units, dim=dim, dt=dt, seed=seed)
 
         # Main id of generated trajectories
         self.traj_id = "Langevin"
@@ -207,94 +223,92 @@ class _LangevinGenerator(Generator):
         self.sigma = sigma  # Noise scale parameter
 
         # Initial conditions
-        self.r0 = r0  # Initial position
-        self.v0 = v0  # Initial velocity
-
-        # Init variables before simulate and validate initial conditions
-        self._set_scaling_params()  # Set intrinsic reference parameters
-        self._set_simulation_vars()  # Init simulation variables
-        self._set_init_cond()  # Set initial conditions
-        self._set_noise()  # Set the attribute self.noise
+        self.r0 = np.array(0 if r0 is None else r0)
+        self.v0 = np.array(0 if v0 is None else v0)
 
     # Intrinsic reference parameters
-    def _set_scaling_params(self):
+    def _set_scaling_params(self) -> None:
         self.t_scale = self.gamma**-1  # Time scale
         self.v_scale = self.sigma * np.sqrt(self.t_scale)  # Speed scale
         self.r_scale = self.v_scale * self.t_scale  # Length scale
 
-    # Simulation parameters and dynamic variables
-    def _set_simulation_vars(self):
+    # Set initial conditions
+    def _set_init_cond(self, N: int) -> None:
         # Simulation parameters
         self.dt = self.dt / self.t_scale  # Dimensionless time step
-        self.shape = (self.n, self.dim, self.N)  # Shape of dynamic variables
+        self.shape = (self.n, self.dim, N)  # Shape of dynamic variables
 
         # Dynamic variables
         self.t = np.arange(self.n) * self.dt  # Time array
         self.r = np.empty(self.shape)  # Position array
         self.v = np.empty(self.shape)  # Velocity array
 
-    # Set initial conditions
-    def _set_init_cond(self):
         # Initial positions
-        if self.r0 is None:
-            self.r[0] = np.zeros((self.dim, self.N))  # Default
-        elif np.shape(self.r0) == (self.dim, self.N) or np.ndim(self.r0) == 0:
-            self.r[0] = self.r0  # User input
+        if np.shape(self.r0) == (self.dim,):
+            self.r[0][:][:] = self.r0[:, None]
+        elif np.shape(self.r0) == (self.dim, N) or np.ndim(self.r0) == 0:
+            self.r[0] = self.r0  # User initial positions
         else:
             raise ValueError(
-                "r0 is expected to be a float or an "
-                f"array of shape {(self.dim, self.N)}."
+                "r0 is expected to be a float, or an "
+                f"array of shape {(self.dim)}, or an "
+                f"array of shape {(self.dim, N)}."
             )
         self.r[0] /= self.r_scale
 
         # Initial velocities
-        if self.v0 is None:
-            self.v[0] = self.rng.normal(size=(self.dim, self.N))  # Default
-        elif np.shape(self.v0) == (self.dim, self.N) or np.ndim(self.v0) == 0:
+        if np.shape(self.v0) == (self.dim,):
+            self.v[0][:][:] = self.v0[:, None]
+        elif np.shape(self.v0) == (self.dim, N) or np.ndim(self.v0) == 0:
             self.v[0] = self.v0  # User input
         else:
             raise ValueError(
-                "v0 is expected to be a float or an "
-                f"array of shape {(self.dim, self.N)}."
+                "v0 is expected to be a float, or an "
+                f"array of shape {(self.dim)}, or an "
+                f"array of shape {(self.dim, N)}."
             )
         self.v[0] /= self.v_scale
 
     # Fill noise array with custom noise properties
-    def _set_noise(self):
+    def _set_noise(self) -> None:
         self.noise = self.rng.normal(size=self.shape)
 
     # Solve dimensionless Langevin Equation using
     # the numerical method of Euler-Maruyama
-    def _solve(self):
-        sqrt_dt = np.sqrt(self.dt)
-        for i in range(self.n - 1):
-            # Solving for position
-            self.r[i + 1] = self.r[i] + self.v[i] * self.dt
-
-            # Solving for velocity
-            self.v[i + 1] = self.v[i] - self.v[i] * self.dt + self.noise[i] * sqrt_dt
+    @abc.abstractmethod
+    def _solve(self) -> None: ...
 
     # Scale by intrinsic reference quantities
-    def _set_scale(self):
+    def _set_scale(self) -> None:
         self.r *= self.r_scale
         self.v *= self.v_scale
         self.t *= self.t_scale
         self.dt *= self.t_scale
 
     # Simulate the process
-    def _simulate(self):
+    def _simulate(self, N: int) -> None:
+        # Init variables before simulate and validate initial conditions
+        self._set_scaling_params()  # Set intrinsic reference parameters
+        self._set_init_cond(N)  # Set initial conditions
+        self._set_noise()  # Set the attribute self.noise
+
         self._solve()  # Solve the Langevin equation
         self._set_scale()  # Recovering dimensions
 
     # Generate yupi Trajectory objects
-    def generate(self):
-        self._simulate()
+    def generate(self, N: int) -> list[Trajectory]:
+        self._simulate(N)
 
         trajs = []
-        for i in range(self.N):
+        for i in range(N):
             points = self.r[:, :, i]
             trajs.append(
-                Trajectory(points=points, dt=self.dt, traj_id=f"{self.traj_id} {i + 1}")
+                Trajectory(
+                    points=points,
+                    units=self.units,
+                    dt=self.dt,
+                    traj_id=f"{self.traj_id} {i + 1}",
+                )
             )
         return trajs
 
@@ -311,69 +325,87 @@ class LangevinGenerator(_LangevinGenerator):
         Total duration of trajectories.
     dim : int, optional
         Trajectories dimension, by default 1.
-    N : int, optional
-        Number of simulated trajectories, by default 1.
+    units: Units | None
+        Units of the Trajectory, by default None. If None, the units
+        are set to the default ones (i.e., m/s).
     dt : float, optional
         Time step, by default 1.0.
     gamma : float, optional
         Drag parameter or inverse of the persistence time, by default 1.
     sigma : float, optional
         Noise intensity (i.e., scale parameter of noise pdf), by default 1.
-    bounds: Optional[np.ndarray]
+    bounds: np.ndarray | None
         Lower and upper reflecting boundaries that confine the trajectories.
+        Must have shape (2, dim). The first row contains the lower
+        boundaries and the second row contains the upper boundaries.
         If None is passed, trajectories are simulated in a free space.
         By default None.
-    bounds_extent: Optional[np.ndarray]
+    bounds_extent: np.ndarray | None
         Decay length of boundary forces, by default None.
-    bounds_strength: Optional[np.ndarray]
+    bounds_strength: np.ndarray | None
         Boundaries strength, by default None.
-    v0 : Optional[np.ndarray]
+    v0 : Collection[float] | float | None
         Initial velocities, by default None.
-    r0 : Optional[np.ndarray]
+        Could be a float, an array of shape (dim,) or an array of shape
+        (dim, N).
+    r0 : Collection[float] | float | None
         Initial positions, by default None.
+        Could be a float, an array of shape (dim,) or an array of shape
+        (dim, N).
     """
 
     def __init__(
         self,
         T: float,
         dim: int = 1,
-        N: int = 1,
+        units: Units | None = None,
         dt: float = 1.0,
         gamma: float = 1.0,
         sigma: float = 1.0,
-        bounds: Optional[np.ndarray] = None,
-        bounds_extent: Optional[np.ndarray] = None,
-        bounds_strength: Optional[np.ndarray] = None,
-        v0: Optional[np.ndarray] = None,
-        r0: Optional[np.ndarray] = None,
-        seed: Optional[int] = None,
+        bounds: np.ndarray | None = None,
+        bounds_extent: np.ndarray | None = None,
+        bounds_strength: np.ndarray | None = None,
+        v0: InitialVelocity | None = None,
+        r0: InitialPosition | None = None,
+        seed: int | None = None,
     ):
-
-        super().__init__(T, dim, N, dt, gamma, sigma, v0, r0, seed)
+        super().__init__(
+            T=T,
+            dim=dim,
+            units=units,
+            dt=dt,
+            gamma=gamma,
+            sigma=sigma,
+            v0=v0,
+            r0=r0,
+            seed=seed,
+        )
 
         # Verify if there is any boundary
         self.bounds = bounds
         self.bounds_ext = bounds_extent
         self.bounds_stg = bounds_strength
 
+    def _set_init_cond(self, N: int) -> None:
+        super()._set_init_cond(N)
         # Set bounds and check initial positions
         self._set_bounds()
 
     # Broadcast and convert None into np.nan
-    def _broadcast_bounds(self):
+    def _broadcast_bounds(self) -> None:
         ones = np.ones((2, self.dim))
         self.bounds = np.float32(self.bounds) * ones
         self.bounds_ext = np.float32(self.bounds_ext) * ones
         self.bounds_stg = np.float32(self.bounds_stg) * ones
 
     # Set dimensionless bounds properties
-    def _dimless_bounds(self):
+    def _dimless_bounds(self) -> None:
         self.bounds = self.bounds / self.r_scale
         self.bounds_ext = self.bounds_ext / self.r_scale
         self.bounds_stg = self.bounds_stg / (self.r_scale / self.t_scale**2)
 
     # Check if all initial positions are whithin boundaries
-    def _check_r0(self):
+    def _check_r0(self) -> None:
         # Unpack lower and upper bounds
         assert self.bounds is not None
         lower_bound, upper_bound = self.bounds
@@ -402,9 +434,10 @@ class LangevinGenerator(_LangevinGenerator):
 
     # Set bounds and check initial positions
     # TODO: check that `bounds` are compatibles with `dim`
-    def _set_bounds(self):
+    def _set_bounds(self) -> None:
         # Broadcast and convert None into np.nan
         self._broadcast_bounds()
+        assert self.bounds is not None
 
         # Check if there is at least one bound
         self.has_bounds = not np.all(np.isnan(self.bounds))
@@ -414,13 +447,17 @@ class LangevinGenerator(_LangevinGenerator):
             self._check_r0()
 
     # Get net force from the boundaries
-    def _bound_force(self, r, tolerance=10):
+    def _bound_force(self, r: np.ndarray, tolerance: float = 10) -> np.ndarray | float:
         # Return zero force if there is no bounds
         if not self.has_bounds:
             return 0.0
 
         # Set r to have shape = (N, dim)
         r = r.T
+
+        assert self.bounds is not None
+        assert self.bounds_ext is not None
+        assert self.bounds_stg is not None
 
         # Lower and upper bound limits, extents and strengths
         lower_bound, upper_bound = self.bounds
@@ -450,7 +487,7 @@ class LangevinGenerator(_LangevinGenerator):
 
     # Solve dimensionless Langevin Equation using
     # the numerical method of Euler-Maruyama
-    def _solve(self):
+    def _solve(self) -> None:
         sqrt_dt = np.sqrt(self.dt)
         for i in range(self.n - 1):
             # Solving for position
@@ -470,16 +507,15 @@ class _DiffDiffGenerator(Generator):
         self,
         T: float,
         dim: int = 1,
-        N: int = 1,
+        units: Units | None = None,
         dt: float = 1.0,
         tau: float = 1.0,
         sigma: float = 1.0,
         dim_aux: int = 1,
-        r0: Optional[np.ndarray] = None,
-        seed: Optional[int] = None,
+        r0: InitialPosition | None = None,
+        seed: int | None = None,
     ):
-
-        super().__init__(T, dim, N, dt, seed)
+        super().__init__(T=T, dim=dim, units=units, dt=dt, seed=seed)
 
         # Main id of generated trajectories
         self.traj_id = "DiffDiff"
@@ -494,77 +530,77 @@ class _DiffDiffGenerator(Generator):
 
         # Simulation parameters
         self.dt = dt / self.t_scale  # Dimensionless time step
-        self.shape = (self.n, dim, N)  # Shape of dynamic variables
+        self.shape: tuple  # Shape of dynamic variables
         self.dim_aux = dim_aux  # Dimension of the aux variable
 
         # Dynamic variables
         self.t = np.arange(self.n, dtype=np.float32)  # Time array
-        self.r = np.empty(self.shape)  # Position array
-        self.aux_var = np.empty((dim_aux, N))  # Square of diffusivity
+        self.r: np.ndarray  # Position array
+        self.aux_var: np.ndarray  # Square of diffusivity
         self.noise_r: np.ndarray  # Noise for position (filled in _set_noise method)
         self.noise_Y: np.ndarray  # Aux variable (filled in _set_noise method)
 
         # Initial conditions
-        self.r0 = r0  # Initial position
-        self._set_init_cond()  # Check and set initial conditions
+        self.r0 = np.array(0 if r0 is None else r0)
 
     # Set initial conditions
-    def _set_init_cond(self):
+    def _set_init_cond(self, N: int) -> None:
+        self.shape = (self.n, self.dim, N)  # Shape of dynamic variables
+
+        self.r = np.empty(self.shape)  # Position array
+
         self.aux_var = self.rng.normal(
-            size=(self.dim_aux, self.N)
+            size=(self.dim_aux, N)
         )  # Initial aux variable configuration
         self.D = np.sum(self.aux_var**2, axis=0)  # Initial diffusivity configuration
 
-        if self.r0 is None:
-            self.r[0] = np.zeros((self.dim, self.N))  # Default initial positions
-        elif np.shape(self.r0) == (self.dim, self.N) or np.ndim(self.r0) == 0:
+        if np.shape(self.r0) == (self.dim,):
+            self.r[0][:][:] = self.r0[:, None]
+        elif np.shape(self.r0) == (self.dim, N) or np.ndim(self.r0) == 0:
             self.r[0] = self.r0  # User initial positions
         else:
             raise ValueError(
-                "r0 is expected to be a float or an "
-                f"array of shape {(self.dim, self.N)}."
+                "r0 is expected to be a float, an "
+                f"array of shape {(self.dim)}, or an "
+                f"array of shape {(self.dim, N)}."
             )
 
     # Fill noise arrays
-    def _set_noise(self):
+    def _set_noise(self, N: int) -> None:
         dist = self.rng.normal
         self.noise_r = dist(size=self.shape)
-        self.noise_Y = dist(size=(self.n, self.dim_aux, self.N))
+        self.noise_Y = dist(size=(self.n, self.dim_aux, N))
 
-    # Solve coupled Langevin equations
-    def _solve(self):
-        sqrt_dt = np.sqrt(self.dt)
-        for i in range(self.n - 1):
-            # Solving for position
-            self.r[i + 1] = self.r[i] + np.sqrt(2 * self.D * self.dt) * self.noise_r[i]
-
-            # Solving for auxiliary variable
-            self.aux_var += -self.aux_var * self.dt + +self.noise_Y[i] * sqrt_dt
-
-            # Updating the diffusivities
-            self.D = np.sum(self.aux_var**2, axis=0)
+    @abc.abstractmethod
+    def _solve(self) -> None: ...
 
     # Scale by intrinsic reference quantities
-    def _set_scale(self):
+    def _set_scale(self) -> None:
         self.r *= self.r_scale
         self.t *= self.t_scale
         self.dt *= self.t_scale
 
     # Simulate the process
-    def _simulate(self):
-        self._set_noise()  # Set the attribute self.noise
+    def _simulate(self, N: int) -> None:
+        self._set_noise(N)  # Set the attribute self.noise
         self._solve()  # Solve the Langevin equation
         self._set_scale()  # Scaling
 
     # Generate yupi Trajectory objects
-    def generate(self):
-        self._simulate()
+    def generate(self, N: int) -> list[Trajectory]:
+        self._set_init_cond(N)  # Check and set initial conditions
+        self._simulate(N)
 
         trajs = []
-        for i in range(self.N):
+        for i in range(N):
             points = self.r[:, :, i]
             trajs.append(
-                Trajectory(points=points, dt=self.dt, traj_id=f"{self.traj_id} {i + 1}")
+                Trajectory(
+                    points=points,
+                    units=self.units,
+                    dt=self.dt,
+                    traj_id=f"{self.traj_id} {i + 1}",
+                )
             )
         return trajs
 
@@ -580,8 +616,9 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         Total duration of each Trajectory.
     dim : int, optional
         Dimension of each Trajectory, by default 1.
-    N : int, optional
-        Number of trajectories, by default 1.
+    units: Units | None
+        Units of the Trajectory, by default None. If None, the units
+        are set to the default ones (i.e., m/s).
     dt : float, optional
         Time step of the Trajectory, by default 1.0.
     tau : float, optional
@@ -591,15 +628,17 @@ class DiffDiffGenerator(_DiffDiffGenerator):
     dim_aux: int, optional
         Dimension of the auxiliary process, which is the square of
         the diffusivity, by default 1.
-    bounds: Optional[np.ndarray], optional
+    bounds: np.ndarray | None
         Lower and upper reflecting boundaries that confine the trajectories.
+        Must have shape (2, dim). The first row contains the lower
+        boundaries and the second row contains the upper boundaries.
         If None is passed, trajectories are simulated in a free space.
         By default None.
-    bounds_extent: Optional[np.ndarray]
+    bounds_extent: np.ndarray | None
         Decay length of boundary forces, by default None.
-    bounds_strength: Optional[np.ndarray]
+    bounds_strength: np.ndarray | None
         Boundaries strength, by default None.
-    r0 : Optional[np.ndarray]
+    r0 :
         Initial positions, by default None.
     """
 
@@ -607,44 +646,61 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         self,
         T: float,
         dim: int = 1,
-        N: int = 1,
+        units: Units | None = None,
         dt: float = 1.0,
         tau: float = 1.0,
         sigma: float = 1.0,
         dim_aux: int = 1,
-        bounds: Optional[np.ndarray] = None,
-        bounds_extent: Optional[np.ndarray] = None,
-        bounds_strength: Optional[np.ndarray] = None,
-        r0: Optional[np.ndarray] = None,
-        seed: Optional[int] = None,
+        bounds: np.ndarray | None = None,
+        bounds_extent: np.ndarray | None = None,
+        bounds_strength: np.ndarray | None = None,
+        r0: InitialPosition | None = None,
+        seed: int | None = None,
     ):
-
-        super().__init__(T, dim, N, dt, tau, sigma, dim_aux, r0, seed)
+        super().__init__(
+            T=T,
+            dim=dim,
+            units=units,
+            dt=dt,
+            tau=tau,
+            sigma=sigma,
+            dim_aux=dim_aux,
+            r0=r0,
+            seed=seed,
+        )
 
         # Verify if there is any boundary
-        self.bounds = np.float32(bounds)  # Convert None into np.nan
+        self.bounds = (
+            np.full((2, dim), np.nan, dtype=np.float32) if bounds is None else bounds
+        )
         self.has_bounds = not np.all(np.isnan(self.bounds))  # Check for all bounds
+        self.bounds_extent = bounds_extent
+        self.bounds_strength = bounds_strength
 
+    def _set_init_cond(self, N: int) -> None:
+        super()._set_init_cond(N)
         if self.has_bounds:
             # Broadcast and scale bounds properties
             ones = np.ones((2, self.dim))
             self.bounds = self.bounds * ones / self.r_scale
-            self.bounds_ext = np.float32(bounds_extent) * ones / self.r_scale
+            self.bounds_ext = np.float32(self.bounds_extent) * ones / self.r_scale
             self.bounds_stg = (
-                np.float32(bounds_strength) * ones * (self.t_scale**2 / self.r_scale)
+                np.float32(self.bounds_strength)
+                * ones
+                * (self.t_scale**2 / self.r_scale)
             )
 
             # Check is initial positions are within bounds
             self._check_r0()
 
     # Check if all initial positions are inside boundaries
-    def _check_r0(self):
+    def _check_r0(self) -> None:
         # Unpack lower and upper bounds
         assert self.bounds is not None
-        upper_bound, upper_bound = self.bounds
+        lower_bound, upper_bound = self.bounds
 
         # Find axes without boundaries
-        idx_lb = np.where(np.isnan(upper_bound))
+        idx_lb = np.where(np.isnan(lower_bound))
         idx_ub = np.where(np.isnan(upper_bound))
 
         # Ignore position components when no boundaries are specified
@@ -652,11 +708,11 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         r_ub = np.delete(self.r[0], idx_ub, axis=0)
 
         # Same for bounds
-        upper_bound = np.delete(upper_bound, idx_lb)
+        lower_bound = np.delete(lower_bound, idx_lb)
         upper_bound = np.delete(upper_bound, idx_ub)
 
         # Check if all positions are within both type of boundaries
-        is_above_lb = np.all(upper_bound[:, None] <= r_lb)
+        is_above_lb = np.all(lower_bound[:, None] <= r_lb)
         is_bellow_ub = np.all(upper_bound[:, None] >= r_ub)
 
         if not is_above_lb:
@@ -666,7 +722,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
             raise ValueError("Initial positions must be bellow upper bounds.")
 
     # Get net force from the boundaries
-    def _bound_force(self, r, tolerance=10):
+    def _bound_force(self, r: np.ndarray, tolerance: float = 10) -> np.ndarray | float:
         # Return zero force if there is no bounds
         if not self.has_bounds:
             return 0.0
@@ -702,7 +758,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         return bound_force
 
     # Solve dimensionless coupled Langevin equations
-    def _solve(self):
+    def _solve(self) -> None:
         sqrt_dt = np.sqrt(self.dt)
         for i in range(self.n - 1):
             # Solving for position

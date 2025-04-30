@@ -12,34 +12,33 @@ from yupi.stats._stats import (
     collect_at_time,
     collect_step_lagged,
     collect_time_lagged,
-    kurtosis,
-    kurtosis_reference,
-    msd,
-    msd_ensemble,
-    msd_time,
-    psd,
-    speed_ensemble,
-    turning_angles_ensemble,
-    vacf,
-    vacf_ensemble,
-    vacf_time,
 )
+from yupi.stats.kurtosis import KurtosisStat, KurtosisTimeAvgStat, kurtosis_reference
+from yupi.stats.msd import MsdStat, MsdTimeAvgStat
+from yupi.stats.psd import PsdStat
+from yupi.stats.speed import SpeedStat
+from yupi.stats.turning_angles import TurningAngleStat, turning_angles
+from yupi.stats.vacf import VacfStat, VacfTimeAvgStat
 
 __all__ = [
-    "turning_angles_ensemble",
+    "KurtosisStat",
+    "KurtosisTimeAvgStat",
+    "MsdStat",
+    "MsdTimeAvgStat",
+    "PsdStat",
+    "PsdStatKurtosisStat",
+    "SpeedStat",
+    "TurningAngleStat",
+    "TurningAngleStat",
+    "VacfStat",
+    "VacfStat",
+    "VacfTimeAvgStat",
+    "VacfTimeAvgStat",
+    "collect",
     "collect_at_step",
     "collect_at_time",
     "collect_step_lagged",
     "collect_time_lagged",
-    "collect",
-    "speed_ensemble",
-    "msd_ensemble",
-    "msd_time",
-    "vacf_ensemble",
-    "msd",
-    "vacf_time",
-    "vacf",
-    "kurtosis",
     "kurtosis_reference",
-    "psd",
+    "turning_angles",
 ]

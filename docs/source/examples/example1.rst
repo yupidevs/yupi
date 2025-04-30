@@ -28,25 +28,16 @@ Import all the dependencies:
 
 .. code-block:: python
 
-   import numpy as np
    import matplotlib.pyplot as plt
+   import numpy as np
+
    from yupi.generators import LangevinGenerator
-   from yupi.stats import (
-      msd,
-      speed_ensemble,
-      vacf,
-      turning_angles_ensemble,
-      kurtosis,
-      kurtosis_reference
-   )
-   from yupi.graphics import (
-      plot_2d,
-      plot_angles_hist,
-      plot_kurtosis,
-      plot_msd,
-      plot_vacf,
-      plot_speed_hist
-   )
+   from yupi.graphics import plot_2d
+   from yupi.stats.kurtosis import KurtosisStat
+   from yupi.stats.msd import MsdTimeAvgStat
+   from yupi.stats.speed import SpeedStat
+   from yupi.stats.turning_angles import TurningAngleStat
+   from yupi.stats.vacf import VacfTimeAvgStat
 
 .. _Definition of parameters 1:
 
@@ -58,13 +49,13 @@ First, we define some physical constants:
 
 .. code-block:: python
 
-   N0 = 6.02e23     # Avogadro's constant [1/mol]
-   k = 1.38e-23     # Boltzmann's constant [J/mol.K]
-   T = 300          # absolute temperature [K]
-   eta = 1.002e-3   # water viscosity [Pa.s]
-   M = 14.1         # lysozyme molar mass [kg/mol] [1]
-   d1 = 90e-10      # semi-major axis [m] [2]
-   d2 = 18e-10      # semi-minor axis [m] [2]
+   N0 = 6.02e23      # Avogadro's constant [1/mol]
+   k = 1.38e-23      # Boltzmann's constant [J/mol.K]
+   T = 300           # absolute temperature [K]
+   eta = 1.002e-3    # water viscosity [Pa.s]
+   M = 14.1          # lysozyme molar mass [kg/mol] [1]
+   d1 = 90e-10       # semi-major axis [m] [2]
+   d2 = 18e-10       # semi-minor axis [m] [2]
 
 
 Then, we can indirectly measure quantities that are 
@@ -107,8 +98,8 @@ we just need to instantiate the class and generate the Trajectories:
 
 .. code-block:: python
 
-   lg = LangevinGenerator(tt, dim, N, dt, gamma, sigma, seed=0)
-   trajs = lg.generate()
+   lg = LangevinGenerator(T=tt, dim=dim, dt=dt, gamma=gamma, sigma=sigma, seed=0)
+   trajs = lg.generate(N)
 
 
 .. _Data analysis and plots 1:
@@ -122,57 +113,49 @@ Let us initialize an empty figure for plot all the results:
 
    plt.figure(figsize=(9,5))
 
+
 Plot spacial trajectories
 
 .. code-block:: python
 
-   plt.subplot(231)
-   plot_2d(trajs[:5], legend=False, show=False)
+   plot_2d(trajs[:5], legend=False, ax=plt.subplot(231), show=False)
+
 
 Plot speed histogram
 
 .. code-block:: python
 
-   v_norm = speed_ensemble(trajs)
-   plt.subplot(232)
-   plot_speed_hist(v_norm, bins=20, show=False)
+   SpeedStat(trajs).plot(bins=20, ax=plt.subplot(232), show=False)
+
 
 Plot turning angles
 
 .. code-block:: python
 
-   theta = turning_angles_ensemble(trajs)
-   ax3 = plt.subplot(233, projection='polar')
-   plot_angles_hist(theta, bins=60, ax=ax3, show=False)
+   TurningAngleStat(trajs).plot(
+      bins=60, ax=plt.subplot(233, projection="polar"), show=False
+   )
 
 
 Plot Velocity autocorrelation function
 
 .. code-block:: python
 
-   lag_vacf = 50
-   vacf, _ = vacf(trajs, time_avg=True, lag=lag_vacf)
-   plt.subplot(234)
-   plot_vacf(vacf, dt, lag_vacf, show=False)
+   VacfTimeAvgStat(trajs, lag=50).plot(ax=plt.subplot(234), show=False)
 
 
 Plot Mean Square Displacement
 
 .. code-block:: python
 
-   lag_msd = 30
-   msd, msd_std = msd(trajs, time_avg=True, lag=lag_msd)
-   plt.subplot(235)
-   plot_msd(msd, msd_std, dt, lag=lag_msd, show=False)
+   MsdTimeAvgStat(trajs, lag=50).plot(ax=plt.subplot(235), show=False)
+
 
 Plot Kurtosis
 
 .. code-block:: python
 
-   kurt, _ = kurtosis(trajs, time_avg=False, lag=30)
-   kurt_ref = kurtosis_reference(trajs)
-   plt.subplot(236)
-   plot_kurtosis(kurt, kurtosis_ref=kurt_ref, dt=dt, show=False)
+   KurtosisStat(trajs).plot(ax=plt.subplot(236), show=False)
 
 
 Generate plot

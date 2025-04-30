@@ -4,33 +4,77 @@ This contains spatial plotting functions for the trajectories.
 
 import itertools
 import logging
-import warnings
-from typing import Callable, Collection, List, Optional, Union
+from typing import Any, Callable, Collection
 
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.axes import Axes
+from mpl_toolkits.mplot3d.axes3d import Axes3D
 
+from yupi._checkers import check_exact_dim
 from yupi.graphics._style import LINE, YUPI_COLORS
 from yupi.trajectory import Trajectory
 
 
+def _resolve_colors(total: int, color: Any) -> list[Any]:
+    """
+    Resolve the colors for a plot with multiple trajectories.
+
+    Parameters
+    ----------
+    total : int
+        Total number of trajectories.
+    color : Any
+        Color to use. If None, a cycle of colors is used.
+
+    Returns
+    -------
+    list[Any]
+        List of colors for each trajectory.
+    """
+    if color is None:
+        cycle = itertools.cycle(YUPI_COLORS)
+        return [next(cycle) for _ in range(total)]
+
+    if isinstance(color, list):
+        cycle = itertools.cycle(color)
+        return [next(cycle) for _ in range(total)]
+
+    return [color] * total
+
+
+def _plot_2d_connections(trajs: list[Trajectory]) -> None:
+    lengths = list(map(len, trajs))
+    min_len = min(lengths)
+    max_len = max(lengths)
+    if min_len != max_len:
+        logging.warning("Not all the trajectories have the same length.")
+    for i in range(min_len):
+        traj_points = [t[i] for t in trajs]
+        traj_points.append(traj_points[0])
+        for tp1, tp2 in itertools.pairwise(traj_points):
+            seg_x = [tp1.r[0], tp2.r[0]]
+            seg_y = [tp1.r[1], tp2.r[1]]
+            plt.plot(seg_x, seg_y, color=(0.2, 0.2, 0.2), linewidth=0.5)
+
+
 def plot_2d(
-    trajs: Union[List[Trajectory], Trajectory],
+    trajs: list[Trajectory] | Trajectory,
     line_style: str = LINE,
-    title: Optional[str] = None,
+    title: str | None = None,
     legend: bool = True,
     show: bool = True,
     connected: bool = False,
-    units: str = "m",
-    color=None,
-    ax=None,
-    **kwargs,
-):
+    color: Any = None,
+    ax: Axes | None = None,
+    **kwargs: Any,
+) -> Axes:
     """
     Plot all the points of trajectories from ``trajs`` in a 2D plane.
 
     Parameters
     ----------
-    trajs : Union[List[Trajectory], Trajectory]
+    trajs : list[Trajectory] | Trajectory
         Input trajectories.
     line_style : str
         Type of the trajectory line to plot. It uses the matplotlib,
@@ -66,47 +110,23 @@ def plot_2d(
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
-    units = "" if units is None else f" [{units}]"
+    check_exact_dim(trajs, 2)
+
+    units = f" [{trajs[0].units.dist}]"
 
     if ax is None:
         ax = plt.gca()
 
-    colors = itertools.cycle(YUPI_COLORS)
-    if color is not None:
-        if isinstance(color, (str, tuple)):
-            colors = itertools.cycle([color])
-        elif isinstance(color, list):
-            colors = itertools.cycle(color)
+    colors = _resolve_colors(len(trajs), color)
 
     if connected:
-        lengths = list(map(len, trajs))
-        min_len = min(lengths)
-        max_len = max(lengths)
-        if min_len != max_len:
-            logging.warning("Not all the trajectories have the same length.")
-        for i in range(min_len):
-            traj_points = [t[i] for t in trajs]
-            traj_points.append(traj_points[0])
-            for tp1, tp2 in zip(traj_points[:-1], traj_points[1:]):
-                seg_x = [tp1.r[0], tp2.r[0]]
-                seg_y = [tp1.r[1], tp2.r[1]]
-                plt.plot(seg_x, seg_y, color=(0.2, 0.2, 0.2), linewidth=0.5)
+        _plot_2d_connections(trajs)
 
     for i, traj in enumerate(trajs):
-
-        if traj.dim != 2:
-            logging.warning(
-                "Using plot_2d with a trajectory of %i dimensions"
-                " Trajectory No. %i with id %s",
-                traj.dim,
-                i,
-                traj.traj_id,
-            )
-
         # Plotting
         x_data, y_data = traj.r.x, traj.r.y
 
-        kwargs["color"] = next(colors)
+        kwargs["color"] = colors[i]
         traj_plot = plt.plot(x_data, y_data, line_style, **kwargs)
         color = traj_plot[-1].get_color()
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
@@ -132,7 +152,8 @@ def plot_2d(
         if legend:
             plt.legend()
 
-        plt.title(title)
+        if title is not None:
+            plt.title(title)
         plt.tick_params(direction="in")
         plt.axis("equal")
         plt.grid(True)
@@ -145,91 +166,39 @@ def plot_2d(
     return ax
 
 
-def plot_2D(  # pylint: disable=invalid-name
-    trajs: Union[List[Trajectory], Trajectory],
-    line_style: str = LINE,
-    title: Optional[str] = None,
-    legend: bool = True,
-    show: bool = True,
-    connected: bool = False,
-    units: str = "m",
-    color=None,
-    **kwargs,
-):
-    """
-    .. deprecated:: 0.10.0
-        :func:`plot_2D` will be removed in a future version, use
-        :func:`plot_2d` instead.
-
-    Plot all the points of trajectories from ``trajs`` in a 2D plane.
-
-    Parameters
-    ----------
-    trajs : Union[List[Trajectory], Trajectory]
-        Input trajectories.
-    line_style : str
-        Type of the trajectory line to plot. It uses the matplotlib,
-        notation, by default '-'.
-    title : str, optional
-        Title of the plot, by default None.
-    legend : bool, optional
-        If True, legend is shown. By default True.
-    show : bool, optional
-        If True, the plot is shown. By default True.
-    connected : bool
-        If True, all the trajectory points of same index will be,
-        connected.
-
-        If the trajectories do not have same length then the points
-        will be connected until the shortest trajectory last index.
-    color : str or tuple or list
-        Defines the color of the trajectories, by default None.
-
-        If color is of type ``str`` or ``tuple`` (rgb) then the color
-        is applied to all trajectories. If color is of type ``list``
-        then the trajectories take the color according to the index.
-
-        If there are less colors than trajectories then the remaining
-        trajectories are colored automatically (not with the same
-        color).
-    """
-
-    warnings.warn(
-        "plot_2D is deprecated and will be removed in a future version, "
-        "use plot_2d instead",
-        DeprecationWarning,
-    )
-    plot_2d(
-        trajs,
-        line_style,
-        title,
-        legend,
-        show,
-        connected,
-        units,
-        color,
-        **kwargs,
-    )
+def _plot_3d_connections(trajs: list[Trajectory], ax: Axes) -> None:
+    lengths = list(map(len, trajs))
+    min_len = min(lengths)
+    max_len = max(lengths)
+    if min_len != max_len:
+        logging.warning("Not all the trajectories have the same length.")
+    for i in range(min_len):
+        traj_points = [t[i] for t in trajs]
+        traj_points.append(traj_points[0])
+        for tp1, tp2 in itertools.pairwise(traj_points):
+            seg_x = [tp1.r[0], tp2.r[0]]
+            seg_y = [tp1.r[1], tp2.r[1]]
+            seg_z = [tp1.r[2], tp2.r[2]]
+            ax.plot(seg_x, seg_y, seg_z, color=(0.2, 0.2, 0.2), linewidth=0.5)
 
 
 def plot_3d(
-    trajs: Union[List[Trajectory], Trajectory],
+    trajs: list[Trajectory] | Trajectory,
     line_style: str = LINE,
-    title: Optional[str] = None,
+    title: str | None = None,
     legend: bool = True,
     show: bool = True,
     connected: bool = False,
-    units: str = "m",
-    color=None,
-    ax=None,
-    **kwargs,
-):
+    color: Any = None,
+    ax: Axes3D | None = None,
+    **kwargs: Any,
+) -> Axes3D:
     """
     Plot all the points of trajectories from ``trajs`` in a 3D space.
 
     Parameters
     ----------
-    trajs : Union[List[Trajectory], Trajectory]
+    trajs : list[Trajectory] | Trajectory
         Input trajectories.
     line_style : str
         Type of the trajectory line to plot. It uses the matplotlib,
@@ -265,48 +234,24 @@ def plot_3d(
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
-    units = "" if units is None else f" [{units}]"
+    check_exact_dim(trajs, 3)
 
-    colors = itertools.cycle(YUPI_COLORS)
-    if color is not None:
-        if isinstance(color, (str, tuple)):
-            colors = itertools.cycle([color])
-        elif isinstance(color, list):
-            colors = itertools.cycle(color)
+    units = f" [{trajs[0].units.dist}]"
 
-    if ax is None:
-        ax = plt.axes(projection="3d")
+    colors = _resolve_colors(len(trajs), color)
+
+    ax = plt.axes(projection="3d") if ax is None else ax
+
+    assert isinstance(ax, Axes3D), "ax must be a 3D Axes"
 
     if connected:
-        lengths = list(map(len, trajs))
-        min_len = min(lengths)
-        max_len = max(lengths)
-        if min_len != max_len:
-            logging.warning("Not all the trajectories have the same length.")
-        for i in range(min_len):
-            traj_points = [t[i] for t in trajs]
-            traj_points.append(traj_points[0])
-            for tp1, tp2 in zip(traj_points[:-1], traj_points[1:]):
-                seg_x = [tp1.r[0], tp2.r[0]]
-                seg_y = [tp1.r[1], tp2.r[1]]
-                seg_z = [tp1.r[2], tp2.r[2]]
-                ax.plot(seg_x, seg_y, seg_z, color=(0.2, 0.2, 0.2), linewidth=0.5)
+        _plot_3d_connections(trajs, ax)
 
     for i, traj in enumerate(trajs):
-
-        if traj.dim != 3:
-            logging.warning(
-                "Using plot_3d with a trajectory of %i dimensions"
-                " Trajectory No. %i with id %s",
-                traj.dim,
-                i,
-                traj.traj_id,
-            )
-
         # Plotting
         x_data, y_data, z_data = traj.r.x, traj.r.y, traj.r.z
 
-        kwargs["color"] = next(colors)
+        kwargs["color"] = colors[i]
         traj_plot = ax.plot(x_data, y_data, z_data, line_style, **kwargs)
         color = traj_plot[-1].get_color()
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
@@ -335,7 +280,8 @@ def plot_3d(
         if legend:
             plt.legend()
 
-        plt.title(title)
+        if title is not None:
+            plt.title(title)
         plt.tick_params(direction="in")
         plt.grid(True)
         ax.set_xlabel(f"x{units}")
@@ -348,105 +294,26 @@ def plot_3d(
     return ax
 
 
-def plot_3D(  # pylint: disable=invalid-name
-    trajs: Union[List[Trajectory], Trajectory],
-    line_style: str = LINE,
-    title: Optional[str] = None,
-    legend: bool = True,
-    show: bool = True,
-    connected: bool = False,
-    units: str = "m",
-    color=None,
-    **kwargs,
-):
-    """
-    .. deprecated:: 0.10.0
-        :func:`plot_3D` will be removed in a future version, use
-        :func:`plot_3d` instead.
-
-    Plot all the points of trajectories from ``trajs`` in a 3D space.
-
-    Parameters
-    ----------
-    trajs : Union[List[Trajectory], Trajectory]
-        Input trajectories.
-    line_style : str
-        Type of the trajectory line to plot. It uses the matplotlib,
-        notation, by default '-'.
-    title : str, optional
-        Title of the plot, by default None.
-    legend : bool, optional
-        If True, legend is shown. By default True.
-    show : bool, optional
-        If True, the plot is shown. By default True.
-    connected : bool
-        If True, all the trajectory points of same index will be,
-        connected.
-
-        If the trajectories do not have same length then the points
-        will be connected until the shortest trajectory last index.
-    color : str or tuple or list
-        Defines the color of the trajectories, by default None.
-
-        If color is of type ``str`` or ``tuple`` (rgb) then the color
-        is applied to all trajectories. If color is of type ``list``
-        then the trajectories take the color according to the index.
-
-        If there are less colors than trajectories then the remaining
-        trajectories are colored automatically (not with the same
-        color).
-    """
-    warnings.warn(
-        "plot_3D is deprecated and will be removed in a future version, "
-        "use plot_3d instead",
-        DeprecationWarning,
-    )
-    plot_3d(
-        trajs,
-        line_style,
-        title,
-        legend,
-        show,
-        connected,
-        units,
-        color,
-        **kwargs,
-    )
-
-
 def plot_vs_time(
-    trajs: Union[List[Trajectory], Trajectory],
+    trajs: list[Trajectory] | Trajectory,
     key: Callable[[Trajectory], Collection[float]],
     line_style: str = LINE,
-    x_units: str = "s",
-    y_label: Union[str, None] = None,
-    title: Optional[str] = None,
+    y_label: str | None = None,
+    title: str | None = None,
     legend: bool = True,
-    color=None,
+    color: Any = None,
     show: bool = True,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Axes:
     if isinstance(trajs, Trajectory):
         trajs = [trajs]
 
-    x_units = "time" + ("" if x_units is None else f" [{x_units}]")
-
-    cycle = itertools.cycle(YUPI_COLORS)
-    colors = [next(cycle) for _ in trajs]
-
-    if color is not None:
-        if isinstance(color, (str, tuple)):
-            kwargs["color"] = color
-        elif isinstance(color, list):
-            colors = color
+    x_units = f"time [{trajs[0].units.time}]"
+    colors = _resolve_colors(len(trajs), color)
 
     for i, traj in enumerate(trajs):
-        if colors is not None:
-            if i < len(colors):
-                kwargs["color"] = colors[i]
-            else:
-                kwargs.pop("color")
-        y_data = key(traj)
+        kwargs["color"] = colors[i]
+        y_data = np.array(key(traj))
         x_data = traj.t
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
         plt.plot(x_data, y_data, line_style, **kwargs, label=traj_id)
@@ -454,7 +321,9 @@ def plot_vs_time(
         if y_label is not None:
             plt.ylabel(y_label)
         plt.grid()
-        plt.title(title)
+
+        if title is not None:
+            plt.title(title)
 
     if legend:
         plt.legend()

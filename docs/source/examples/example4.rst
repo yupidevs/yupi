@@ -40,10 +40,11 @@ Import all the dependencies:
 .. code-block:: python
 
    from numpy import pi
+   from yupi.graphics import plot_2d
+   from yupi.tracking.algorithms import ColorMatching
    from yupi.tracking.trackers import ROI, ObjectTracker, TrackingScenario
    from yupi.tracking.undistorters import RemapUndistorter
-   from yupi.tracking.algorithms import ColorMatching
-   from yupi.graphics import plot_2d
+   from yupi.transformations import rotate_2d
 
 Set up the path to multimedia resources:
 
@@ -114,8 +115,8 @@ effect of gravity:
 
 .. code-block:: python
 
-   tl[0].rotate_2d(- pi / 2)
-   tl[1].rotate_2d(- pi / 2)
+   rotate_2d(tl[0], -pi / 2)
+   rotate_2d(tl[1], -pi / 2)
 
 
 Next, we update the coordinate system to place it at the initial position of

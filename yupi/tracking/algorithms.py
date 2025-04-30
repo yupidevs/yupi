@@ -1,15 +1,15 @@
 import abc
 import logging
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable
 
 import cv2
 import numpy as np
 
-Bounds = Tuple[int, int, int, int]
+Bounds = tuple[int, int, int, int]
 """Bounds of a frame: x_min, x_max, y_min, y_max."""
 
 
-def _resize_frame(frame: np.ndarray, scale: float = 1):
+def _resize_frame(frame: np.ndarray, scale: float = 1) -> np.ndarray:
     height, weight = frame.shape[:2]
     scaled_height, scaled_weight = int(scale * height), int(scale * weight)
     short_frame = cv2.resize(
@@ -18,7 +18,7 @@ def _resize_frame(frame: np.ndarray, scale: float = 1):
     return short_frame
 
 
-def _change_colorspace(image, color_space: str) -> np.ndarray:
+def _change_colorspace(image: np.ndarray, color_space: str) -> np.ndarray:
     if color_space == "BGR":
         return image
     if color_space == "GRAY":
@@ -34,11 +34,11 @@ class BackgroundEstimator:
     sequences. It estimates the temporal median of the sequence.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     @staticmethod
-    def from_video(video_path: str, samples: int, start_in: int = 0):
+    def from_video(video_path: str, samples: int, start_in: int = 0) -> np.ndarray:
         """
         This method takes a video indicated by ``video_path`` and
         uniformely take a number of image samples according to the
@@ -54,6 +54,11 @@ class BackgroundEstimator:
         start_in : int, optional
             If passed, the method will start sampling after the frame
             indicated by this value, by default 0.
+
+        Returns
+        -------
+        np.ndarray
+            Median image of the samples taken from the video.
         """
 
         # Create a cv2 Video Capture Object
@@ -64,7 +69,7 @@ class BackgroundEstimator:
         spacing = effective_frames / samples
 
         # Store frames in a list
-        frames = []
+        frames: list[np.ndarray] = []
         for i in range(samples):
             cap.set(cv2.CAP_PROP_POS_FRAMES, i * spacing + start_in)
             _, frame = cap.read()
@@ -80,10 +85,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
     from this class should implement ``detect`` method.
     """
 
-    def __init__(self):
-        pass
-
-    def get_centroid(self, bin_img: np.ndarray):
+    def get_centroid(self, bin_img: np.ndarray) -> tuple[int, int] | None:
         """
         Computes the centroid of a binary image using ``cv2.moments``.
 
@@ -94,8 +96,9 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
 
         Returns
         -------
-        tuple
-            x, y coordinates of the centroid
+        tuple [int, int] | None
+            x, y coordinates of the centroid. None if no object was
+            detected.
         """
 
         # Calculate moments
@@ -115,9 +118,9 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
     def preprocess(
         self,
         frame: np.ndarray,
-        roi_bound: Optional[Bounds] = None,
-        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ):
+        roi_bound: Bounds | None = None,
+        preprocessing: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> np.ndarray:
         """
         Preprocesses a frame.
 
@@ -125,10 +128,10 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
         ----------
         frame : np.ndarray
             Frame to preprocess
-        roi_bound : Optional[Bounds]
+        roi_bound : Bounds | None
             If passed, the method will crop the frame to the region of
             interest defined by the tuple.
-        preprocessing : Optional[Callable[[np.ndarray], np.ndarray]]
+        preprocessing : Callable[[np.ndarray], np.ndarray] | None
             If passed, the method will apply the preprocessing function
             to the frame.
 
@@ -149,9 +152,9 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
     def detect(
         self,
         frame: np.ndarray,
-        roi_bound: Optional[Bounds] = None,
-        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
+        roi_bound: Bounds | None = None,
+        preprocessing: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> tuple[np.ndarray | None, tuple[int, int] | None]:
         """
         Abstract method that is implemented on inheriting classes.
         It should compute the location (in the image ``frame``)
@@ -161,14 +164,14 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
         ----------
         frame : np.ndarray
             Image where the algorithm must identify the object
-        roi_bound: Optional[Bounds]
+        roi_bound: Bounds | None
             Coordinates of the region of interest of the frame. The
             expected format if a tuple with the form (xmin, xmax, ymin,
             ymax). If passed the algorithm will crop this region of the
             frame and will proceed only in this region, providing the
             estimations refered to this region instead of the whole
             image, by default None.
-        preprocessing = Optional[Callable[[np.ndarray], np.ndarray]]
+        preprocessing = Callable[[np.ndarray], np.ndarray] | None
             A function to be applied to the frame (Or cropped version
             of it if roi_bound is passed) before detecting the object
             on it, by default None.
@@ -200,23 +203,28 @@ class ColorMatching(TrackingAlgorithm):
 
     def __init__(
         self,
-        lower_bound: Union[Tuple[int, int, int], int] = (0, 0, 0),
-        upper_bound: Union[Tuple[int, int, int], int] = (255, 255, 255),
+        lower_bound: tuple[int, int, int] | int = (0, 0, 0),
+        upper_bound: tuple[int, int, int] | int = (255, 255, 255),
         color_space: str = "BGR",
-        max_pixels: Optional[int] = None,
+        max_pixels: int | None = None,
     ):
         super().__init__()
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
+
+        self.lower_bound = np.array(
+            lower_bound if isinstance(lower_bound, tuple) else 3 * (lower_bound,)
+        )
+        self.upper_bound = np.array(
+            upper_bound if isinstance(upper_bound, tuple) else 3 * (upper_bound,)
+        )
         self.color_space = color_space
         self.max_pixels = max_pixels
 
     def detect(
         self,
         frame: np.ndarray,
-        roi_bound: Optional[Bounds] = None,
-        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
+        roi_bound: Bounds | None = None,
+        preprocessing: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> tuple[np.ndarray | None, tuple[int, int] | None]:
         """
         Identifies the tracked object in the image ``frame``
         by thresholding it using the bound parameters defined when
@@ -226,25 +234,25 @@ class ColorMatching(TrackingAlgorithm):
         ----------
         frame : np.ndarray
             Image containing the object to be tracked
-        roi_bound: Optional[Bounds]
+        roi_bound: Bounds | None
             Coordinates of the region of interest of the frame. The
             expected format if a tuple with the form (xmin, xmax, ymin,
             ymax). If passed the algorithm will crop this region of the
             frame and will proceed only in this region, providing the
             estimations refered to this region instead of the whole
             image, by default None.
-        preprocessing = Optional[Callable[[np.ndarray], np.ndarray]]
+        preprocessing = Callable[[np.ndarray], np.ndarray] | None
             A function to be applied to the frame (Or cropped version
             of it if roi_bound is passed) before detecting the object
             on it, by default None.
 
         Returns
         -------
-        Optional[np.ndarray]
+        np.ndarray | None
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        Optional[Tuple[int, int]]
+        tuple[int, int] | None
             x, y coordinates of the centroid of the object in the image.
         """
 
@@ -267,22 +275,23 @@ class FrameDifferencing(TrackingAlgorithm):
 
     Parameters
     ----------
+    frame_diff_threshold : int, optional
         Minimum difference (in terms of pixel intensity) among current
         and previous image to consider that pixel as part of a moving
         object, by default 1.
     """
 
-    def __init__(self, frame_diff_threshold=1):
+    def __init__(self, frame_diff_threshold: int = 1) -> None:
         super().__init__()
         self.frame_diff_threshold = frame_diff_threshold
-        self.prev_frame = None
+        self.prev_frame: np.ndarray | None = None
 
     def detect(
         self,
         frame: np.ndarray,
-        roi_bound: Optional[Bounds] = None,
-        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
+        roi_bound: Bounds | None = None,
+        preprocessing: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> tuple[np.ndarray | None, tuple[int, int] | None]:
         """
         Identifies the tracked object in the image ``frame``
         by comparing the difference with the previous frames. All the
@@ -293,25 +302,25 @@ class FrameDifferencing(TrackingAlgorithm):
         ----------
         frame : np.ndarray
             Image containing the object to be tracked
-        roi_bound: Optional[Bounds]
+        roi_bound: Bounds | None
             Coordinates of the region of interest of the frame. The
             expected format if a tuple with the form (xmin, xmax, ymin,
             ymax). If passed the algorithm will crop this region of the
             frame and will proceed only in this region, providing the
             estimations refered to this region instead of the whole
             image, by default None.
-        preprocessing = Optional[Callable[[np.ndarray], np.ndarray]]
+        preprocessing = Callable[[np.ndarray], np.ndarray] | None
             A function to be applied to the frame (Or cropped version
             of it if roi_bound is passed) before detecting the object
             on it, by default None.
 
         Returns
         -------
-        Optional[np.ndarray]
+        np.ndarray | None
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        Otional[Tuple[int, int]]
+        Otional[tuple[int, int]]
             x, y coordinates of the centroid of the object in the image.
         """
 
@@ -328,7 +337,10 @@ class FrameDifferencing(TrackingAlgorithm):
         gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
         # Convert the grayscale image to binary image
-        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)
+
+        # cv2.inRange accepts scalars as lowerb and upperb.
+        # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)  # type: ignore[call-overload]
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -357,7 +369,9 @@ class BackgroundSubtraction(TrackingAlgorithm):
         object, by default 1.
     """
 
-    def __init__(self, background, background_threshold):
+    def __init__(
+        self, background: np.ndarray, background_threshold: int | None
+    ) -> None:
         super().__init__()
         self.background_threshold = background_threshold
         self.background = background
@@ -365,9 +379,9 @@ class BackgroundSubtraction(TrackingAlgorithm):
     def detect(
         self,
         frame: np.ndarray,
-        roi_bound: Optional[Bounds] = None,
-        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
+        roi_bound: Bounds | None = None,
+        preprocessing: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> tuple[np.ndarray | None, tuple[int, int] | None]:
         """
         Identifies the tracked object in the image ``frame``
         by comparing the difference with the background. All the pixels
@@ -378,25 +392,25 @@ class BackgroundSubtraction(TrackingAlgorithm):
         ----------
         frame : np.ndarray
             Image containing the object to be tracked
-        roi_bound: Optional[Bounds]
+        roi_bound: Bounds | None
             Coordinates of the region of interest of the frame. The
             expected format if a tuple with the form (xmin, xmax, ymin,
             ymax). If passed the algorithm will crop this region of the
             frame and will proceed only in this region, providing the
             estimations refered to this region instead of the whole
             image, by default None.
-        preprocessing = Optional[Callable[[np.ndarray], np.ndarray]]
+        preprocessing = Callable[[np.ndarray], np.ndarray] | None
             A function to be applied to the frame (Or cropped version
             of it if roi_bound is passed) before detecting the object
             on it, by default None.
 
         Returns
         -------
-        Optional[np.ndarray]
+        np.ndarray | None
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        Optional[Tuple[int, int]]
+        tuple[int, int] | None
             x, y coordinates of the centroid of the object in the image.
         """
 
@@ -410,7 +424,10 @@ class BackgroundSubtraction(TrackingAlgorithm):
         gray_image = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
         # Convert the grayscale image to binary image
-        mask = cv2.inRange(gray_image, self.background_threshold, 255)
+
+        # cv2.inRange accepts scalars as lowerb and upperb.
+        # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+        mask = cv2.inRange(gray_image, self.background_threshold, 255)  # type: ignore[call-overload]
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -435,7 +452,7 @@ class TemplateMatching(TrackingAlgorithm):
         default 0.8.
     """
 
-    def __init__(self, template, threshold):
+    def __init__(self, template: np.ndarray, threshold: float | None) -> None:
         super().__init__()
         self.template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         self.threshold = threshold
@@ -445,9 +462,9 @@ class TemplateMatching(TrackingAlgorithm):
     def detect(
         self,
         frame: np.ndarray,
-        roi_bound: Optional[Bounds] = None,
-        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
+        roi_bound: Bounds | None = None,
+        preprocessing: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> tuple[np.ndarray | None, tuple[int, int] | None]:
         """
         Identifies the tracked object in the image ``frame``
         by comparing each region with a template. The region with higher
@@ -458,25 +475,25 @@ class TemplateMatching(TrackingAlgorithm):
         ----------
         frame : np.ndarray
             Image containing the object to be tracked
-        roi_bound : Optional[Bounds]
+        roi_bound : Bounds | None
             Coordinates of the region of interest of the frame. The
             expected format if a tuple with the form (xmin, xmax, ymin,
             ymax). If passed the algorithm will crop this region of the
             frame and will proceed only in this region, providing the
             estimations refered to this region instead of the whole
             image, by default None.
-        preprocessing : Optional[Callable[[np.ndarray], np.ndarray]]
+        preprocessing : Callable[[np.ndarray], np.ndarray] | None
             A function to be applied to the frame (Or cropped version
             of it if roi_bound is passed) before detecting the object
             on it, by default None.
 
         Returns
         -------
-        Optional[np.ndarray]
+        np.ndarray | None
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        Optional[Tuple[int, int]]
+        tuple[int, int] | None
             x, y coordinates of the centroid of the object in the image.
         """
 
@@ -523,7 +540,7 @@ class OpticalFlow(TrackingAlgorithm):
     def __init__(self, threshold: float, buffer_size: int = 1):
         super().__init__()
         self.threshold = threshold
-        self.previous_frames: List[np.ndarray] = []
+        self.previous_frames: list[np.ndarray] = []
 
         assert buffer_size > 0
 
@@ -532,9 +549,9 @@ class OpticalFlow(TrackingAlgorithm):
     def detect(
         self,
         frame: np.ndarray,
-        roi_bound: Optional[Bounds] = None,
-        preprocessing: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-    ) -> Tuple[Optional[np.ndarray], Optional[Tuple[int, int]]]:
+        roi_bound: Bounds | None = None,
+        preprocessing: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> tuple[np.ndarray | None, tuple[int, int] | None]:
         """
         Identifies the tracked object in the image ``frame``
         by tracking the motion of a region using optical flow.
@@ -543,14 +560,14 @@ class OpticalFlow(TrackingAlgorithm):
         ----------
         frame : np.ndarray
             Image containing the object to be tracked
-        roi_bound : Optional[Bounds]
+        roi_bound : Bounds | None
             Coordinates of the region of interest of the frame. The
             expected format if a tuple with the form (xmin, xmax, ymin,
             ymax). If passed the algorithm will crop this region of the
             frame and will proceed only in this region, providing the
             estimations refered to this region instead of the whole
             image, by default None.
-        preprocessing = Optional[Callable[[np.ndarray], np.ndarray]]
+        preprocessing = Callable[[np.ndarray], np.ndarray] | None
             A function to be applied to the frame (Or cropped version
             of it if roi_bound is passed) before detecting the object
             on it, by default None.
@@ -561,12 +578,11 @@ class OpticalFlow(TrackingAlgorithm):
             A binary version of ``frame`` where elements with value
             ``0`` indicate the absence of object and ``1`` the precense
             of the object.
-        Optional[Tuple[int, int]]
+        tuple[int, int] | None
             x, y coordinates of the centroid of the object in the image.
         """
 
         if len(self.previous_frames) == self.buffer_size:
-
             cframe = self.preprocess(
                 frame=frame, roi_bound=roi_bound, preprocessing=preprocessing
             )
@@ -579,6 +595,7 @@ class OpticalFlow(TrackingAlgorithm):
             cframe = cv2.cvtColor(cframe, cv2.COLOR_BGR2GRAY)
             pframe = cv2.cvtColor(pframe, cv2.COLOR_BGR2GRAY)
 
+            # cv2.calcOpticalFlowFarneback accepts None as output flow parameter
             diff = cv2.calcOpticalFlowFarneback(
                 prev=pframe,
                 next=cframe,
@@ -590,11 +607,15 @@ class OpticalFlow(TrackingAlgorithm):
                 poly_n=5,
                 poly_sigma=1.2,
                 flags=0,
-            )
+            )  # type: ignore[call-overload]
+
             mag, _ = cv2.cartToPolar(diff[..., 0], diff[..., 1])
 
             # Convert the grayscale image to binary image
-            mask = cv2.inRange(mag, self.threshold, 255)
+
+            # cv2.inRange accepts scalars as lowerb and upperb.
+            # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
+            mask = cv2.inRange(mag, self.threshold, 255.0)  # type: ignore[call-overload]
 
             # Compute the centroid of the pixels over threshold
             centroid = self.get_centroid(mask)

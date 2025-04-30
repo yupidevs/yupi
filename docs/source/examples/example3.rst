@@ -55,9 +55,17 @@ Import all the dependencies:
 
    import cv2
    import matplotlib.pyplot as plt
-   from yupi.tracking import ROI, ObjectTracker, TrackingScenario
-   from yupi.tracking import ColorMatching, TemplateMatching
+
    from yupi.graphics import plot_2d
+   from yupi.tracking import (
+      ROI,
+      ColorMatching,
+      ObjectTracker,
+      TemplateMatching,
+      TrackingScenario,
+   )
+   from yupi.transformations import add_polar_offset
+
 
 Set up the path to multimedia resources:
 
@@ -138,15 +146,15 @@ pivot:
 
 .. code-block:: python
 
-    wheel_centered = led_centered.copy()
-    wheel_centered.add_polar_offset(0.019, 0)
-    wheel_centered.traj_id = 'wheel'
+   wheel_centered = led_centered.copy()
+   add_polar_offset(wheel_centered, 0.019, 0)
+   wheel_centered.traj_id = 'wheel'
 
-    # Plot the trajectories
-    plot_2D([wheel_centered, led_centered], show=False, color=["#4499bb", "#44bb44"])
-    plt.plot([center.r.x[0]], [center.r.y[0]], 'o', color="#bb4444", label="center")
-    plt.legend()
-    plt.show()
+   # Plot the trajectories
+   plot_2d([wheel_centered, led_centered], show=False, color=["#4499bb", "#44bb44"])
+   plt.plot([center.r.x[0]], [center.r.y[0]], 'o', color="#bb4444", label="center")
+   plt.legend()
+   plt.show()
 
 
 .. figure:: /images/polar_offset.png

@@ -42,10 +42,15 @@ Import all the dependencies:
 
 .. code-block:: python
 
-   from yupi.tracking import ROI, ObjectTracker, CameraTracker, TrackingScenario
-   from yupi.tracking import RemapUndistorter
-   from yupi.tracking import ColorMatching
    from yupi.graphics import plot_2d
+   from yupi.tracking import (
+      ROI,
+      CameraTracker,
+      ColorMatching,
+      ObjectTracker,
+      RemapUndistorter,
+      TrackingScenario,
+   )
 
 Set up the path to multimedia resources:
 

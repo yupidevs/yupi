@@ -13,22 +13,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+
+    - name: "Set up Python"
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9.12'
+        python-version-file: ".python-version"
+
     - name: Install bumpver
       run: pip install bumpver
-    - name: Install Poetry
-      run: curl -sSL https://install.python-poetry.org | python3 -
-    - name: Add Poetry to path
-      run: echo "${HOME}/.poetry/bin" >> $GITHUB_PATH
     - name: Set version with bumpver
       run: bumpver update -n --set-version "${{ github.event.inputs.version }}"
-    - name: Install yupi on venv
-      run: poetry install
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Install the project
+      run: uv sync --locked --all-extras --dev
+
     - name: Run tests
-      run: poetry run pytest ./tests/
+      run: uv run pytest tests
+
+    - name: Build
+      run: uv build
+
+    - name: Publish
+      run: uv publish -t ${{ secrets.PYPI_RELEASE_TOKEN }}
+
     - uses: EndBug/add-and-commit@v9
       with:
         default_author: user_info
@@ -41,9 +52,3 @@ jobs:
       with:
         tag: "v${{ github.event.inputs.version }}"
         name: "yupi-beta v${{ github.event.inputs.version }}"
-    - name: Config pypi token
-      run: poetry config pypi-token.pypi "${{ secrets.PYPI_RELEASE_TOKEN }}"
-    - name: Build
-      run: poetry build
-    - name: Publish
-      run: poetry publish

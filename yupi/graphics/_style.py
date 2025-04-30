@@ -2,9 +2,12 @@
 This contains styling utilities for the library plots.
 """
 
-from typing import Optional
+from functools import wraps
+from typing import Any, Callable
 
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.projections import PolarAxes
 
 LINE = "-"
 DOTTED = "o"
@@ -27,7 +30,7 @@ LIGHT_RED = "#ea8080"
 LIGHT_GREEN = "#a6ec98"
 LIGHT_ORANGE = "#f7c790"
 
-YUPI_COLORS = [BLUE, MAGENTA, YELLOW, RED, GREEN, ORANGE, MID_BLUE]
+YUPI_COLORS: list[Any] = [BLUE, MAGENTA, YELLOW, RED, GREEN, ORANGE, MID_BLUE]
 
 YUPI_LIGHT_COLORS = [
     LIGHT_BLUE,
@@ -39,22 +42,23 @@ YUPI_LIGHT_COLORS = [
 ]
 
 
-def _plot_basic_properties(func):
+def _plot_basic_properties(func: Callable) -> Callable:
+    @wraps(func)
     def wrapper(
-        *args,
+        *args: Any,
         title: str = "",
         xlabel: str = "",
         ylabel: str = "",
         grid: bool = False,
         show: bool = True,
         legend: bool = False,
-        xscale: Optional[str] = None,
-        yscale: Optional[str] = None,
-        xlim: Optional[tuple] = None,
-        ylim: Optional[tuple] = None,
-        **kwargs,
-    ):
-        func(*args, **kwargs)
+        xscale: str | None = None,
+        yscale: str | None = None,
+        xlim: tuple | None = None,
+        ylim: tuple | None = None,
+        **kwargs: Any,
+    ) -> Axes | PolarAxes:
+        ax = func(*args, **kwargs)
         plt.grid(grid)
         plt.title(title)
         plt.xlabel(xlabel)
@@ -71,6 +75,6 @@ def _plot_basic_properties(func):
             plt.yscale(yscale)
         if show:
             plt.show()
+        return ax
 
-    wrapper.__doc__ = func.__doc__
     return wrapper

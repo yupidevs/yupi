@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 
 from yupi.core.featurizers.featurizer import (
@@ -20,7 +18,7 @@ class DistanceFeaturizer(Featurizer):
     def count(self) -> int:
         return 1
 
-    def featurize(self, trajs: List[Trajectory]) -> np.ndarray:
+    def featurize(self, trajs: list[Trajectory]) -> np.ndarray:
         feats = np.empty((len(trajs), self.count))
         for i, traj in enumerate(trajs):
             feats[i, :] = float(np.sum(traj.r.delta.norm))
@@ -36,7 +34,7 @@ class DisplacementFeaturizer(Featurizer):
     def count(self) -> int:
         return 1
 
-    def featurize(self, trajs: List[Trajectory]) -> np.ndarray:
+    def featurize(self, trajs: list[Trajectory]) -> np.ndarray:
         feats = np.empty((len(trajs), self.count))
         for i, traj in enumerate(trajs):
             feats[i, :] = float((traj.r[-1] - traj.r[0]).norm)
