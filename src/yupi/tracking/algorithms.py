@@ -1,6 +1,7 @@
 import abc
 import logging
 from collections.abc import Callable
+from typing import cast
 
 import cv2
 import numpy as np
@@ -76,7 +77,7 @@ class BackgroundEstimator:
             frames.append(frame)
 
         # Calculate the median along time
-        return np.median(frames, axis=0).astype(dtype=np.uint8)
+        return cast(np.ndarray, np.median(frames, axis=0).astype(dtype=np.uint8))
 
 
 class TrackingAlgorithm(metaclass=abc.ABCMeta):

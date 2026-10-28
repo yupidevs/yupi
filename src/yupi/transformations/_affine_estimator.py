@@ -3,6 +3,7 @@ This contains all the affine estimator related functions.
 """
 
 import logging
+from typing import cast
 
 import cv2
 import nudged
@@ -56,7 +57,7 @@ def _get_p3(
 
 def _get_r(p_1: np.ndarray, p_2: np.ndarray) -> np.ndarray:
     x, y = (p_1 - p_2).T
-    return np.sqrt(x**2 + y**2)
+    return cast(np.ndarray, np.sqrt(x**2 + y**2))
 
 
 def _get_mask_r(r: np.ndarray, quantile: float = 1.5) -> np.ndarray:
@@ -66,7 +67,7 @@ def _get_mask_r(r: np.ndarray, quantile: float = 1.5) -> np.ndarray:
     bound = max(1, quantile * r_std)
     # Get mask for nearby points
     mask = r < r_median + bound
-    return mask
+    return cast(np.ndarray, mask)
 
 
 def _delete_far_points(
@@ -104,7 +105,7 @@ def _estimate_matrix(
 
 def _get_rmse(p_2: np.ndarray, p_3: np.ndarray) -> float:
     x, y = (p_2 - p_3).T
-    return np.sqrt(np.mean(x**2 + y**2))
+    return cast(float, np.sqrt(np.mean(x**2 + y**2)))
 
 
 def _get_affine(

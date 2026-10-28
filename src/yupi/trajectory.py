@@ -473,7 +473,7 @@ class Trajectory:
         return True
 
     def __len__(self) -> int:
-        return self.r.shape[0]
+        return cast(int, self.r.shape[0])
 
     def __getitem__(self, index: int | slice) -> Trajectory | TrajectoryPoint:
         if isinstance(index, int):
@@ -523,7 +523,7 @@ class Trajectory:
     @property
     def dim(self) -> int:
         """int : Trajectory spacial dimensions."""
-        return self.r.shape[1]
+        return cast(int, self.r.shape[1])
 
     @property
     def delta_r(self) -> Vector:
