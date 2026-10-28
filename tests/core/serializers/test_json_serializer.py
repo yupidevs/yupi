@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from tests.test_serializers.utils import compare_trajectories, trajectories
+from tests.core.serializers.utils import compare_trajectories, trajectories
 from yupi.core.serializers.json_serializer import JSONSerializer
 from yupi.exceptions import LoadTrajectoryError
 from yupi.trajectory import Trajectory
