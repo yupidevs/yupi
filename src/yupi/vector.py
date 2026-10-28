@@ -9,6 +9,8 @@ from typing import Any
 import numpy as np
 from numpy.linalg import norm as nrm
 
+_LIST_OF_VECTORS_NDIM = 2
+
 
 class Vector(np.ndarray):
     """Represents a vector"""
@@ -46,7 +48,7 @@ class Vector(np.ndarray):
     def norm(self) -> Vector | float:
         """Vector : Calculates the norm of the vector. If the vector
         is alist of vectors then the norm of each item is calculated"""
-        if len(self.shape) < 2:
+        if len(self.shape) < _LIST_OF_VECTORS_NDIM:
             return float(nrm(self))
         return Vector(nrm(self, axis=1))
 
@@ -102,7 +104,7 @@ class Vector(np.ndarray):
         Vector([2, 2, 0])
         """
 
-        if len(self.shape) < 2:
+        if len(self.shape) < _LIST_OF_VECTORS_NDIM:
             raise TypeError("Operation not supperted on simple vectors")
         if not isinstance(dim, int):
             raise TypeError("Parameter 'dim' must be an integer")

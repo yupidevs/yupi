@@ -4,6 +4,8 @@ import enum
 from collections.abc import Sequence
 from typing import Any
 
+_UNIT_PARTS = 2  # distance and time
+
 
 class UnitEnum(str, enum.Enum):
     """
@@ -247,7 +249,7 @@ class Units:
             except ValueError:
                 raise ValueError(f"Invalid unit string: {unit}") from None
 
-        if len(unit) != 2:
+        if len(unit) != _UNIT_PARTS:
             raise ValueError(f"Invalid unit tuple: {unit}")
         return Units(unit[0], unit[1])
 

@@ -17,6 +17,8 @@ from yupi.core.serializers.serializer import Serializer
 from yupi.exceptions import LoadTrajectoryError
 from yupi.trajectory import Trajectory
 
+_FORMAT_V2 = 2
+
 logger = logging.getLogger(__name__)
 
 
@@ -172,7 +174,7 @@ class CSVSerializer(Serializer):
             diff_est["window_type"] = diff.WindowType(window)
             diff_est["accuracy"] = accuracy
 
-            if version == 2:
+            if version == _FORMAT_V2:
                 data_starts_at = int(first_row[1])
                 metadata = dict(zip(next(reader), next(reader), strict=True))
                 extra_keys = next(reader)

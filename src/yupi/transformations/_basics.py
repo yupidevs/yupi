@@ -5,6 +5,9 @@ import numpy as np
 from yupi.trajectory import Trajectory
 from yupi.vector import Vector
 
+_PLANAR_DIM = 2
+_SPATIAL_DIM = 3
+
 
 def add_polar_offset(traj: Trajectory, radius: float, angle: float) -> None:
     """
@@ -22,7 +25,7 @@ def add_polar_offset(traj: Trajectory, radius: float, angle: float) -> None:
     TypeError
         If the trajectory is not 2 dimensional.
     """
-    if traj.dim != 2:
+    if traj.dim != _PLANAR_DIM:
         raise TypeError("Polar offsets can only be applied on 2 dimensional trajectories")
 
     # From cartesian to polar
@@ -67,7 +70,7 @@ def rotate_3d(traj: Trajectory, angle: float, vector: Sequence[float] | np.ndarr
     ValueError
         If the vector has shape different than (3,).
     """
-    if traj.dim != 3:
+    if traj.dim != _SPATIAL_DIM:
         raise TypeError("3D rotations can only be applied on 3 dimensional trajectories")
 
     vec: Vector = Vector(vector)

@@ -15,6 +15,7 @@ from yupi.units import Units
 from yupi.vector import Vector
 
 _THRESHOLD = 1e-12
+_MIN_POINTS = 2
 
 Axis = Sequence[float] | np.ndarray
 """Represents the data for a single axis."""
@@ -247,7 +248,7 @@ class Trajectory:
         else:
             raise ValueError("No positional data were given.")
 
-        if len(self.r) < 2:
+        if len(self.r) < _MIN_POINTS:
             raise ValueError("The trajectory must contain at least 2 points.")
 
     def __init_positional_data_xyz(
@@ -287,7 +288,7 @@ class Trajectory:
             Array containing position data as a list of points.
         """
 
-        if len(points) < 2:
+        if len(points) < _MIN_POINTS:
             raise ValueError("The trajectory must contain at least 2 points.")
         t_dim = len(points[0])
         if any(len(data) != t_dim for data in points):
