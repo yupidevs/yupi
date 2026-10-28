@@ -196,7 +196,7 @@ Then add a `pypi` job to `.github/workflows/release.yml`, next to the `release` 
       contents: read
       id-token: write
     steps:
-      - uses: gvieralopez/cookie-pyrate/.github/actions/publish-to-pypi@v1.0.3
+      - uses: gvieralopez/cookie-pyrate/.github/actions/publish-to-pypi@v1.1.0
         with:
           sha: ${{ needs.release.outputs.sha }}
 ```
@@ -239,35 +239,43 @@ minutes later.
 
 ### Extra CI steps
 
-The reusable workflows take three optional inputs for what lint, types and tests don't cover.
-Add them under `with:` in `.github/workflows/qa.yml` (`setup-command` and `secret-env` also in
-`release.yml`):
+The reusable workflows take two optional inputs for what lint, types and tests don't cover.
+Add them under `with:` in `.github/workflows/qa.yml` (`setup-command` also in `release.yml`):
 
 - `setup-command`: bash run before the dependencies are installed, for files the install needs,
   such as the wheels of a private dependency. In releases it also runs before the distribution
   and the Docker image are built.
 - `extra-checks`: bash run after the tests; a failure fails QA. For example import contracts
   (`uv run lint-imports`) or a strict docs build.
-- `secret-env`: names of repository secrets to export as environment variables for those steps.
-  The job calling the reusable workflow needs `secrets: inherit`: `release.yml` already passes
-  it (that's how the release key reaches the release), `qa.yml` needs it added.
-  Dependabot's pull requests only get Dependabot secrets, so a secret QA needs must also be added
-  as a Dependabot secret (`gh secret set NAME --app dependabot`), or its security fixes fail QA.
-  In an organization, set it once as an organization secret for both Actions and Dependabot.
+
+A setup command that needs secrets gets them through the `SETUP_ENV` secret: `NAME=value`
+lines, one per variable, that the calling job builds from the repository's own secrets. Each
+value is masked in the logs and set as an environment variable for the setup command only; the
+install, checks, tests and builds that follow don't see it. Values are single lines.
+`secrets: inherit` doesn't work here: GitHub only passes inherited secrets to workflows of the
+same account or organization, and these live in `gvieralopez/cookie-pyrate`. The secrets you
+pass run through Cookie Pyrate's code at the version you pin.
+
+Dependabot's pull requests only get Dependabot secrets, so a secret QA needs must also be added
+as a Dependabot secret (`gh secret set NAME --app dependabot`), or its security fixes fail QA.
+In an organization, set it once as an organization secret for both Actions and Dependabot.
 
 ```yaml
 jobs:
   qa:
-    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-qa.yml@v1.0.3
-    secrets: inherit
+    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-qa.yml@v1.1.0
     with:
-      cookie-pyrate-ref: v1.0.3
+      cookie-pyrate-ref: v1.1.0
       python-version: "3.11"
-      secret-env: WHEELS_TOKEN
       setup-command: uv run --no-project --with requests scripts/download_wheels.py
       extra-checks: |
         uv run lint-imports
+    secrets:
+      SETUP_ENV: |
+        WHEELS_TOKEN=${{ secrets.WHEELS_TOKEN }}
 ```
+
+In `release.yml`, add `SETUP_ENV` next to `RELEASE_SSH_KEY` under `secrets:`.
 
 Commands run with `bash -eo pipefail`, on Windows runners too, and stop at the first failure.
 

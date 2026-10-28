@@ -13,17 +13,17 @@ concurrency:
 jobs:
   release:
     if: github.event.workflow_run.conclusion == 'success'
-    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-release.yml@v1.0.3
+    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-release.yml@v1.1.0
     permissions:
       contents: write
     with:
-      cookie-pyrate-ref: v1.0.3
+      cookie-pyrate-ref: v1.1.0
       create-github-release: true
       attach-distribution: false
       prepare-next-version: true
-    # Passes RELEASE_SSH_KEY (created by `make repo`; lets the version bumps land on a
-    # protected main) and any secret named in secret-env.
-    secrets: inherit
+    secrets:
+      # Created by `make repo`; lets the version bumps land on a protected main.
+      RELEASE_SSH_KEY: ${{ secrets.RELEASE_SSH_KEY }}
 
   pypi:
     needs: release
@@ -35,6 +35,6 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: gvieralopez/cookie-pyrate/.github/actions/publish-to-pypi@v1.0.3
+      - uses: gvieralopez/cookie-pyrate/.github/actions/publish-to-pypi@v1.1.0
         with:
           sha: ${{ needs.release.outputs.sha }}
