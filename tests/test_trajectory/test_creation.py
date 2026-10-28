@@ -119,7 +119,7 @@ def test_creation_with_metadata() -> None:
 def test_bounds() -> None:
     traj = Trajectory(x=[1, 2, 3], y=[1, 1, 2])
 
-    assert traj.bounds == pytest.approx([(1, 3), (1, 2)])
+    assert traj.bounds == [pytest.approx((1, 3)), pytest.approx((1, 2))]
 
 
 def test_properties() -> None:
