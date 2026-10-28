@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="logo.png" alt="yupi logo">
-
-# yupi
+<img src="logo.png" alt="yupi">
 
 **A package for tracking and analysing objects trajectories**
 
