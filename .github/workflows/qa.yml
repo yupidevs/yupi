@@ -1,0 +1,14 @@
+name: QA
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  qa:
+    uses: gvieralopez/cookie-pyrate/.github/workflows/reusable-qa.yml@v1.0.3
+    with:
+      cookie-pyrate-ref: v1.0.3
+      python-version: "3.11"
+      test-python-versions: '["3.12", "3.13", "3.14", "3.15"]'

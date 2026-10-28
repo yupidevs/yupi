@@ -46,9 +46,7 @@ def test_langevin_initial_conditions() -> None:
 
     assert all(traj.r[0] == pytest.approx([0.1, 3.4]) for traj in trajs)
 
-    trajs = LangevinGenerator(T=5, dt=0.5, dim=2, r0=[[0.1, 3.4], [4.0, 5.0]]).generate(
-        2
-    )
+    trajs = LangevinGenerator(T=5, dt=0.5, dim=2, r0=[[0.1, 3.4], [4.0, 5.0]]).generate(2)
     assert trajs[0].r[0] == pytest.approx([0.1, 4.0])
     assert trajs[1].r[0] == pytest.approx([3.4, 5.0])
 
@@ -58,9 +56,7 @@ def test_langevin_initial_conditions() -> None:
     trajs = LangevinGenerator(T=5, dt=0.5, dim=2, v0=[0.1, 3.4]).generate(3)
     assert all(traj.v[0] == pytest.approx([0.1, 3.4]) for traj in trajs)
 
-    trajs = LangevinGenerator(T=5, dt=0.5, dim=2, v0=[[0.1, 3.4], [4.0, 5.0]]).generate(
-        2
-    )
+    trajs = LangevinGenerator(T=5, dt=0.5, dim=2, v0=[[0.1, 3.4], [4.0, 5.0]]).generate(2)
     assert trajs[0].v[0] == pytest.approx([0.1, 4.0])
     assert trajs[1].v[0] == pytest.approx([3.4, 5.0])
 
@@ -72,9 +68,7 @@ def test_langevin_initial_conditions() -> None:
 
 
 def test_langevin_bounds() -> None:
-    traj = LangevinGenerator(
-        T=5, dt=0.5, dim=2, bounds=np.array([[-1, -1], [1, 1]])
-    ).generate(1)[0]
+    traj = LangevinGenerator(T=5, dt=0.5, dim=2, bounds=np.array([[-1, -1], [1, 1]])).generate(1)[0]
 
     np.all(traj.r >= -1)
     np.all(traj.r <= 1)
@@ -105,9 +99,7 @@ def test_diffdiff_initial_conditions() -> None:
     trajs = DiffDiffGenerator(T=5, dt=0.5, dim=2, r0=[0.1, 3.4]).generate(3)
     assert all(traj.r[0] == pytest.approx([0.1, 3.4]) for traj in trajs)
 
-    trajs = DiffDiffGenerator(T=5, dt=0.5, dim=2, r0=[[0.1, 3.4], [4.0, 5.0]]).generate(
-        2
-    )
+    trajs = DiffDiffGenerator(T=5, dt=0.5, dim=2, r0=[[0.1, 3.4], [4.0, 5.0]]).generate(2)
     assert trajs[0].r[0] == pytest.approx([0.1, 4.0])
     assert trajs[1].r[0] == pytest.approx([3.4, 5.0])
 
@@ -116,9 +108,7 @@ def test_diffdiff_initial_conditions() -> None:
 
 
 def test_diffdiff_bounds() -> None:
-    traj = DiffDiffGenerator(
-        T=5, dt=0.5, dim=2, bounds=np.array([[-1, -1], [1, 1]])
-    ).generate(2)[0]
+    traj = DiffDiffGenerator(T=5, dt=0.5, dim=2, bounds=np.array([[-1, -1], [1, 1]])).generate(2)[0]
 
     np.all(traj.r >= -1)
     np.all(traj.r <= 1)

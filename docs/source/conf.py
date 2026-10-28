@@ -13,14 +13,14 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../"))
-sys.path.insert(0, os.path.abspath("../../yupi/"))
-sys.path.insert(0, os.path.abspath("../../yupi/core/"))
-sys.path.insert(0, os.path.abspath("../../yupi/generators/"))
-sys.path.insert(0, os.path.abspath("../../yupi/graphics/"))
-sys.path.insert(0, os.path.abspath("../../yupi/stats/"))
-sys.path.insert(0, os.path.abspath("../../yupi/tracking/"))
-sys.path.insert(0, os.path.abspath("../../yupi/transformations/"))
+sys.path.insert(0, os.path.abspath("../../src/"))
+sys.path.insert(0, os.path.abspath("../../src/yupi/"))
+sys.path.insert(0, os.path.abspath("../../src/yupi/core/"))
+sys.path.insert(0, os.path.abspath("../../src/yupi/generators/"))
+sys.path.insert(0, os.path.abspath("../../src/yupi/graphics/"))
+sys.path.insert(0, os.path.abspath("../../src/yupi/stats/"))
+sys.path.insert(0, os.path.abspath("../../src/yupi/tracking/"))
+sys.path.insert(0, os.path.abspath("../../src/yupi/transformations/"))
 
 
 # -- Project information -----------------------------------------------------
@@ -30,7 +30,7 @@ copyright = "2021, Gustavo Viera-López, Alfredo Reyes, Jorge Morgado, Ernesto A
 author = "Gustavo Viera-López, Alfredo Reyes, Jorge Morgado, Ernesto Altshuler"
 
 # The full version, including alpha/beta/rc tags
-release = "1.0.2"
+release = "1.0.3-beta0"
 
 
 # -- General configuration ---------------------------------------------------

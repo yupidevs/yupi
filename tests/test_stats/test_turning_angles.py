@@ -37,24 +37,16 @@ def test_turning_angles_stat(traj: Trajectory) -> None:
         [np.pi / 2, 3 * np.pi / 2, np.pi / 2, 3 * np.pi / 2]
     )
 
-    assert TurningAngleStat(
-        trajs=[traj, traj],
-        degrees=True,
-        wrap=False,
-    ).theta == pytest.approx([90, -90, 90, -90])
+    assert TurningAngleStat(trajs=[traj, traj], degrees=True, wrap=False).theta == pytest.approx(
+        [90, -90, 90, -90]
+    )
 
     assert TurningAngleStat(
-        trajs=[traj, traj],
-        accumulate=True,
-        degrees=True,
-        centered=True,
-        wrap=True,
+        trajs=[traj, traj], accumulate=True, degrees=True, centered=True, wrap=True
     ).theta == pytest.approx([0, 90, 0, 0, 90, 0])
 
     with pytest.raises(DifferentDimensionError):
-        TurningAngleStat(
-            trajs=[Trajectory(x=[1, 2, 3, 4])],
-        )
+        TurningAngleStat(trajs=[Trajectory(x=[1, 2, 3, 4])])
 
 
 def test_turning_angles_stat_plot(monkeypatch: MonkeyPatch, traj: Trajectory) -> None:

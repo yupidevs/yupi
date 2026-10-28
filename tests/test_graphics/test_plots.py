@@ -65,19 +65,11 @@ def test_plot_2d(monkeypatch: MonkeyPatch, trajs: list[Trajectory]) -> None:
 
     # connected with different length
     plot_2d(
-        [*trajs, Trajectory(x=[1, 2, 3, 4], y=[2, 3, 6, 6], t=[0, 0.1, 0.2, 0.3])],
-        connected=True,
+        [*trajs, Trajectory(x=[1, 2, 3, 4], y=[2, 3, 6, 6], t=[0, 0.1, 0.2, 0.3])], connected=True
     )
 
     # with other kwargs
-    plot_2d(
-        trajs,
-        title="Test",
-        color="red",
-        ax=plt.gca(),
-        connected=True,
-        legend=True,
-    )
+    plot_2d(trajs, title="Test", color="red", ax=plt.gca(), connected=True, legend=True)
 
     plt.axes()
 
@@ -101,22 +93,13 @@ def test_plot_3d(monkeypatch: MonkeyPatch, trajs_3d: list[Trajectory]) -> None:
     plot_3d(
         [
             *trajs_3d,
-            Trajectory(
-                x=[1, 2, 3, 4], y=[2, 3, 6, 6], z=[1, 2, 3, 4], t=[0, 0.1, 0.2, 0.3]
-            ),
+            Trajectory(x=[1, 2, 3, 4], y=[2, 3, 6, 6], z=[1, 2, 3, 4], t=[0, 0.1, 0.2, 0.3]),
         ],
         connected=True,
     )
 
     # with other kwargs
-    plot_3d(
-        trajs_3d,
-        title="Test",
-        color="red",
-        ax=plt.gca(),
-        connected=True,
-        legend=True,
-    )
+    plot_3d(trajs_3d, title="Test", color="red", ax=plt.gca(), connected=True, legend=True)
 
     plt.axes()
 
@@ -138,12 +121,7 @@ def test_plot_vs_time(monkeypatch: MonkeyPatch, trajs: list[Trajectory]) -> None
 
     # with other kwargs
     plot_vs_time(
-        trajs,
-        lambda t: t.r.x,
-        title="Test",
-        y_label="X position",
-        color="red",
-        legend=True,
+        trajs, lambda t: t.r.x, title="Test", y_label="X position", color="red", legend=True
     )
 
     plt.axes()

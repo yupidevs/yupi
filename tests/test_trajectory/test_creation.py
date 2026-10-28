@@ -78,9 +78,7 @@ def test_creation_general() -> None:
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], t=[0, 1, 2], traj_id="test")
     Trajectory(x=[1, 2, 3], y=[2, 3, 6], dt=0.5, traj_id="test")
     Trajectory(points=[[1, 2], [2, 3], [3, 6]], dt=0.5, traj_id="test")
-    Trajectory(
-        axes=[[1, 2, 4], [2, 3, 6]], dt=0.5, t=[1, 1.5, 2], t_0=1, traj_id="test"
-    )
+    Trajectory(axes=[[1, 2, 4], [2, 3, 6]], dt=0.5, t=[1, 1.5, 2], t_0=1, traj_id="test")
 
     # No positional data
     with pytest.raises(ValueError):
@@ -121,7 +119,7 @@ def test_creation_with_metadata() -> None:
 def test_bounds() -> None:
     traj = Trajectory(x=[1, 2, 3], y=[1, 1, 2])
 
-    assert traj.bounds == pytest.approx([(1, 3), (1, 2)])
+    assert traj.bounds == [pytest.approx((1, 3)), pytest.approx((1, 2))]
 
 
 def test_properties() -> None:
