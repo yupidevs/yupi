@@ -339,7 +339,7 @@ class FrameDifferencing(TrackingAlgorithm):
 
         # cv2.inRange accepts scalars as lowerb and upperb.
         # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
-        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)  # type: ignore[call-overload]
+        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -424,7 +424,9 @@ class BackgroundSubtraction(TrackingAlgorithm):
 
         # cv2.inRange accepts scalars as lowerb and upperb.
         # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
-        mask = cv2.inRange(gray_image, self.background_threshold, 255)  # type: ignore[call-overload]
+        if self.background_threshold is None:
+            raise ValueError("background_threshold must be set")
+        mask = cv2.inRange(gray_image, self.background_threshold, 255)
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -609,7 +611,7 @@ class OpticalFlow(TrackingAlgorithm):
 
             # cv2.inRange accepts scalars as lowerb and upperb.
             # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
-            mask = cv2.inRange(mag, self.threshold, 255.0)  # type: ignore[call-overload]
+            mask = cv2.inRange(mag, self.threshold, 255.0)
 
             # Compute the centroid of the pixels over threshold
             centroid = self.get_centroid(mask)

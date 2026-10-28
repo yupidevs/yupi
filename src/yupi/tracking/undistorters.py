@@ -64,7 +64,7 @@ class Undistorter(metaclass=abc.ABCMeta):
             m1type=5,
         )
         self.c_mapx, self.c_mapy = c_map
-        self.mask = None
+        self.mask: np.ndarray | None = None
         self.background: np.ndarray | None = None
 
     @abc.abstractmethod
@@ -128,6 +128,8 @@ class Undistorter(metaclass=abc.ABCMeta):
         np.ndarray
             Adjusted frame.
         """
+        if self.mask is None:
+            raise ValueError("The mask is created by fix(); call it first")
         frame = cv2.bitwise_or(frame, self.mask)
         return self._rotate(frame, _input=False)
 

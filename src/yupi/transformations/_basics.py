@@ -36,8 +36,8 @@ def add_polar_offset(traj: Trajectory, radius: float, angle: float) -> None:
     ang += angle
 
     # From polar to cartesian
-    x, y = rad * np.cos(ang), rad * np.sin(ang)
-    traj.r = Vector([x, y]).T
+    new_x, new_y = rad * np.cos(ang), rad * np.sin(ang)
+    traj.r = Vector([new_x, new_y]).T
 
 
 def rotate_2d(traj: Trajectory, angle: float) -> None:
