@@ -139,13 +139,19 @@ def test_missing_data_on_json_ensemble(trajs: list[Trajectory]) -> None:
     with _missing_t_ensemble.open("w") as file:
         json.dump(missing_t, file)
 
-    with pytest.raises(LoadTrajectoryError, match="No position data found."):
+    with pytest.raises(
+        LoadTrajectoryError, match=r"No position data found for one or more trajectories\."
+    ):
         JSONSerializer.load_ensemble(_missing_axes_enemble)
 
-    with pytest.raises(LoadTrajectoryError, match="No time data found."):
+    with pytest.raises(
+        LoadTrajectoryError, match=r"No time data found for one or more trajectories\."
+    ):
         JSONSerializer.load_ensemble(_missing_dt_ensemble)
 
-    with pytest.raises(LoadTrajectoryError, match="No time data found."):
+    with pytest.raises(
+        LoadTrajectoryError, match=r"No time data found for one or more trajectories\."
+    ):
         JSONSerializer.load_ensemble(_missing_t_ensemble)
 
     Path.unlink(_path)

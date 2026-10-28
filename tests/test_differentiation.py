@@ -91,27 +91,27 @@ def test_wrong_diff_parameters() -> None:
 
     wrong_win_fornberg = {"method": DiffMethod.FORNBERG_DIFF, "window_type": 10, "accuracy": 2}
 
-    with pytest.raises(ValueError, match="Invalid method to estimate the velocity."):
+    with pytest.raises(ValueError, match=r"Invalid method to estimate the velocity\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_method)
         _ = traj.v
 
-    with pytest.raises(ValueError, match="Invalid method to estimate the acceleration."):
+    with pytest.raises(ValueError, match=r"Invalid method to estimate the acceleration\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_method)
         _ = traj.a
 
-    with pytest.raises(ValueError, match="Invalid window type."):
+    with pytest.raises(ValueError, match=r"Invalid window type\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_win)
         _ = traj.v
 
-    with pytest.raises(ValueError, match="Invalid window type."):
+    with pytest.raises(ValueError, match=r"Invalid window type\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_win)
         _ = traj.a
 
-    with pytest.raises(ValueError, match="Invalid window type."):
+    with pytest.raises(ValueError, match=r"Invalid window type to estimate the velocity\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_win_fornberg)
         _ = traj.v
 
-    with pytest.raises(ValueError, match="Invalid window type."):
+    with pytest.raises(ValueError, match=r"Invalid window type to estimate the acceleration\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_win_fornberg)
         _ = traj.a
 
