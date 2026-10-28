@@ -49,9 +49,7 @@ def turning_angles(
         to a given time instant.
     """
     if traj.dim != 2:
-        raise TrajectoryError(
-            traj, "The trajectory must be 2D to estimate turning angles"
-        )
+        raise TrajectoryError(traj, "The trajectory must be 2D to estimate turning angles")
 
     d_r = traj.delta_r
     d_x, d_y = d_r.x, d_r.y
@@ -153,11 +151,7 @@ class TurningAngleStat:
         return self.__theta
 
     def plot(
-        self,
-        bins: int = 36,
-        show: bool = True,
-        ax: Axes | None = None,
-        **kwargs: Any,
+        self, bins: int = 36, show: bool = True, ax: Axes | None = None, **kwargs: Any
     ) -> Axes:
         """
         Plot a histogram of the array of angles ``ang``.
@@ -190,11 +184,7 @@ class TurningAngleStat:
         if not isinstance(ax, PolarAxes):
             raise ValueError("The axes must be polar")
 
-        default_kwargs: Any = {
-            "color": LIGHT_BLUE,
-            "ec": (0, 0, 0, 0.6),
-            "density": True,
-        }
+        default_kwargs: Any = {"color": LIGHT_BLUE, "ec": (0, 0, 0, 0.6), "density": True}
         default_kwargs.update(kwargs)
         plt.hist(self.theta, bins, **default_kwargs)
         ax.set_theta_zero_location("N")

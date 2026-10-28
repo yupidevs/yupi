@@ -1,6 +1,6 @@
 import abc
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 import cv2
 import numpy as np
@@ -12,9 +12,7 @@ Bounds = tuple[int, int, int, int]
 def _resize_frame(frame: np.ndarray, scale: float = 1) -> np.ndarray:
     height, weight = frame.shape[:2]
     scaled_height, scaled_weight = int(scale * height), int(scale * weight)
-    short_frame = cv2.resize(
-        frame, (scaled_weight, scaled_height), interpolation=cv2.INTER_AREA
-    )
+    short_frame = cv2.resize(frame, (scaled_weight, scaled_height), interpolation=cv2.INTER_AREA)
     return short_frame
 
 
@@ -110,9 +108,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
             c_x = int(moments["m10"] / moments["m00"])
             c_y = int(moments["m01"] / moments["m00"])
             return c_x, c_y
-        logging.warning(
-            "Nothing was over threshold. Algorithm: %s", type(self).__name__
-        )
+        logging.warning("Nothing was over threshold. Algorithm: %s", type(self).__name__)
         return None
 
     def preprocess(
@@ -369,9 +365,7 @@ class BackgroundSubtraction(TrackingAlgorithm):
         object, by default 1.
     """
 
-    def __init__(
-        self, background: np.ndarray, background_threshold: int | None
-    ) -> None:
+    def __init__(self, background: np.ndarray, background_threshold: int | None) -> None:
         super().__init__()
         self.background_threshold = background_threshold
         self.background = background
@@ -583,13 +577,9 @@ class OpticalFlow(TrackingAlgorithm):
         """
 
         if len(self.previous_frames) == self.buffer_size:
-            cframe = self.preprocess(
-                frame=frame, roi_bound=roi_bound, preprocessing=preprocessing
-            )
+            cframe = self.preprocess(frame=frame, roi_bound=roi_bound, preprocessing=preprocessing)
             pframe = self.preprocess(
-                frame=self.previous_frames[-1],
-                roi_bound=roi_bound,
-                preprocessing=preprocessing,
+                frame=self.previous_frames[-1], roi_bound=roi_bound, preprocessing=preprocessing
             )
 
             cframe = cv2.cvtColor(cframe, cv2.COLOR_BGR2GRAY)

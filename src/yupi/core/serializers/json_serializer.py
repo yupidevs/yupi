@@ -48,10 +48,7 @@ class JSONSerializer(Serializer):
 
     @staticmethod
     def save_ensemble(
-        trajs: list[Trajectory],
-        file_path: str | Path,
-        overwrite: bool = False,
-        **kwargs: Any,
+        trajs: list[Trajectory], file_path: str | Path, overwrite: bool = False, **kwargs: Any
     ) -> None:
         """
         Writes an ensemble to a file.
@@ -146,8 +143,7 @@ class JSONSerializer(Serializer):
 
             if any("axes" not in traj for traj in data):
                 raise LoadTrajectoryError(
-                    str(_path),
-                    "No position data found for one or more trajectories.",
+                    str(_path), "No position data found for one or more trajectories."
                 )
             if any("dt" not in traj and "t" not in traj for traj in data):
                 raise LoadTrajectoryError(
@@ -180,11 +176,7 @@ class JSONSerializer(Serializer):
             "accuracy": traj.diff_est.get("accuracy", accuracy),
         }
 
-        json_dict = {
-            "axes": traj.r.T.tolist(),
-            "id": traj.traj_id,
-            "diff_est": diff_est,
-        }
+        json_dict = {"axes": traj.r.T.tolist(), "id": traj.traj_id, "diff_est": diff_est}
         if traj.dt_std == 0:
             json_dict["dt"] = traj.dt
             json_dict["t_0"] = traj.t_0
@@ -217,18 +209,18 @@ class JSONSerializer(Serializer):
         axes = json_traj["axes"]
         traj_id = json_traj["id"] if json_traj["id"] is not None else ""
 
-        diff_est = json_traj.get("diff_est", None)
+        diff_est = json_traj.get("diff_est")
         if diff_est is None:
             diff_est = Trajectory.general_diff_est
         else:
             diff_est["method"] = diff.DiffMethod(diff_est["method"])
             diff_est["window_type"] = diff.WindowType(diff_est["window_type"])
 
-        t = json_traj.get("t", None)
-        dt = json_traj.get("dt", None)
+        t = json_traj.get("t")
+        dt = json_traj.get("dt")
         t_0 = json_traj.get("t_0", 0.0)
 
-        extra = json_traj.get("extra", None)
+        extra = json_traj.get("extra")
         metadata = json_traj.get("metadata", {})
 
         return Trajectory(

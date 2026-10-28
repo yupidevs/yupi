@@ -69,10 +69,7 @@ def test_complex_featurizer(
     feats = complex_featurizer.featurize(trajs)
     assert isinstance(feats, np.ndarray)
     assert feats.shape == (2, 4)
-    assert pytest.approx(feats) == [
-        [3.5, 0.5, 1, 0],
-        [3.5, 0.5, 0.1, 0],
-    ]
+    assert pytest.approx(feats) == [[3.5, 0.5, 1, 0], [3.5, 0.5, 0.1, 0]]
 
 
 def test_compound_featurizer(
@@ -84,7 +81,4 @@ def test_compound_featurizer(
     feats = compound.featurize(trajs)
     assert isinstance(feats, np.ndarray)
     assert feats.shape == (2, 6)
-    assert pytest.approx(feats) == [
-        [7, 5, 3.5, 0.5, 1, 0],
-        [7, 5, 3.5, 0.5, 0.1, 0],
-    ]
+    assert pytest.approx(feats) == [[7, 5, 3.5, 0.5, 1, 0], [7, 5, 3.5, 0.5, 0.1, 0]]

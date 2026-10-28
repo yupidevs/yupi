@@ -17,9 +17,7 @@ class NotUniformTimeSpacedError(TrajectoryError):
     """Raised when a trajectory should be uniformly time spaced but it's not."""
 
     def __init__(self, traj: Trajectory) -> None:
-        super().__init__(
-            traj, f"Trajectory {traj.traj_id} must be uniformly time spaced"
-        )
+        super().__init__(traj, f"Trajectory {traj.traj_id} must be uniformly time spaced")
         self.traj = traj
 
 
@@ -62,9 +60,7 @@ class DifferentLengthError(TrajectoryGroupError):
 def check_uniform_time_spaced(trajs: list[Trajectory]) -> None:
     """Check that the trajectories are uniformly time-spaced."""
 
-    first_non_uniform_time_spaced = next(
-        (t for t in trajs if abs(t.dt_std) > _THRESHOLD), None
-    )
+    first_non_uniform_time_spaced = next((t for t in trajs if abs(t.dt_std) > _THRESHOLD), None)
     if first_non_uniform_time_spaced is not None:
         raise NotUniformTimeSpacedError(first_non_uniform_time_spaced)
 
@@ -118,8 +114,7 @@ def check_same_t(trajs: list[Trajectory]) -> None:
 
     time_vec = trajs[0].t
     first_unequal_t = next(
-        (traj for traj in trajs if not np.allclose(time_vec, traj.t, atol=_THRESHOLD)),
-        None,
+        (traj for traj in trajs if not np.allclose(time_vec, traj.t, atol=_THRESHOLD)), None
     )
     if first_unequal_t is not None:
         raise DifferentTimeVectorError([trajs[0], first_unequal_t])

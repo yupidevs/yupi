@@ -11,9 +11,7 @@ def _affine2camera(
     theta_cam2lab[1:] = np.cumsum(theta)
 
     for i in range(theta.size):
-        affine_mat = _affine_matrix(
-            theta_cam2lab[i + 1], x_cam2lab[i], y_cam2lab[i], inverse=True
-        )
+        affine_mat = _affine_matrix(theta_cam2lab[i + 1], x_cam2lab[i], y_cam2lab[i], inverse=True)
         shift_vec = [-t_x[i], -t_y[i], 1]
         x_cam2lab[i + 1], y_cam2lab[i + 1] = affine_mat @ shift_vec
 
@@ -30,9 +28,7 @@ def _camera2obj(
     x_obj2lab, y_obj2lab = np.empty((2, x_obj2cam.size))
 
     for i in range(x_obj2cam.size):
-        affine_mat = _affine_matrix(
-            theta_cam2lab[i], x_cam2lab[i], y_cam2lab[i], inverse=True
-        )
+        affine_mat = _affine_matrix(theta_cam2lab[i], x_cam2lab[i], y_cam2lab[i], inverse=True)
         shift_vec = [x_obj2cam[i], y_obj2cam[i], 1]
         x_obj2lab[i], y_obj2lab[i] = affine_mat @ shift_vec
 
@@ -47,9 +43,7 @@ def _affine2obj(
     y_obj2cam: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
     x_cam2lab, y_cam2lab, theta_cam2lab = _affine2camera(theta, t_x, t_y)
-    x_obj2lab, y_obj2lab = _camera2obj(
-        x_obj2cam, y_obj2cam, x_cam2lab, y_cam2lab, theta_cam2lab
-    )
+    x_obj2lab, y_obj2lab = _camera2obj(x_obj2cam, y_obj2cam, x_cam2lab, y_cam2lab, theta_cam2lab)
     return x_obj2lab, y_obj2lab
 
 

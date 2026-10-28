@@ -2,7 +2,7 @@
 This constains resampling functions for trajectories.
 """
 
-from typing import Collection
+from collections.abc import Collection
 
 import numpy as np
 
@@ -10,14 +10,10 @@ from yupi._differentiation import _get_coeff
 from yupi.trajectory import Trajectory
 
 
-def _get_k_value_neighbors(
-    val: float, data: np.ndarray, k: int, _from: int
-) -> tuple[int, int]:
+def _get_k_value_neighbors(val: float, data: np.ndarray, k: int, _from: int) -> tuple[int, int]:
     lower_bound, upper_bound = _from, _from
     for _ in range(k):
-        look_forwards = (
-            data[upper_bound] - val <= val - data[lower_bound] or lower_bound == 0
-        )
+        look_forwards = data[upper_bound] - val <= val - data[lower_bound] or lower_bound == 0
         if look_forwards and upper_bound < len(data) - 1:
             upper_bound = min(upper_bound + 1, len(data) - 1)
         else:
@@ -33,9 +29,7 @@ def _interpolate_axis(
     new_dim = np.empty(len(new_t))
     for i, new_t_idx in enumerate(new_t_idxs):
         val = new_t[i]
-        min_neighbor, max_neighbor = _get_k_value_neighbors(
-            val, old_t, order, int(new_t_idx)
-        )
+        min_neighbor, max_neighbor = _get_k_value_neighbors(val, old_t, order, int(new_t_idx))
         alphas = old_t[min_neighbor : max_neighbor + 1]
         _coeff = _get_coeff(val, alphas, M=1)
         new_dim[i] = np.sum(
@@ -83,9 +77,7 @@ def resample(
     """
 
     if traj.extra:
-        raise ValueError(
-            "Resampling is not supported for trajectories with extra data."
-        )
+        raise ValueError("Resampling is not supported for trajectories with extra data.")
 
     if new_t is not None and new_dt is not None:
         raise ValueError("new_t and new_dt cannot be both specified")
@@ -94,11 +86,7 @@ def resample(
 
     from_dt = new_dt is not None
 
-    new_t = (
-        np.arange(traj.t[0], traj.t[-1], new_dt)
-        if new_dt is not None
-        else np.array(new_t)
-    )
+    new_t = np.arange(traj.t[0], traj.t[-1], new_dt) if new_dt is not None else np.array(new_t)
     new_dims: list[np.ndarray] = []
     old_t = traj.t
 
@@ -126,9 +114,7 @@ def resample(
     )
 
 
-def subsample(
-    traj: Trajectory, step: int = 1, new_traj_id: str | None = None
-) -> Trajectory:
+def subsample(traj: Trajectory, step: int = 1, new_traj_id: str | None = None) -> Trajectory:
     """
     Sample the trajectory ``traj`` by removing evenly spaced
     points according to ``step``.

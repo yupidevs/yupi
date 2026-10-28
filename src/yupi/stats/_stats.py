@@ -5,7 +5,7 @@ This contains all the statistical functions.
 # pylint: disable=too-many-arguments
 
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 
@@ -88,9 +88,7 @@ def collect_at_time(
     --------
     collect_at_step, collect_step_lagged, collect_time_lagged, collect
     """
-    return collect(
-        trajs, at=float(time), warnings=warnings, velocity=velocity, func=func
-    )
+    return collect(trajs, at=float(time), warnings=warnings, velocity=velocity, func=func)
 
 
 def collect_step_lagged(
@@ -132,12 +130,7 @@ def collect_step_lagged(
     collect_at_step, collect_at_step, collect_time_lagged, collect
     """
     return collect(
-        trajs,
-        lag=int(step),
-        concat=concat,
-        warnings=warnings,
-        velocity=velocity,
-        func=func,
+        trajs, lag=int(step), concat=concat, warnings=warnings, velocity=velocity, func=func
     )
 
 
@@ -180,12 +173,7 @@ def collect_time_lagged(
     collect_at_step, collect_at_time, collect_step_lagged, collect
     """
     return collect(
-        trajs,
-        lag=float(time),
-        concat=concat,
-        warnings=warnings,
-        velocity=velocity,
-        func=func,
+        trajs, lag=float(time), concat=concat, warnings=warnings, velocity=velocity, func=func
     )
 
 
@@ -273,9 +261,7 @@ def collect(
             continue
 
         if warnings and step >= len(current_vec):
-            logging.warning(
-                "Trajectory %s is shorten than %i samples", traj.traj_id, step
-            )
+            logging.warning("Trajectory %s is shorten than %i samples", traj.traj_id, step)
             continue
 
         if not is_lag:  # Is at

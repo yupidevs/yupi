@@ -4,13 +4,9 @@ Contains the basic structures for trajectories.
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Iterator,
-    Sequence,
-    cast,
-)
+from typing import Any, cast
 
 import numpy as np
 
@@ -255,10 +251,7 @@ class Trajectory:
             raise ValueError("The trajectory must contain at least 2 points.")
 
     def __init_positional_data_xyz(
-        self,
-        x: Axis,
-        y: Axis | None = None,
-        z: Axis | None = None,
+        self, x: Axis, y: Axis | None = None, z: Axis | None = None
     ) -> None:
         """
         Initializes the positional data from the given x, y, and z
@@ -280,16 +273,11 @@ class Trajectory:
         axis = [data for data in [x, y, z] if data is not None]
 
         if any(len(data) != t_len for data in axis):
-            raise ValueError(
-                "All positional data (x, y, and z) must have the same length. "
-            )
+            raise ValueError("All positional data (x, y, and z) must have the same length. ")
 
         self.r = Vector(axis, dtype=float, copy=True).T
 
-    def __init_positional_data_points(
-        self,
-        points: Sequence[Point] | np.ndarray,
-    ) -> None:
+    def __init_positional_data_points(self, points: Sequence[Point] | np.ndarray) -> None:
         """
         Initializes the positional data from a list of points.
 
@@ -303,15 +291,10 @@ class Trajectory:
             raise ValueError("The trajectory must contain at least 2 points.")
         t_dim = len(points[0])
         if any(len(data) != t_dim for data in points):
-            raise ValueError(
-                "All positional data (points) must have the same length (dimension). "
-            )
+            raise ValueError("All positional data (points) must have the same length (dimension). ")
         self.r = Vector(points, dtype=float, copy=True)
 
-    def __init_positional_data_axes(
-        self,
-        axes: Sequence[Axis] | np.ndarray,
-    ) -> None:
+    def __init_positional_data_axes(self, axes: Sequence[Axis] | np.ndarray) -> None:
         """
         Initializes the positional data from a list of axes.
 
@@ -342,9 +325,7 @@ class Trajectory:
         t_len = len(self.r)
         for k, v in self.extra.items():
             if len(v) != t_len:
-                raise ValueError(
-                    f"Extra data '{k}' must have the same length as the trajectory."
-                )
+                raise ValueError(f"Extra data '{k}' must have the same length as the trajectory.")
 
     def __init_time_data(
         self,
@@ -401,9 +382,7 @@ class Trajectory:
                     f"{self.dt_mean} != {dt}"
                 )
             if abs(self.dt_std - 0) > _THRESHOLD:
-                raise ValueError(
-                    "You are giving 'dt' and 't' but 't' is not uniformly spaced."
-                )
+                raise ValueError("You are giving 'dt' and 't' but 't' is not uniformly spaced.")
 
         if t_0 is None:
             self.t_0 = float(self.__t[0]) if self.__t is not None else 0.0
@@ -442,11 +421,7 @@ class Trajectory:
             Accuracy of the differentiation method (only valid for
             FORNBERG_DIFF method). By default, the accuracy is 1.
         """
-        self.diff_est = {
-            "method": method,
-            "window_type": window_type,
-            "accuracy": accuracy,
-        }
+        self.diff_est = {"method": method, "window_type": window_type, "accuracy": accuracy}
         self.recalculate_velocity()
 
     @staticmethod
@@ -523,11 +498,7 @@ class Trajectory:
                 )
             new_t = self.t[start:stop:step]
             return Trajectory(
-                points=new_points,
-                extra=new_extra,
-                t=new_t,
-                diff_est=self.diff_est,
-                **self.metadata,
+                points=new_points, extra=new_extra, t=new_t, diff_est=self.diff_est, **self.metadata
             )
         raise TypeError("Index must be an integer or a slice.")
 
@@ -640,9 +611,7 @@ class Trajectory:
         diff = np.abs(np.subtract(self_time, other_time))
         return all(diff < threshold)
 
-    def __iadd__(
-        self, other: int | float | tuple | np.ndarray | Trajectory
-    ) -> Trajectory:
+    def __iadd__(self, other: int | float | tuple | np.ndarray | Trajectory) -> Trajectory:
         if isinstance(other, (int, float)):
             self.r += other
             return self
@@ -650,9 +619,7 @@ class Trajectory:
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
             if len(offset) != self.dim:
-                raise ValueError(
-                    "Offset must be the same shape as the other trajectory points"
-                )
+                raise ValueError("Offset must be the same shape as the other trajectory points")
             self.r += offset
             return self
 
@@ -663,13 +630,10 @@ class Trajectory:
             return self
 
         raise TypeError(
-            "unsoported operation (+) between 'Trajectory' and "
-            f"'{type(other).__name__}'"
+            f"unsoported operation (+) between 'Trajectory' and '{type(other).__name__}'"
         )
 
-    def __isub__(
-        self, other: int | float | tuple | np.ndarray | Trajectory
-    ) -> Trajectory:
+    def __isub__(self, other: int | float | tuple | np.ndarray | Trajectory) -> Trajectory:
         if isinstance(other, (int, float)):
             self.r -= other
             return self
@@ -677,9 +641,7 @@ class Trajectory:
         if isinstance(other, (list, tuple, np.ndarray)):
             offset = np.array(other, dtype=float)
             if len(offset) != self.dim:
-                raise ValueError(
-                    "Offset must be the same shape as the other trajectory points"
-                )
+                raise ValueError("Offset must be the same shape as the other trajectory points")
             self.r -= offset
             return self
 
@@ -690,32 +652,23 @@ class Trajectory:
             return self
 
         raise TypeError(
-            "unsoported operation (-) between 'Trajectory' and "
-            f"'{type(other).__name__}'"
+            f"unsoported operation (-) between 'Trajectory' and '{type(other).__name__}'"
         )
 
-    def __add__(
-        self, other: int | float | tuple | np.ndarray | Trajectory
-    ) -> Trajectory:
+    def __add__(self, other: int | float | tuple | np.ndarray | Trajectory) -> Trajectory:
         traj = self.copy()
         traj += other
         return traj
 
-    def __sub__(
-        self, other: int | float | tuple | np.ndarray | Trajectory
-    ) -> Trajectory:
+    def __sub__(self, other: int | float | tuple | np.ndarray | Trajectory) -> Trajectory:
         traj = self.copy()
         traj -= other
         return traj
 
-    def __radd__(
-        self, other: int | float | tuple | np.ndarray | Trajectory
-    ) -> Trajectory:
+    def __radd__(self, other: int | float | tuple | np.ndarray | Trajectory) -> Trajectory:
         return self + other
 
-    def __rsub__(
-        self, other: int | float | tuple | np.ndarray | Trajectory
-    ) -> Trajectory:
+    def __rsub__(self, other: int | float | tuple | np.ndarray | Trajectory) -> Trajectory:
         return self - other
 
     def __imul__(self, other: int | float) -> Trajectory:
@@ -723,8 +676,7 @@ class Trajectory:
             self.r *= other
             return self
         raise TypeError(
-            "unsoported operation (*) between 'Trajectory' and "
-            f"'{type(other).__name__}'"
+            f"unsoported operation (*) between 'Trajectory' and '{type(other).__name__}'"
         )
 
     def __mul__(self, other: int | float) -> Trajectory:
@@ -755,14 +707,8 @@ class Trajectory:
         _units = Units.parse(units)
         if inplace:
             self.r *= self.units.dist_to(_units.dist)
-            self.__t = (
-                self.__t * self.units.time_to(_units.time)
-                if self.__t is not None
-                else None
-            )
-            self.__dt = (
-                self.__dt * self.units.time_to(_units.time) if self.__dt else None
-            )
+            self.__t = self.__t * self.units.time_to(_units.time) if self.__t is not None else None
+            self.__dt = self.__dt * self.units.time_to(_units.time) if self.__dt else None
             self.dt_mean *= self.units.time_to(_units.time)
             self.dt_std *= self.units.time_to(_units.time)
             self.t_0 *= self.units.time_to(_units.time)
@@ -776,12 +722,8 @@ class Trajectory:
         return Trajectory(
             points=self.r * self.units.dist_to(_units.dist),
             extra=self.extra,
-            t=self.__t * self.units.time_to(_units.time)
-            if self.__t is not None
-            else None,
-            dt=self.__dt * self.units.time_to(_units.time)
-            if self.__dt is not None
-            else None,
+            t=self.__t * self.units.time_to(_units.time) if self.__t is not None else None,
+            dt=self.__dt * self.units.time_to(_units.time) if self.__dt is not None else None,
             t_0=self.t_0 * self.units.time_to(_units.time),
             diff_est=self.diff_est,
             units=_units,

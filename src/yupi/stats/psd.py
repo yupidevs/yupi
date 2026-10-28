@@ -81,12 +81,7 @@ class PsdStat:
             self.__frec = frec * 2 * np.pi if self.omega else frec
         return self.__frec
 
-    def plot(
-        self,
-        show: bool = True,
-        ax: Axes | None = None,
-        **kwargs: Any,
-    ) -> Axes:
+    def plot(self, show: bool = True, ax: Axes | None = None, **kwargs: Any) -> Axes:
         """Plot the Power Spectral Density.
 
         Parameters

@@ -71,12 +71,8 @@ class CSVSerializer(Serializer):
 
             dt = traj.dt if traj.dt_std == 0 else None
 
-            diff_method = Trajectory.general_diff_est.get(
-                "method", diff.DiffMethod.LINEAR_DIFF
-            )
-            diff_win = Trajectory.general_diff_est.get(
-                "window_type", diff.WindowType.FORWARD
-            )
+            diff_method = Trajectory.general_diff_est.get("method", diff.DiffMethod.LINEAR_DIFF)
+            diff_win = Trajectory.general_diff_est.get("window_type", diff.WindowType.FORWARD)
             accuracy = Trajectory.general_diff_est.get("accuracy", 1)
             method = traj.diff_est.get("method", diff_method).value
             window = traj.diff_est.get("window_type", diff_win).value
@@ -85,7 +81,7 @@ class CSVSerializer(Serializer):
             writer.writerow([traj.traj_id, dt, traj.dim])
             writer.writerow([method, window, accuracy])
 
-            if not all((isinstance(v, str) for v in traj.metadata.values())):
+            if not all(isinstance(v, str) for v in traj.metadata.values()):
                 logging.warning(
                     "Not all values in metadata are strings. Converting to"
                     "string for CSV serialization.  It its strongly recommended"
@@ -103,7 +99,7 @@ class CSVSerializer(Serializer):
             writer.writerow(extra_keys)
 
             # Check extra val types
-            if not all((isinstance(v[0], str) for v in extra_vals)):
+            if not all(isinstance(v[0], str) for v in extra_vals):
                 logging.warning(
                     "Not all values in extra are strings. Converting to"
                     "string for CSV serialization.  It its strongly recommended"
@@ -113,11 +109,7 @@ class CSVSerializer(Serializer):
 
             if extra_vals:
                 for p, t, extra in zip(traj.r, traj.t, *extra_vals, strict=True):
-                    e_vals = (
-                        [str(v) for v in extra]
-                        if isinstance(extra, tuple)
-                        else [str(extra)]
-                    )
+                    e_vals = [str(v) for v in extra] if isinstance(extra, tuple) else [str(extra)]
                     writer.writerow([*p, t, *e_vals])
             else:
                 writer.writerows([*p, t] for p, t in zip(traj.r, traj.t, strict=True))

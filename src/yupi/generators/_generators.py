@@ -1,5 +1,6 @@
 import abc
-from typing import Any, Callable, Collection
+from collections.abc import Callable, Collection
+from typing import Any
 
 import numpy as np
 
@@ -58,9 +59,7 @@ class Generator(metaclass=abc.ABCMeta):
         self.dim = dim
         self.dt = dt
         self.n = int(T / dt)
-        self.rng = (
-            np.random.default_rng(seed) if seed is not None else np.random.default_rng()
-        )
+        self.rng = np.random.default_rng(seed) if seed is not None else np.random.default_rng()
 
     @abc.abstractmethod
     def generate(self, N: int) -> list[Trajectory]:
@@ -156,10 +155,7 @@ class RandomWalkGenerator(Generator):
         # Get displacement for every coordinates according
         # to the probabilities in self.actions_prob
         delta_r = np.array(
-            [
-                self.rng.choice(self.actions, p=p, size=(self.n - 1, N))
-                for p in self.actions_prob
-            ]
+            [self.rng.choice(self.actions, p=p, size=(self.n - 1, N)) for p in self.actions_prob]
         )
 
         # Set time/coordinates as the first/second axis
@@ -191,10 +187,7 @@ class RandomWalkGenerator(Generator):
                     t=self.t,
                     units=self.units,
                     traj_id=f"{self.traj_id} {i + 1}",
-                    diff_est={
-                        "method": DiffMethod.LINEAR_DIFF,
-                        "window_type": WindowType.FORWARD,
-                    },
+                    diff_est={"method": DiffMethod.LINEAR_DIFF, "window_type": WindowType.FORWARD},
                 )
             )
         return trajs
@@ -304,10 +297,7 @@ class _LangevinGenerator(Generator):
             points = self.r[:, :, i]
             trajs.append(
                 Trajectory(
-                    points=points,
-                    units=self.units,
-                    dt=self.dt,
-                    traj_id=f"{self.traj_id} {i + 1}",
+                    points=points, units=self.units, dt=self.dt, traj_id=f"{self.traj_id} {i + 1}"
                 )
             )
         return trajs
@@ -370,15 +360,7 @@ class LangevinGenerator(_LangevinGenerator):
         seed: int | None = None,
     ):
         super().__init__(
-            T=T,
-            dim=dim,
-            units=units,
-            dt=dt,
-            gamma=gamma,
-            sigma=sigma,
-            v0=v0,
-            r0=r0,
-            seed=seed,
+            T=T, dim=dim, units=units, dt=dt, gamma=gamma, sigma=sigma, v0=v0, r0=r0, seed=seed
         )
 
         # Verify if there is any boundary
@@ -549,9 +531,7 @@ class _DiffDiffGenerator(Generator):
 
         self.r = np.empty(self.shape)  # Position array
 
-        self.aux_var = self.rng.normal(
-            size=(self.dim_aux, N)
-        )  # Initial aux variable configuration
+        self.aux_var = self.rng.normal(size=(self.dim_aux, N))  # Initial aux variable configuration
         self.D = np.sum(self.aux_var**2, axis=0)  # Initial diffusivity configuration
 
         if np.shape(self.r0) == (self.dim,):
@@ -596,10 +576,7 @@ class _DiffDiffGenerator(Generator):
             points = self.r[:, :, i]
             trajs.append(
                 Trajectory(
-                    points=points,
-                    units=self.units,
-                    dt=self.dt,
-                    traj_id=f"{self.traj_id} {i + 1}",
+                    points=points, units=self.units, dt=self.dt, traj_id=f"{self.traj_id} {i + 1}"
                 )
             )
         return trajs
@@ -670,9 +647,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         )
 
         # Verify if there is any boundary
-        self.bounds = (
-            np.full((2, dim), np.nan, dtype=np.float32) if bounds is None else bounds
-        )
+        self.bounds = np.full((2, dim), np.nan, dtype=np.float32) if bounds is None else bounds
         self.has_bounds = not np.all(np.isnan(self.bounds))  # Check for all bounds
         self.bounds_extent = bounds_extent
         self.bounds_strength = bounds_strength
@@ -685,9 +660,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
             self.bounds = self.bounds * ones / self.r_scale
             self.bounds_ext = np.float32(self.bounds_extent) * ones / self.r_scale
             self.bounds_stg = (
-                np.float32(self.bounds_strength)
-                * ones
-                * (self.t_scale**2 / self.r_scale)
+                np.float32(self.bounds_strength) * ones * (self.t_scale**2 / self.r_scale)
             )
 
             # Check is initial positions are within bounds

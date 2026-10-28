@@ -20,9 +20,7 @@ class TimeGlobalFeaturizer(GlobalStatsFeaturizer):
         zero, by default True.
     """
 
-    def __init__(
-        self, from_zero: bool = True, zero_threshold: float = DEFAULT_ZERO_THRESHOLD
-    ):
+    def __init__(self, from_zero: bool = True, zero_threshold: float = DEFAULT_ZERO_THRESHOLD):
         super().__init__(zero_threshold=zero_threshold)
         self.from_zero = from_zero
 
@@ -49,9 +47,7 @@ class TimeFeaturizer(CompoundFeaturizer):
     to the time array of the trajectories
     """
 
-    def __init__(
-        self, from_zero: bool = True, zero_threshold: float = DEFAULT_ZERO_THRESHOLD
-    ):
+    def __init__(self, from_zero: bool = True, zero_threshold: float = DEFAULT_ZERO_THRESHOLD):
         super().__init__(
             TimeGlobalFeaturizer(from_zero=from_zero, zero_threshold=zero_threshold),
             TimeJumpsGlobalFeaturizer(zero_threshold=zero_threshold),

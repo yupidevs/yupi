@@ -4,11 +4,7 @@ from yupi import DiffMethod, Trajectory, WindowType
 
 
 def test_linear_forward_diff() -> None:
-    diff = {
-        "method": DiffMethod.LINEAR_DIFF,
-        "window_type": WindowType.FORWARD,
-        "accuracy": 1,
-    }
+    diff = {"method": DiffMethod.LINEAR_DIFF, "window_type": WindowType.FORWARD, "accuracy": 1}
     traj = Trajectory(x=[0, 2, 6], diff_est=diff)
 
     assert traj.v.x == pytest.approx([2.0, 4.0, 4.0])
@@ -16,11 +12,7 @@ def test_linear_forward_diff() -> None:
 
 
 def test_linear_central_diff() -> None:
-    diff = {
-        "method": DiffMethod.LINEAR_DIFF,
-        "window_type": WindowType.CENTRAL,
-        "accuracy": 1,
-    }
+    diff = {"method": DiffMethod.LINEAR_DIFF, "window_type": WindowType.CENTRAL, "accuracy": 1}
     traj = Trajectory(x=[0, 2, 6, 10], diff_est=diff)
 
     # v.x[0] = v.x[1] = 3
@@ -45,11 +37,7 @@ def test_linear_central_diff() -> None:
 
 
 def test_linear_backward_diff() -> None:
-    diff = {
-        "method": DiffMethod.LINEAR_DIFF,
-        "window_type": WindowType.BACKWARD,
-        "accuracy": 1,
-    }
+    diff = {"method": DiffMethod.LINEAR_DIFF, "window_type": WindowType.BACKWARD, "accuracy": 1}
 
     traj = Trajectory(x=[0, 2, 6], diff_est=diff)
 
@@ -58,11 +46,7 @@ def test_linear_backward_diff() -> None:
 
 
 def test_fornberg_forward_diff() -> None:
-    diff = {
-        "method": DiffMethod.FORNBERG_DIFF,
-        "window_type": WindowType.FORWARD,
-        "accuracy": 2,
-    }
+    diff = {"method": DiffMethod.FORNBERG_DIFF, "window_type": WindowType.FORWARD, "accuracy": 2}
 
     traj = Trajectory(x=[0, 2, 6, 10], diff_est=diff)
 
@@ -71,11 +55,7 @@ def test_fornberg_forward_diff() -> None:
 
 
 def test_fornberg_central_diff() -> None:
-    diff = {
-        "method": DiffMethod.FORNBERG_DIFF,
-        "window_type": WindowType.CENTRAL,
-        "accuracy": 2,
-    }
+    diff = {"method": DiffMethod.FORNBERG_DIFF, "window_type": WindowType.CENTRAL, "accuracy": 2}
 
     traj = Trajectory(x=[0, 2, 6, 10], diff_est=diff)
 
@@ -84,11 +64,7 @@ def test_fornberg_central_diff() -> None:
 
 
 def test_fornberg_backward_diff() -> None:
-    diff = {
-        "method": DiffMethod.FORNBERG_DIFF,
-        "window_type": WindowType.BACKWARD,
-        "accuracy": 2,
-    }
+    diff = {"method": DiffMethod.FORNBERG_DIFF, "window_type": WindowType.BACKWARD, "accuracy": 2}
 
     traj = Trajectory(x=[0, 2, 6, 10], diff_est=diff)
 
@@ -97,16 +73,9 @@ def test_fornberg_backward_diff() -> None:
 
 
 def test_wrong_diff_parameters() -> None:
-    wrong_method = {
-        "method": 5,
-        "window_type": WindowType.BACKWARD,
-        "accuracy": 2,
-    }
+    wrong_method = {"method": 5, "window_type": WindowType.BACKWARD, "accuracy": 2}
 
-    wrong_win = {
-        "method": DiffMethod.LINEAR_DIFF,
-        "window_type": 4,
-    }
+    wrong_win = {"method": DiffMethod.LINEAR_DIFF, "window_type": 4}
 
     wrong_acc = {
         "method": DiffMethod.FORNBERG_DIFF,
@@ -120,19 +89,13 @@ def test_wrong_diff_parameters() -> None:
         "accuracy": 3,
     }
 
-    wrong_win_fornberg = {
-        "method": DiffMethod.FORNBERG_DIFF,
-        "window_type": 10,
-        "accuracy": 2,
-    }
+    wrong_win_fornberg = {"method": DiffMethod.FORNBERG_DIFF, "window_type": 10, "accuracy": 2}
 
     with pytest.raises(ValueError, match="Invalid method to estimate the velocity."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_method)
         _ = traj.v
 
-    with pytest.raises(
-        ValueError, match="Invalid method to estimate the acceleration."
-    ):
+    with pytest.raises(ValueError, match="Invalid method to estimate the acceleration."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_method)
         _ = traj.a
 
@@ -173,9 +136,7 @@ def test_set_diff_method() -> None:
     traj = Trajectory(x=[0, 2, 6, 10])
 
     traj.set_diff_method(
-        method=DiffMethod.FORNBERG_DIFF,
-        window_type=WindowType.CENTRAL,
-        accuracy=2,
+        method=DiffMethod.FORNBERG_DIFF, window_type=WindowType.CENTRAL, accuracy=2
     )
 
     assert traj.diff_est == {
@@ -186,9 +147,7 @@ def test_set_diff_method() -> None:
 
     default = Trajectory.general_diff_est
     Trajectory.global_diff_method(
-        method=DiffMethod.FORNBERG_DIFF,
-        window_type=WindowType.CENTRAL,
-        accuracy=2,
+        method=DiffMethod.FORNBERG_DIFF, window_type=WindowType.CENTRAL, accuracy=2
     )
 
     traj = Trajectory(x=[0, 2, 6, 10])

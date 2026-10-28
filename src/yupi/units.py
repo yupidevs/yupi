@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import enum
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 
 class UnitEnum(str, enum.Enum):
@@ -359,9 +360,7 @@ class Units:
             val_units = Units.parse(value)
             return str(self) == str(val_units)
         except ValueError:
-            raise TypeError(
-                f"Cannot compare {type(self)} with {type(value)}. "
-            ) from None
+            raise TypeError(f"Cannot compare {type(self)} with {type(value)}. ") from None
 
     def __hash__(self) -> int:
         return str(self).__hash__()

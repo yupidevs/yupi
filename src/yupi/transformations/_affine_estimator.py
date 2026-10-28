@@ -12,12 +12,7 @@ AffineParams = tuple[float, float, float, float]
 """Affine params: theta, t_x, t_y, scale."""
 
 # ShiTomasi corner detection
-FEATURE_PARAMS = {
-    "maxCorners": 30,
-    "qualityLevel": 0.6,
-    "minDistance": 30,
-    "blockSize": 100,
-}
+FEATURE_PARAMS = {"maxCorners": 30, "qualityLevel": 0.6, "minDistance": 30, "blockSize": 100}
 
 # Lucas Kanade optical flow
 LK_PARAMS = {
@@ -28,9 +23,7 @@ LK_PARAMS = {
 
 
 def _rot_matrix(theta: float, inverse: bool = False) -> np.ndarray:
-    rot_mat = np.array(
-        [[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]]
-    )
+    rot_mat = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
     return rot_mat.T if inverse else rot_mat
 
 
@@ -44,9 +37,7 @@ def _affine_matrix(
     return aff_mat
 
 
-def _estimate_params(
-    p_1: np.ndarray, p_2: np.ndarray
-) -> tuple[float, float, float, float]:
+def _estimate_params(p_1: np.ndarray, p_2: np.ndarray) -> tuple[float, float, float, float]:
     transf = nudged.estimate(p_1, p_2)
     t_x, t_y = transf.get_translation()
     theta, scale = transf.get_rotation(), transf.get_scale()
@@ -77,10 +68,7 @@ def _get_mask_r(r: np.ndarray, quantile: float = 1.5) -> np.ndarray:
 
 
 def _delete_far_points(
-    p_1: np.ndarray,
-    p_2: np.ndarray,
-    p_3: np.ndarray | None = None,
-    quantile: float = 1.5,
+    p_1: np.ndarray, p_2: np.ndarray, p_3: np.ndarray | None = None, quantile: float = 1.5
 ) -> tuple[np.ndarray, np.ndarray]:
     # Distance amoung p1 and p2, or p2 and p3
     r = _get_r(p_1, p_2) if p_3 is None else _get_r(p_2, p_3)
@@ -92,10 +80,7 @@ def _delete_far_points(
 
 
 def _estimate_matrix(
-    p_1: np.ndarray,
-    p_2: np.ndarray,
-    quantile1: float | None = None,
-    quantile2: float | None = None,
+    p_1: np.ndarray, p_2: np.ndarray, quantile1: float | None = None, quantile2: float | None = None
 ) -> tuple[tuple[np.ndarray, np.ndarray, np.ndarray], AffineParams]:
     # Validate tracked features deletting outliers
     if quantile1 is not None:
@@ -159,9 +144,7 @@ def _get_affine(
         return 3 * (np.zeros(1),), 4 * (0,), None
 
     # Estimate points and matrix
-    p_good, affine_params = _estimate_matrix(
-        p1_good, p2_good, quantile1=1.5, quantile2=1.5
-    )
+    p_good, affine_params = _estimate_matrix(p1_good, p2_good, quantile1=1.5, quantile2=1.5)
     p1_good, p2_good, p3_good = p_good
 
     # Mean square error

@@ -87,8 +87,7 @@ class CompoundFeaturizer(Featurizer):
         self._count = sum(f.count for f in featurizers)
         if not self._valid_compound():
             raise ValueError(
-                "Featurizers names must be unique. Featurizers used:\n"
-                f"{self.featurizers_names()}"
+                f"Featurizers names must be unique. Featurizers used:\n{self.featurizers_names()}"
             )
 
     def _valid_compound(self) -> bool:

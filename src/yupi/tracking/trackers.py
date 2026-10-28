@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import cv2
 import numpy as np
@@ -88,10 +89,7 @@ class ROI:
     """Center initialization mode for the ROI"""
 
     def __init__(
-        self,
-        size: tuple[float, float],
-        init_mode: str = MANUAL_INIT_MODE,
-        scale: float = 1,
+        self, size: tuple[float, float], init_mode: str = MANUAL_INIT_MODE, scale: float = 1
     ):
         if size[0] <= 0 or size[1] <= 0:
             raise ValueError("ROI's size values must be positives")
@@ -99,8 +97,7 @@ class ROI:
         # TODO: check for a more pythonic way to do this comprobation
         if (size[0] < 1 and size[1] > 1) or (size[0] > 1 and size[1] < 1):
             raise ValueError(
-                "Size values must be between 0 and 1 both or "
-                "integers greater than 0 both"
+                "Size values must be between 0 and 1 both or integers greater than 0 both"
             )
 
         if init_mode not in (ROI.CENTER_INIT_MODE, ROI.MANUAL_INIT_MODE):
@@ -120,8 +117,7 @@ class ROI:
 
     def __repr__(self) -> str:
         return (
-            "ROI: size=({self.width}, {self.height}) "
-            "init_mode={self.init_mode} scale={self.scale}"
+            "ROI: size=({self.width}, {self.height}) init_mode={self.init_mode} scale={self.scale}"
         )
 
     def _recenter(self, centroid: Centroid | None) -> None:
@@ -226,10 +222,7 @@ class ROI:
             Center of the ROI.
         """
 
-        win1_name = (
-            "Initialization of trackers: Click on the initial "
-            f"position of: {name.upper()}"
-        )
+        win1_name = f"Initialization of trackers: Click on the initial position of: {name.upper()}"
         logging.info("Open the video window to select %s's center", name)
 
         self._global_height, self._global_width = frame.shape[:2]
@@ -257,9 +250,7 @@ class ROI:
 
                 msg = "ROI initialized. Press any key to continue."
 
-                cv2.putText(
-                    img_, msg, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1
-                )
+                cv2.putText(img_, msg, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
 
                 cv2.imshow(win1_name, img_)
 
@@ -427,9 +418,7 @@ class ObjectTracker:
         roi_bound = self.roi._get_bounds()
 
         # Detect the object using the tracking algorithm
-        self.mask, centroid = self.algorithm.detect(
-            frame, roi_bound, self.preprocessing
-        )
+        self.mask, centroid = self.algorithm.detect(frame, roi_bound, self.preprocessing)
 
         # Update the roi center using current ant coordinates
         self.roi._recenter(centroid)
@@ -684,12 +673,7 @@ class TrackingScenario:
         cv2.imshow("yupi processing window", frame)
 
     def _create_ui(
-        self,
-        img: np.ndarray,
-        t_name: str,
-        current_tracker: int,
-        total_trackers: int,
-        roi: ROI,
+        self, img: np.ndarray, t_name: str, current_tracker: int, total_trackers: int, roi: ROI
     ) -> np.ndarray:
         imgc = img.copy()
         imgc = _resize_frame(imgc, roi.scale)
@@ -732,9 +716,7 @@ class TrackingScenario:
         l = int(0.0396825 * boxw + 2.222222)  # noqa: E741
 
         def put_text(img: np.ndarray, text: str, pos: tuple[int, int]) -> Any:
-            return cv2.putText(
-                img, text, pos, font, font_scale, color, thickness, cv2.LINE_AA
-            )
+            return cv2.putText(img, text, pos, font, font_scale, color, thickness, cv2.LINE_AA)
 
         box = put_text(box, text_lines[0], (l, l + l))
         box = put_text(box, text_lines[1], (l, l + 2 * l))
@@ -761,11 +743,7 @@ class TrackingScenario:
             if obj_tracker.roi.init_mode == "manual":
                 tracker_name = obj_tracker.name
                 ui = self._create_ui(
-                    self.prev_frame,
-                    tracker_name,
-                    i,
-                    len(self.object_trackers),
-                    obj_tracker.roi,
+                    self.prev_frame, tracker_name, i, len(self.object_trackers), obj_tracker.roi
                 )
                 cv2.imshow(
                     "Initialization of trackers: Press any key to start with "

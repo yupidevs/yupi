@@ -8,9 +8,7 @@ from yupi._checkers import (
     DifferentLengthError,
     DifferentTimeVectorError,
 )
-from yupi.stats._stats import (
-    collect,
-)
+from yupi.stats._stats import collect
 from yupi.stats.msd import MsdStat
 from yupi.stats.speed import SpeedStat
 from yupi.stats.turning_angles import TurningAngleStat

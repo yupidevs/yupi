@@ -20,9 +20,7 @@ from yupi.vector import Vector
 
 warnings.filterwarnings("default", category=DeprecationWarning, module="yupi")
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%H:%M:%S"
 )
 
 __all__ = [

@@ -48,11 +48,7 @@ class SpeedStat:
         return self.__speeds
 
     def plot(
-        self,
-        bins: int | None = None,
-        show: bool = True,
-        ax: Axes | None = None,
-        **kwargs: Any,
+        self, bins: int | None = None, show: bool = True, ax: Axes | None = None, **kwargs: Any
     ) -> Axes:
         """
         Plot a histogram of the array of velocities ``v``.

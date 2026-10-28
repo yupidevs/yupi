@@ -87,9 +87,7 @@ def plot_hists(
     """
 
     if kwargs_list and len(kwargs_list) != len(values_list):
-        raise ValueError(
-            "The length of 'kwargs_list' must be equals the length of 'values_list'"
-        )
+        raise ValueError("The length of 'kwargs_list' must be equals the length of 'values_list'")
 
     kwargs_list = [{}] * len(values_list)
 
@@ -117,9 +115,7 @@ def plot_hists(
     return ax
 
 
-def plot_speed_hist(
-    v: np.ndarray, show: bool = True, units: str = "m/s", **kwargs: Any
-) -> Axes:
+def plot_speed_hist(v: np.ndarray, show: bool = True, units: str = "m/s", **kwargs: Any) -> Axes:
     """Plot a histogram of the array of velocities ``v``.
 
     Parameters
@@ -159,11 +155,7 @@ def plot_speed_hist(
 
 
 def plot_angles_hist(
-    ang: np.ndarray,
-    bins: int,
-    show: bool = True,
-    ax: Axes | None = None,
-    **kwargs: Any,
+    ang: np.ndarray, bins: int, show: bool = True, ax: Axes | None = None, **kwargs: Any
 ) -> PolarAxes:
     """Plot a histogram of the array of angles ``ang``.
 
@@ -439,9 +431,7 @@ def plot_psd(
     plt.plot(frec, psd_mean, label="psd", **kwargs)
     ax = plt.gca()
     if psd_std is not None:
-        plt.fill_between(
-            frec, psd_mean - psd_std, psd_mean + psd_std, alpha=0.3, label="psd_std"
-        )
+        plt.fill_between(frec, psd_mean - psd_std, psd_mean + psd_std, alpha=0.3, label="psd_std")
     plt.xscale("log")
     plt.yscale("log")
     plt.grid()

@@ -2,8 +2,9 @@
 This contains styling utilities for the library plots.
 """
 
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable
+from typing import Any
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -32,14 +33,7 @@ LIGHT_ORANGE = "#f7c790"
 
 YUPI_COLORS: list[Any] = [BLUE, MAGENTA, YELLOW, RED, GREEN, ORANGE, MID_BLUE]
 
-YUPI_LIGHT_COLORS = [
-    LIGHT_BLUE,
-    LIGHT_MAGENTA,
-    LIGHT_YELLOW,
-    LIGHT_RED,
-    LIGHT_GREEN,
-    LIGHT_ORANGE,
-]
+YUPI_LIGHT_COLORS = [LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_YELLOW, LIGHT_RED, LIGHT_GREEN, LIGHT_ORANGE]
 
 
 def _plot_basic_properties(func: Callable) -> Callable:

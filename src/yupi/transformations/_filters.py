@@ -52,10 +52,7 @@ def exp_convolutional_filter(
 
 
 def exp_moving_average_filter(
-    traj: Trajectory,
-    alpha: float,
-    tau: float | None = None,
-    new_traj_id: str | None = None,
+    traj: Trajectory, alpha: float, tau: float | None = None, new_traj_id: str | None = None
 ) -> Trajectory:
     """
     Returns a smoothed version of the trajectory `traj`
@@ -90,9 +87,7 @@ def exp_moving_average_filter(
     data = traj.r
     times = traj.t
     if tau is None and abs(traj.dt_std - 0) > _THRESHOLD:
-        raise ValueError(
-            "All trajectories must be uniformly time spaced if tau is not provided"
-        )
+        raise ValueError("All trajectories must be uniformly time spaced if tau is not provided")
     n_times, _ = data.shape
     ema = np.zeros_like(data)
     ema[0] = data[0]

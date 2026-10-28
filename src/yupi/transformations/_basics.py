@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -23,9 +23,7 @@ def add_polar_offset(traj: Trajectory, radius: float, angle: float) -> None:
         If the trajectory is not 2 dimensional.
     """
     if traj.dim != 2:
-        raise TypeError(
-            "Polar offsets can only be applied on 2 dimensional trajectories"
-        )
+        raise TypeError("Polar offsets can only be applied on 2 dimensional trajectories")
 
     # From cartesian to polar
     x, y = traj.r.x, traj.r.y
@@ -51,9 +49,7 @@ def rotate_2d(traj: Trajectory, angle: float) -> None:
     add_polar_offset(traj, 0, angle)
 
 
-def rotate_3d(
-    traj: Trajectory, angle: float, vector: Sequence[float] | np.ndarray
-) -> None:
+def rotate_3d(traj: Trajectory, angle: float, vector: Sequence[float] | np.ndarray) -> None:
     """
     Rotates a trajectory around a given vector.
 
@@ -72,9 +68,7 @@ def rotate_3d(
         If the vector has shape different than (3,).
     """
     if traj.dim != 3:
-        raise TypeError(
-            "3D rotations can only be applied on 3 dimensional trajectories"
-        )
+        raise TypeError("3D rotations can only be applied on 3 dimensional trajectories")
 
     vec: Vector = Vector(vector)
     if vec.shape != (3,):

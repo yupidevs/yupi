@@ -88,24 +88,15 @@ def _linear_diff(
 ) -> Vector:
     diff_ans = np.zeros_like(data_values)
     if window_type == WindowType.FORWARD:
-        diff = (
-            (data_values[1:] - data_values[:-1]).T
-            / (axis_values[1:] - axis_values[:-1])
-        ).T
+        diff = ((data_values[1:] - data_values[:-1]).T / (axis_values[1:] - axis_values[:-1])).T
         diff_ans[:-1] = diff
         diff_ans[-1] = diff[-1]
     elif window_type == WindowType.BACKWARD:
-        diff = (
-            (data_values[1:] - data_values[:-1]).T
-            / (axis_values[1:] - axis_values[:-1])
-        ).T
+        diff = ((data_values[1:] - data_values[:-1]).T / (axis_values[1:] - axis_values[:-1])).T
         diff_ans[1:] = diff
         diff_ans[0] = diff[0]
     elif window_type == WindowType.CENTRAL:
-        diff = (
-            (data_values[2:] - data_values[:-2]).T
-            / (axis_values[2:] - axis_values[:-2])
-        ).T
+        diff = ((data_values[2:] - data_values[:-2]).T / (axis_values[2:] - axis_values[:-2])).T
         diff_ans[1:-1] = diff
         diff_ans[0] = diff[0]
         diff_ans[-1] = diff[-1]

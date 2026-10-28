@@ -15,15 +15,11 @@ from yupi.exceptions import YupiExceptionError
 class InvalidTrajectoryFileExtensionError(YupiExceptionError):
     """Raised when the trajectory file extension is invalid."""
 
-    def __init__(
-        self, file_path: str | Path, expected_extension: str | None = None
-    ) -> None:
+    def __init__(self, file_path: str | Path, expected_extension: str | None = None) -> None:
         message = f"Invalid trajectory file extension for '{file_path}'"
         if expected_extension is not None:
             message += f". Expected '{expected_extension}'."
-        super().__init__(
-            message,
-        )
+        super().__init__(message)
         self.file_path = file_path
         self.expected_extension = expected_extension
 
@@ -36,10 +32,7 @@ class Serializer(abc.ABC):
     @staticmethod
     @abc.abstractmethod
     def save(
-        traj: yupi.Trajectory,
-        file_path: str | Path,
-        overwrite: bool = False,
-        **kwargs: Any,
+        traj: yupi.Trajectory, file_path: str | Path, overwrite: bool = False, **kwargs: Any
     ) -> None:
         """
         Saves a trajectory to a file.
@@ -76,9 +69,7 @@ class Serializer(abc.ABC):
         """
 
     @staticmethod
-    def check_save_path(
-        file_path: str | Path, overwrite: bool, extension: str | None
-    ) -> None:
+    def check_save_path(file_path: str | Path, overwrite: bool, extension: str | None) -> None:
         """
         Checks if the file can be saved.
 
@@ -93,9 +84,7 @@ class Serializer(abc.ABC):
         """
         _path = Path(file_path) if isinstance(file_path, str) else file_path
         if extension is not None and _path.suffix != extension:
-            raise InvalidTrajectoryFileExtensionError(
-                file_path, expected_extension=extension
-            )
+            raise InvalidTrajectoryFileExtensionError(file_path, expected_extension=extension)
 
         if _path.exists() and not overwrite:
             raise FileExistsError(f"File '{file_path}' already exists.")
@@ -116,9 +105,7 @@ class Serializer(abc.ABC):
         """
         _path = Path(file_path) if isinstance(file_path, str) else file_path
         if extension is not None and _path.suffix != extension:
-            raise InvalidTrajectoryFileExtensionError(
-                file_path, expected_extension=extension
-            )
+            raise InvalidTrajectoryFileExtensionError(file_path, expected_extension=extension)
 
         if not _path.exists():
             raise FileNotFoundError(f"File '{file_path}' not found.")

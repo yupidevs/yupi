@@ -4,7 +4,8 @@ This contains spatial plotting functions for the trajectories.
 
 import itertools
 import logging
-from typing import Any, Callable, Collection
+from collections.abc import Callable, Collection
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -131,23 +132,10 @@ def plot_2d(
         color = traj_plot[-1].get_color()
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
         plt.plot(
-            x_data[0],
-            y_data[0],
-            "o",
-            mfc="white",
-            zorder=2,
-            label=f"{traj_id} start",
-            color=color,
+            x_data[0], y_data[0], "o", mfc="white", zorder=2, label=f"{traj_id} start", color=color
         )
         plt.plot(x_data[-1], y_data[-1], "o", mfc="white", zorder=2, color=color)
-        plt.plot(
-            x_data[-1],
-            y_data[-1],
-            "o",
-            alpha=0.5,
-            label=f"{traj_id} end",
-            color=color,
-        )
+        plt.plot(x_data[-1], y_data[-1], "o", alpha=0.5, label=f"{traj_id} end", color=color)
 
         if legend:
             plt.legend()
@@ -257,24 +245,12 @@ def plot_3d(
         traj_id = traj.traj_id if traj.traj_id else f"traj {i}"
 
         ax.plot(
-            x_data[0],
-            y_data[0],
-            z_data[0],
-            "o",
-            mfc="white",
-            label=f"{traj_id} start",
-            color=color,
+            x_data[0], y_data[0], z_data[0], "o", mfc="white", label=f"{traj_id} start", color=color
         )
 
         ax.plot(x_data[-1], y_data[-1], z_data[-1], "o", mfc="white", color=color)
         ax.plot(
-            x_data[-1],
-            y_data[-1],
-            z_data[-1],
-            "o",
-            alpha=0.5,
-            label=f"{traj_id} end",
-            color=color,
+            x_data[-1], y_data[-1], z_data[-1], "o", alpha=0.5, label=f"{traj_id} end", color=color
         )
 
         if legend:

@@ -5,12 +5,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from yupi._checkers import (
-    check_same_dim,
-    check_same_dt,
-    check_same_t,
-    check_uniform_time_spaced,
-)
+from yupi._checkers import check_same_dim, check_same_dt, check_same_t, check_uniform_time_spaced
 from yupi.graphics._style import RED
 from yupi.trajectory import Trajectory
 
@@ -94,11 +89,7 @@ class VacfTimeAvgStat:
         return self.__vacf_std
 
     def plot(
-        self,
-        log_inset: bool = True,
-        ax: Axes | None = None,
-        show: bool = True,
-        **kwargs: Any,
+        self, log_inset: bool = True, ax: Axes | None = None, show: bool = True, **kwargs: Any
     ) -> Axes:
         """Plot Velocity Autocorrelation Function.
 

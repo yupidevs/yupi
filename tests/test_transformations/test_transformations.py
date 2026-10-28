@@ -42,9 +42,7 @@ def constant_v_non_zero_origin_traj(non_zero_origin: np.ndarray) -> Trajectory:
     t_vals = list(range(num_steps))
     # Generate trajectory
     for t in range(1, num_steps):
-        trajectory[t] = (
-            trajectory[t - 1] + velocity * t + np.random.normal(0, noise_std, size=3)
-        )
+        trajectory[t] = trajectory[t - 1] + velocity * t + np.random.normal(0, noise_std, size=3)
     return Trajectory(points=trajectory, t=t_vals)
 
 
@@ -82,18 +80,14 @@ def test_threshold() -> None:
 def test_exp_convolution_origin(
     constant_v_non_zero_origin_traj: Trajectory, non_zero_origin: list[int]
 ) -> None:
-    smooted_trajectory = exp_convolutional_filter(
-        constant_v_non_zero_origin_traj, 1 / 100
-    )
+    smooted_trajectory = exp_convolutional_filter(constant_v_non_zero_origin_traj, 1 / 100)
     assert smooted_trajectory.r[0] == pytest.approx(non_zero_origin)
 
 
 def test_ema_origin(
     constant_v_non_zero_origin_traj: Trajectory, non_zero_origin: list[int]
 ) -> None:
-    smooted_trajectory = exp_moving_average_filter(
-        constant_v_non_zero_origin_traj, alpha=1 / 100
-    )
+    smooted_trajectory = exp_moving_average_filter(constant_v_non_zero_origin_traj, alpha=1 / 100)
     assert smooted_trajectory.r[0] == pytest.approx(non_zero_origin)
 
 

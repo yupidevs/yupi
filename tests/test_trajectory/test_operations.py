@@ -33,10 +33,7 @@ def timed_traj(points: np.ndarray, time: np.ndarray) -> Trajectory:
 def traj_with_extra(points: np.ndarray) -> Trajectory:
     return Trajectory(
         points=points,
-        extra={
-            "foo": np.array([10, 20, 30, 40, 50]),
-            "bar": np.array([20, 40, 60, 80, 100]),
-        },
+        extra={"foo": np.array([10, 20, 30, 40, 50]), "bar": np.array([20, 40, 60, 80, 100])},
     )
 
 
@@ -142,9 +139,7 @@ def test_wrong_multiplication(traj: Trajectory) -> None:
         traj *= [1, 2]  # type: ignore[arg-type]
 
 
-def test_slicing(
-    traj: Trajectory, timed_traj: Trajectory, traj_with_extra: Trajectory
-) -> None:
+def test_slicing(traj: Trajectory, timed_traj: Trajectory, traj_with_extra: Trajectory) -> None:
     slice_1 = timed_traj[:]
     slice_2 = timed_traj[2:]
     slice_3 = timed_traj[:-2]
@@ -241,9 +236,7 @@ def test_indexing(timed_traj: Trajectory, traj_with_extra: Trajectory) -> None:
 
     assert index_5.foo == approx(traj_with_extra.foo[2], APPROX_REL_TOLERANCE)
 
-    assert index_6.extra["foo"] == approx(
-        traj_with_extra.extra["foo"][-2], APPROX_REL_TOLERANCE
-    )
+    assert index_6.extra["foo"] == approx(traj_with_extra.extra["foo"][-2], APPROX_REL_TOLERANCE)
 
     with pytest.raises(AttributeError):
         _ = index_4.non_existent
@@ -254,9 +247,7 @@ def test_indexing(timed_traj: Trajectory, traj_with_extra: Trajectory) -> None:
 
 def test_units_conversion() -> None:
     # m/s by default
-    traj = Trajectory(
-        x=[1000, 2000, 3000, 4000, 5000], t=[3600, 7200, 10800, 14400, 18000]
-    )
+    traj = Trajectory(x=[1000, 2000, 3000, 4000, 5000], t=[3600, 7200, 10800, 14400, 18000])
 
     _, _ = traj.v, traj.a  # to cache calculate velocity and acceleration
 

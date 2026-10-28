@@ -15,18 +15,11 @@ class Vector(np.ndarray):
 
     __array_priority__ = 100
 
-    def __new__(
-        cls: type[Vector],
-        arr: Any,
-        dtype: Any = None,
-        copy: bool = False,
-    ) -> Vector:
+    def __new__(cls: type[Vector], arr: Any, dtype: Any = None, copy: bool = False) -> Vector:
         try:
             vec = np.asarray(arr, dtype=dtype)
         except Exception as e:
-            raise TypeError(
-                f"Input 'arr' is not convertible to a NumPy array: {e}"
-            ) from e
+            raise TypeError(f"Input 'arr' is not convertible to a NumPy array: {e}") from e
         if copy:
             vec = vec.copy()
         return vec.view(cls)
