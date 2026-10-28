@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import enum
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, ClassVar
 
 _UNIT_PARTS = 2  # distance and time
 
 
-class UnitEnum(str, enum.Enum):
+class UnitEnum(enum.StrEnum):
     """
     Base class for unit enums.
 
@@ -168,7 +168,7 @@ class Units:
         Time unit.
     """
 
-    _dist_factors: dict[str, float] = {
+    _dist_factors: ClassVar[dict[str, float]] = {
         str(DistU.Tm): 1e12,
         str(DistU.Gm): 1e9,
         str(DistU.Mm): 1e6,
@@ -184,7 +184,7 @@ class Units:
         str(DistU.pm): 1e-12,
     }
 
-    _time_factors: dict[str, float] = {
+    _time_factors: ClassVar[dict[str, float]] = {
         str(TimeU.Ts): 1e12,
         str(TimeU.Gs): 1e9,
         str(TimeU.year): 365 * 24 * 60 * 60,

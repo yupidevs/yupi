@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 
 import numpy as np
 
@@ -162,7 +162,7 @@ class Trajectory:
         the first value of ``t``.
     """
 
-    general_diff_est: dict[str, Any] = {
+    general_diff_est: ClassVar[dict[str, Any]] = {
         "method": diff.DiffMethod.LINEAR_DIFF,
         "window_type": diff.WindowType.FORWARD,
     }
