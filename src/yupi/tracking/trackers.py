@@ -1,4 +1,5 @@
 import logging
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -776,7 +777,7 @@ class TrackingScenario:
             self._enabled = False
 
         elif key == ord("e"):
-            exit()
+            sys.exit()
 
     def _regular_iteration(self) -> tuple[bool, bool]:
         # Get current frame and ends the processing when no more frames are

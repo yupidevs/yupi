@@ -73,8 +73,8 @@ def test_constant_addition(points: np.ndarray, traj: Trajectory) -> None:
 
 
 def test_point_addition(points: np.ndarray, traj: Trajectory) -> None:
-    new_traj = traj + (1, 3)
-    new_points = points + (1, 3)
+    new_traj = traj + (1, 3)  # noqa: RUF005 Trajectory + tuple is the API under test
+    new_points = points + (1, 3)  # noqa: RUF005 numpy broadcasting, not concatenation
 
     for true_point, point in zip(new_points, new_traj.r, strict=True):
         assert true_point == approx(point, APPROX_REL_TOLERANCE)
