@@ -30,7 +30,7 @@ copyright = "2021, Gustavo Viera-López, Alfredo Reyes, Jorge Morgado, Ernesto A
 author = "Gustavo Viera-López, Alfredo Reyes, Jorge Morgado, Ernesto Altshuler"
 
 # The full version, including alpha/beta/rc tags
-release = "1.1.0-beta0"
+release = "1.1.0"
 
 
 # -- General configuration ---------------------------------------------------
