@@ -16,7 +16,8 @@ class AccelerationGlobalFeaturizer(GlobalStatsFeaturizer):
 
     def _values(self, traj: Trajectory) -> np.ndarray:
         acc = traj.a.norm
-        assert isinstance(acc, np.ndarray)
+        if not isinstance(acc, np.ndarray):
+            raise TypeError(f"Expected an array of norms, got {type(acc).__name__}")
         return acc
 
 

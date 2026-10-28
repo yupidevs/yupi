@@ -195,7 +195,8 @@ class GlobalStatsFeaturizer(Featurizer):
                 ]
             ]
         )
-        assert len(stats) == self.count
+        if len(stats) != self.count:
+            raise ValueError(f"Expected {self.count} statistics, got {len(stats)}")
         return stats
 
     def featurize(self, trajs: list[Trajectory]) -> np.ndarray:

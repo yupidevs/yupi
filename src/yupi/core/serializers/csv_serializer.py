@@ -14,6 +14,7 @@ import numpy as np
 
 import yupi._differentiation as diff
 from yupi.core.serializers.serializer import Serializer
+from yupi.exceptions import LoadTrajectoryError
 from yupi.trajectory import Trajectory
 
 
@@ -174,9 +175,10 @@ class CSVSerializer(Serializer):
                 metadata = dict(zip(next(reader), next(reader), strict=True))
                 extra_keys = next(reader)
 
-            assert reader.line_num == data_starts_at, (
-                f"Data starts at wrong line {data_starts_at} != {reader.line_num}"
-            )
+            if reader.line_num != data_starts_at:
+                raise LoadTrajectoryError(
+                    str(file_path), f"data starts at line {reader.line_num}, not {data_starts_at}"
+                )
             data = [list(row) for row in reader]
 
             for i in range(len(extra_keys)):

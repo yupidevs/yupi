@@ -245,10 +245,12 @@ def collect(
     data = []
     for traj in trajs:
         if is_lag:
-            assert lag is not None
+            if lag is None:
+                raise ValueError("lag must be set")
             step = int(lag / traj.dt) if checks[1] else int(lag)
         else:
-            assert at is not None
+            if at is None:
+                raise ValueError("at must be set")
             step = int(at / traj.dt) if checks[3] else int(at)
 
         current_vec = traj.r

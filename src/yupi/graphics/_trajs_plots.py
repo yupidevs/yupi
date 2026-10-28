@@ -230,7 +230,8 @@ def plot_3d(
 
     ax = plt.axes(projection="3d") if ax is None else ax
 
-    assert isinstance(ax, Axes3D), "ax must be a 3D Axes"
+    if not isinstance(ax, Axes3D):
+        raise TypeError("ax must be a 3D Axes")
 
     if connected:
         _plot_3d_connections(trajs, ax)

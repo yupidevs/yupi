@@ -17,7 +17,8 @@ class VelocityGlobalFeaturizer(GlobalStatsFeaturizer):
 
     def _values(self, traj: Trajectory) -> np.ndarray:
         vel = traj.v.norm
-        assert isinstance(vel, np.ndarray)
+        if not isinstance(vel, np.ndarray):
+            raise TypeError(f"Expected an array of norms, got {type(vel).__name__}")
         return vel
 
 
@@ -43,7 +44,8 @@ class VelocityStopRateFeaturizer(Featurizer):
         for i, traj in enumerate(trajs):
             vel = traj.v.norm
             distance = float(np.sum(traj.r.delta.norm))
-            assert isinstance(vel, np.ndarray)
+            if not isinstance(vel, np.ndarray):
+                raise TypeError(f"Expected an array of norms, got {type(vel).__name__}")
             feats[i, 0] = np.sum(vel < self.threshold) / distance
         return feats
 
@@ -72,7 +74,8 @@ class VelocityChangeRateFeaturizer(Featurizer):
         for i, traj in enumerate(trajs):
             vel = traj.v.norm
             distance = float(np.sum(traj.r.delta.norm))
-            assert isinstance(vel, np.ndarray)
+            if not isinstance(vel, np.ndarray):
+                raise TypeError(f"Expected an array of norms, got {type(vel).__name__}")
             subs = np.abs(np.diff(vel))
             vel[vel == 0] = np.inf
             v_rate = subs / vel[:-1]

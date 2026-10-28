@@ -318,7 +318,8 @@ class Trajectory:
         extra : dict[str, Any]
             Dictionary containing extra data along the trajectory.
         """
-        assert self.r is not None, "Positional data must be initialized first."
+        if self.r is None:
+            raise ValueError("Positional data must be initialized first.")
 
         self.extra = extra if extra is not None else {}
 
@@ -348,7 +349,8 @@ class Trajectory:
             value.
         """
 
-        assert self.r is not None, "Positional data must be initialized first."
+        if self.r is None:
+            raise ValueError("Positional data must be initialized first.")
 
         self.__dt = dt
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)

@@ -536,7 +536,8 @@ class OpticalFlow(TrackingAlgorithm):
         self.threshold = threshold
         self.previous_frames: list[np.ndarray] = []
 
-        assert buffer_size > 0
+        if buffer_size <= 0:
+            raise ValueError("buffer_size must be positive")
 
         self.buffer_size = buffer_size
 

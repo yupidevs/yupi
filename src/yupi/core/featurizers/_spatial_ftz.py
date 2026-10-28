@@ -49,7 +49,8 @@ class JumpsGlobalFeaturizer(GlobalStatsFeaturizer):
 
     def _values(self, traj: Trajectory) -> np.ndarray:
         jumps = traj.r.delta.norm
-        assert isinstance(jumps, np.ndarray)
+        if not isinstance(jumps, np.ndarray):
+            raise TypeError(f"Expected an array of norms, got {type(jumps).__name__}")
         return jumps
 
 
