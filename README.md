@@ -83,4 +83,4 @@ MIT: see [LICENSE](LICENSE).
 
 ---
 
-<sub>🚀 Project starter provided by [Cookie Pyrate v1.0.3](https://github.com/gvieralopez/cookie-pyrate/tree/v1.0.3)</sub>
+<sub>🚀 Project starter provided by [Cookie Pyrate v1.1.0](https://github.com/gvieralopez/cookie-pyrate/tree/v1.1.0)</sub>
