@@ -89,28 +89,27 @@ def plot_hists(
     if kwargs_list and len(kwargs_list) != len(values_list):
         raise ValueError("The length of 'kwargs_list' must be equals the length of 'values_list'")
 
-    kwargs_list = [{}] * len(values_list)
+    if not kwargs_list:
+        kwargs_list = [{}] * len(values_list)
 
     cycle = itertools.cycle(YUPI_COLORS)
     colors = [next(cycle) for _ in values_list]
+
     ax = plt.gca()
-
     for i, vals in enumerate(values_list):
-        kwargs = kwargs_list[i]
-        kwargs = kwargs if len(kwargs) != 0 else general_kwargs
-        color = kwargs.get("color", colors[i])
-        alpha = kwargs.get("alpha", 0.3 if filled else 1)
-        lw = kwargs.get("lw", 1.5)  # pylint: disable=invalid-name
+        options = dict(kwargs_list[i] or general_kwargs)
+        color = options.pop("color", colors[i])
+        alpha = options.pop("alpha", None)
+        lw = options.pop("lw", 1.5)
+        label = options.pop("label", None)
+        options.pop("histtype", None)
         if labels is not None:
-            kwargs["label"] = labels[i]
-        if "histtype" in kwargs:
-            kwargs.pop("histtype")
+            label = labels[i]
 
-        plt.hist(vals, histtype="step", color=color, lw=lw, **kwargs)
-
+        plt.hist(vals, histtype="step", color=color, lw=lw, alpha=alpha, label=label, **options)
         if filled:
-            kwargs.pop("label", None)
-            plt.hist(vals, histtype="stepfilled", color=color, alpha=alpha, **kwargs)
+            fill_alpha = 0.3 if alpha is None else alpha
+            plt.hist(vals, histtype="stepfilled", color=color, alpha=fill_alpha, **options)
 
     return ax
 

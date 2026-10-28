@@ -51,6 +51,25 @@ def test_plot_hists_filled_adds_a_filled_copy(values: np.ndarray) -> None:
     assert len(ax.patches) == 4
 
 
+def test_plot_hists_applies_each_kwargs(values: np.ndarray) -> None:
+    kwargs_list = [{"color": "red"}, {"color": "green", "label": "b"}]
+
+    ax = plot_hists([values, values + 1], kwargs_list=kwargs_list, show=False)
+
+    assert [to_hex(patch.get_edgecolor()) for patch in ax.patches] == ["#ff0000", "#008000"]
+    assert ax.patches[1].get_label() == "b"
+    assert kwargs_list == [{"color": "red"}, {"color": "green", "label": "b"}]
+
+
+def test_plot_hists_accepts_general_color_alpha_and_width(values: np.ndarray) -> None:
+    ax = plot_hists([values, values + 1], filled=True, color="red", alpha=0.5, lw=3, show=False)
+
+    outline, fill = ax.patches[0], ax.patches[1]
+    assert to_hex(outline.get_edgecolor()) == "#ff0000"
+    assert outline.get_linewidth() == 3
+    assert fill.get_alpha() == 0.5
+
+
 def test_plot_hists_rejects_mismatched_kwargs(values: np.ndarray) -> None:
     with pytest.raises(ValueError, match="length of 'kwargs_list'"):
         plot_hists([values, values], kwargs_list=[{}], show=False)
