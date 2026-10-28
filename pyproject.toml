@@ -128,9 +128,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-# NEEDS ATTENTION: the template's gate is 80%; yupi's own gate (75%) is kept until the tracking
-# and plotting code have tests.
-addopts = "-ra -q --cov=src --cov-report=term-missing --cov-fail-under=75"
+addopts = "-ra -q --cov=src --cov-report=term-missing --cov-fail-under=80"
 python_files = "tests.py test_*.py *_test.py"
 pythonpath = "./src"
 env_files = [".env.test"]
