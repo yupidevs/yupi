@@ -344,7 +344,7 @@ class LangevinGenerator(_LangevinGenerator):
         (dim, N).
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 the parameters are the model's
         self,
         T: float,
         dim: int = 1,
@@ -621,7 +621,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         Initial positions, by default None.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 the parameters are the model's
         self,
         T: float,
         dim: int = 1,

@@ -167,7 +167,7 @@ class Trajectory:
         "window_type": diff.WindowType.FORWARD,
     }
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 the parameters are the model's
         self,
         x: Axis | None = None,
         y: Axis | None = None,
