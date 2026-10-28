@@ -5,6 +5,8 @@ from collections.abc import Callable
 import cv2
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
 Bounds = tuple[int, int, int, int]
 """Bounds of a frame: x_min, x_max, y_min, y_max."""
 
@@ -108,7 +110,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
             c_x = int(moments["m10"] / moments["m00"])
             c_y = int(moments["m01"] / moments["m00"])
             return c_x, c_y
-        logging.warning("Nothing was over threshold. Algorithm: %s", type(self).__name__)
+        logger.warning("Nothing was over threshold. Algorithm: %s", type(self).__name__)
         return None
 
     def preprocess(

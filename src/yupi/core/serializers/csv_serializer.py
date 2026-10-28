@@ -17,6 +17,8 @@ from yupi.core.serializers.serializer import Serializer
 from yupi.exceptions import LoadTrajectoryError
 from yupi.trajectory import Trajectory
 
+logger = logging.getLogger(__name__)
+
 
 class CSVSerializer(Serializer):
     """
@@ -83,7 +85,7 @@ class CSVSerializer(Serializer):
             writer.writerow([method, window, accuracy])
 
             if not all(isinstance(v, str) for v in traj.metadata.values()):
-                logging.warning(
+                logger.warning(
                     "Not all values in metadata are strings. Converting to"
                     "string for CSV serialization.  It its strongly recommended"
                     "to use other serialization formats that could support more"
@@ -101,7 +103,7 @@ class CSVSerializer(Serializer):
 
             # Check extra val types
             if not all(isinstance(v[0], str) for v in extra_vals):
-                logging.warning(
+                logger.warning(
                     "Not all values in extra are strings. Converting to"
                     "string for CSV serialization.  It its strongly recommended"
                     "to use other serialization formats that could support more"

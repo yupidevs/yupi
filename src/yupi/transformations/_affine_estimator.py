@@ -8,6 +8,8 @@ import cv2
 import nudged
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
 AffineParams = tuple[float, float, float, float]
 """Affine params: theta, t_x, t_y, scale."""
 
@@ -140,7 +142,7 @@ def _get_affine(
 
     # Cancel estimation if no good points were found or tracked
     if p1_good.size == 0:
-        logging.error("No good points were found or sucessfully tracked.")
+        logger.error("No good points were found or sucessfully tracked.")
         return 3 * (np.zeros(1),), 4 * (0,), None
 
     # Estimate points and matrix

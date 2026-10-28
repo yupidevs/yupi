@@ -12,6 +12,8 @@ import numpy as np
 from yupi.trajectory import Trajectory
 from yupi.vector import Vector
 
+logger = logging.getLogger(__name__)
+
 
 def collect_at_step(
     trajs: list[Trajectory],
@@ -263,7 +265,7 @@ def collect(
             continue
 
         if warnings and step >= len(current_vec):
-            logging.warning("Trajectory %s is shorten than %i samples", traj.traj_id, step)
+            logger.warning("Trajectory %s is shorten than %i samples", traj.traj_id, step)
             continue
 
         if not is_lag:  # Is at
