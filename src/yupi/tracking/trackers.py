@@ -96,7 +96,6 @@ class ROI:
         if size[0] <= 0 or size[1] <= 0:
             raise ValueError("ROI's size values must be positives")
 
-        # TODO: check for a more pythonic way to do this comprobation
         if (size[0] < 1 and size[1] > 1) or (size[0] > 1 and size[1] < 1):
             raise ValueError(
                 "Size values must be between 0 and 1 both or integers greater than 0 both"
@@ -205,8 +204,6 @@ class ROI:
         self._centroid = self._global_width // 2, self._global_height // 2
         return self._centroid
 
-    # TODO: check for 'win2_name' utility. Maybe it should be 'ROI' as
-    # Default so there is no need to pass it as a parameter
     def _manual_init(self, frame: np.ndarray, name: str) -> Centroid:
         """
         Initialize ROI using manual initialization mode.
@@ -635,7 +632,6 @@ class TrackingScenario:
                 cv2.circle(frame, (x_3, y_3), 3, (0, 255, 0), -1)
 
         for obj_tracker in self.object_trackers:
-            # TODO: Do this better:
             # Alter the blue channel in ant-related pixels
             window = obj_tracker.roi._crop(frame, prev=True)
             if obj_tracker.mask is not None:

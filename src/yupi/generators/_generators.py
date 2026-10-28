@@ -416,7 +416,6 @@ class LangevinGenerator(_LangevinGenerator):
             raise ValueError("Initial positions must be bellow upper bounds.")
 
     # Set bounds and check initial positions
-    # TODO: check that `bounds` are compatibles with `dim`
     def _set_bounds(self) -> None:
         # Broadcast and convert None into np.nan
         self._broadcast_bounds()
