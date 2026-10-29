@@ -39,4 +39,4 @@ __all__ = [
     "WindowType",
 ]
 
-__version__ = "1.1.1-beta0"
+__version__ = "1.1.1"
