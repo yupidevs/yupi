@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 
 import numpy as np
 
@@ -15,6 +15,7 @@ from yupi.units import Units
 from yupi.vector import Vector
 
 _THRESHOLD = 1e-12
+_MIN_POINTS = 2
 
 Axis = Sequence[float] | np.ndarray
 """Represents the data for a single axis."""
@@ -161,12 +162,12 @@ class Trajectory:
         the first value of ``t``.
     """
 
-    general_diff_est: dict[str, Any] = {
+    general_diff_est: ClassVar[dict[str, Any]] = {
         "method": diff.DiffMethod.LINEAR_DIFF,
         "window_type": diff.WindowType.FORWARD,
     }
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 the parameters are the model's
         self,
         x: Axis | None = None,
         y: Axis | None = None,
@@ -247,7 +248,7 @@ class Trajectory:
         else:
             raise ValueError("No positional data were given.")
 
-        if len(self.r) < 2:
+        if len(self.r) < _MIN_POINTS:
             raise ValueError("The trajectory must contain at least 2 points.")
 
     def __init_positional_data_xyz(
@@ -287,7 +288,7 @@ class Trajectory:
             Array containing position data as a list of points.
         """
 
-        if len(points) < 2:
+        if len(points) < _MIN_POINTS:
             raise ValueError("The trajectory must contain at least 2 points.")
         t_dim = len(points[0])
         if any(len(data) != t_dim for data in points):
@@ -318,7 +319,8 @@ class Trajectory:
         extra : dict[str, Any]
             Dictionary containing extra data along the trajectory.
         """
-        assert self.r is not None, "Positional data must be initialized first."
+        if self.r is None:
+            raise ValueError("Positional data must be initialized first.")
 
         self.extra = extra if extra is not None else {}
 
@@ -348,7 +350,8 @@ class Trajectory:
             value.
         """
 
-        assert self.r is not None, "Positional data must be initialized first."
+        if self.r is None:
+            raise ValueError("Positional data must be initialized first.")
 
         self.__dt = dt
         self.__t = None if t is None else Vector(t, dtype=float, copy=True)
@@ -470,7 +473,7 @@ class Trajectory:
         return True
 
     def __len__(self) -> int:
-        return self.r.shape[0]
+        return cast(int, self.r.shape[0])
 
     def __getitem__(self, index: int | slice) -> Trajectory | TrajectoryPoint:
         if isinstance(index, int):
@@ -520,7 +523,7 @@ class Trajectory:
     @property
     def dim(self) -> int:
         """int : Trajectory spacial dimensions."""
-        return self.r.shape[1]
+        return cast(int, self.r.shape[1])
 
     @property
     def delta_r(self) -> Vector:

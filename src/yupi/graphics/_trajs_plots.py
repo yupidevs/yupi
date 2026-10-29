@@ -16,6 +16,8 @@ from yupi._checkers import check_exact_dim
 from yupi.graphics._style import LINE, YUPI_COLORS
 from yupi.trajectory import Trajectory
 
+logger = logging.getLogger(__name__)
+
 
 def _resolve_colors(total: int, color: Any) -> list[Any]:
     """
@@ -49,7 +51,7 @@ def _plot_2d_connections(trajs: list[Trajectory]) -> None:
     min_len = min(lengths)
     max_len = max(lengths)
     if min_len != max_len:
-        logging.warning("Not all the trajectories have the same length.")
+        logger.warning("Not all the trajectories have the same length.")
     for i in range(min_len):
         traj_points = [t[i] for t in trajs]
         traj_points.append(traj_points[0])
@@ -159,7 +161,7 @@ def _plot_3d_connections(trajs: list[Trajectory], ax: Axes) -> None:
     min_len = min(lengths)
     max_len = max(lengths)
     if min_len != max_len:
-        logging.warning("Not all the trajectories have the same length.")
+        logger.warning("Not all the trajectories have the same length.")
     for i in range(min_len):
         traj_points = [t[i] for t in trajs]
         traj_points.append(traj_points[0])
@@ -230,7 +232,8 @@ def plot_3d(
 
     ax = plt.axes(projection="3d") if ax is None else ax
 
-    assert isinstance(ax, Axes3D), "ax must be a 3D Axes"
+    if not isinstance(ax, Axes3D):
+        raise TypeError("ax must be a 3D Axes")
 
     if connected:
         _plot_3d_connections(trajs, ax)

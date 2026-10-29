@@ -4,7 +4,7 @@ This contains styling utilities for the library plots.
 
 from collections.abc import Callable
 from functools import wraps
-from typing import Any
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -69,6 +69,6 @@ def _plot_basic_properties(func: Callable) -> Callable:
             plt.yscale(yscale)
         if show:
             plt.show()
-        return ax
+        return cast("Axes | PolarAxes", ax)
 
     return wrapper

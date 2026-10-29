@@ -25,7 +25,8 @@ def _interpolate_axis(
     axis_data: np.ndarray, old_t: np.ndarray, new_t: np.ndarray, order: int
 ) -> np.ndarray:
     new_t_idxs = np.searchsorted(old_t, new_t)
-    assert isinstance(new_t_idxs, np.ndarray)
+    if not isinstance(new_t_idxs, np.ndarray):
+        raise TypeError(f"Expected an array of indices, got {type(new_t_idxs).__name__}")
     new_dim = np.empty(len(new_t))
     for i, new_t_idx in enumerate(new_t_idxs):
         val = new_t[i]

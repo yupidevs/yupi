@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.test_serializers.utils import compare_trajectories, trajectories
+from tests.core.serializers.utils import compare_trajectories_csv, trajectories
 from yupi import Trajectory
 from yupi.core.serializers import CSVSerializer
 
@@ -16,5 +16,5 @@ def test_csv_serializer(traj: Trajectory) -> None:
         CSVSerializer.save(traj, _path)
 
     loaded_traj = CSVSerializer.load(_path)
-    compare_trajectories(traj, loaded_traj)
+    compare_trajectories_csv(traj, loaded_traj)
     Path.unlink(_path)

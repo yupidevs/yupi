@@ -15,24 +15,16 @@ def test_linear_central_diff() -> None:
     diff = {"method": DiffMethod.LINEAR_DIFF, "window_type": WindowType.CENTRAL, "accuracy": 1}
     traj = Trajectory(x=[0, 2, 6, 10], diff_est=diff)
 
-    # v.x[0] = v.x[1] = 3
-    # v.x[1] = (x[2] - x[0]) / (t[2] - t[0])
-    #        = (6 - 0) / (2 - 0)
-    #        = 3
-    # v.x[2] = (x[3] - x[1]) / (t[3] - t[1])
-    #        = (10 - 2) / (4 - 2)
-    #        = 4
-    # v.x[3] = v.x[2] = 4
+    # Central differences, with t = [0, 1, 2, 3]:
+    #   v.x[1] -> (x[2] - x[0]) / (t[2] - t[0]) -> (6 - 0) / 2 -> 3
+    #   v.x[2] -> (x[3] - x[1]) / (t[3] - t[1]) -> (10 - 2) / 2 -> 4
+    #   v.x[0] and v.x[3] copy their neighbours
     assert traj.v.x == pytest.approx([3.0, 3.0, 4.0, 4.0])
 
-    # a.x[0] = a.x[1] = 0.5
-    # a.x[1] = (v.x[2] - v.x[0]) / (t[2] - t[0])
-    #        = (4 - 3) / (2 - 0)
-    #        = 0.5
-    # a.x[2] = (v.x[3] - v.x[1]) / (t[3] - t[1])
-    #        = (4 - 3) / (4 - 2)
-    #        = 0.5
-    # a.x[3] = a.x[2] = 0.5
+    # Central differences of v:
+    #   a.x[1] -> (v.x[2] - v.x[0]) / (t[2] - t[0]) -> (4 - 3) / 2 -> 0.5
+    #   a.x[2] -> (v.x[3] - v.x[1]) / (t[3] - t[1]) -> (4 - 3) / 2 -> 0.5
+    #   a.x[0] and a.x[3] copy their neighbours
     assert traj.a.x == pytest.approx([0.5, 0.5, 0.5, 0.5])
 
 
@@ -91,27 +83,27 @@ def test_wrong_diff_parameters() -> None:
 
     wrong_win_fornberg = {"method": DiffMethod.FORNBERG_DIFF, "window_type": 10, "accuracy": 2}
 
-    with pytest.raises(ValueError, match="Invalid method to estimate the velocity."):
+    with pytest.raises(ValueError, match=r"Invalid method to estimate the velocity\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_method)
         _ = traj.v
 
-    with pytest.raises(ValueError, match="Invalid method to estimate the acceleration."):
+    with pytest.raises(ValueError, match=r"Invalid method to estimate the acceleration\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_method)
         _ = traj.a
 
-    with pytest.raises(ValueError, match="Invalid window type."):
+    with pytest.raises(ValueError, match=r"Invalid window type\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_win)
         _ = traj.v
 
-    with pytest.raises(ValueError, match="Invalid window type."):
+    with pytest.raises(ValueError, match=r"Invalid window type\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_win)
         _ = traj.a
 
-    with pytest.raises(ValueError, match="Invalid window type."):
+    with pytest.raises(ValueError, match=r"Invalid window type to estimate the velocity\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_win_fornberg)
         _ = traj.v
 
-    with pytest.raises(ValueError, match="Invalid window type."):
+    with pytest.raises(ValueError, match=r"Invalid window type to estimate the acceleration\."):
         traj = Trajectory(x=[0, 2, 6, 10], diff_est=wrong_win_fornberg)
         _ = traj.a
 

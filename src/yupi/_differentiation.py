@@ -13,6 +13,12 @@ from yupi.vector import Vector
 if TYPE_CHECKING:
     from yupi.trajectory import Trajectory
 
+# Points the linear method needs for each window type.
+_MIN_POINTS_VEL_CENTRAL = 3
+_MIN_POINTS_VEL_ONE_SIDED = 2
+_MIN_POINTS_ACC_CENTRAL = 4
+_MIN_POINTS_ACC_ONE_SIDED = 3
+
 
 class DiffMethod(enum.Enum):
     """Enum to define the method to calculate the velocity."""
@@ -66,7 +72,11 @@ def _validate_traj_vel(
 ) -> bool:
     length = len(traj)
     if method == DiffMethod.LINEAR_DIFF:
-        return length >= 3 if window_type == WindowType.CENTRAL else length >= 2
+        return (
+            length >= _MIN_POINTS_VEL_CENTRAL
+            if window_type == WindowType.CENTRAL
+            else length >= _MIN_POINTS_VEL_ONE_SIDED
+        )
     if method == DiffMethod.FORNBERG_DIFF:
         return length >= accuracy + 1
     return True  # Assume valid for unkown methods, the error will be catched later
@@ -77,7 +87,11 @@ def _validate_traj_acc(
 ) -> bool:
     length = len(traj)
     if method == DiffMethod.LINEAR_DIFF:
-        return length >= 4 if window_type == WindowType.CENTRAL else length >= 3
+        return (
+            length >= _MIN_POINTS_ACC_CENTRAL
+            if window_type == WindowType.CENTRAL
+            else length >= _MIN_POINTS_ACC_ONE_SIDED
+        )
     if method == DiffMethod.FORNBERG_DIFF:
         return length >= accuracy + 2
     return True  # Assume valid for unkown methods, the error will be catched later

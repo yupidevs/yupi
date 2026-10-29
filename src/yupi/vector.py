@@ -4,10 +4,12 @@ This contains the Vector structure used across the library to store data.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from numpy.linalg import norm as nrm
+
+_LIST_OF_VECTORS_NDIM = 2
 
 
 class Vector(np.ndarray):
@@ -25,19 +27,19 @@ class Vector(np.ndarray):
         return vec.view(cls)
 
     def __add__(self, other: Any) -> Vector:
-        return super().__add__(other).view(Vector)
+        return cast("Vector", super().__add__(other).view(Vector))
 
     def __iadd__(self, other: Any) -> Vector:
         return super().__iadd__(other).view(Vector)
 
     def __sub__(self, other: Any) -> Vector:  # type: ignore[override]
-        return super().__sub__(other).view(Vector)
+        return cast("Vector", super().__sub__(other).view(Vector))
 
     def __isub__(self, other: Any) -> Vector:  # type: ignore[override]
         return super().__isub__(other).view(Vector)
 
     def __mul__(self, other: Any) -> Vector:
-        return super().__mul__(other).view(Vector)
+        return cast("Vector", super().__mul__(other).view(Vector))
 
     def __imul__(self, other: Any) -> Vector:
         return super().__imul__(other).view(Vector)
@@ -46,7 +48,7 @@ class Vector(np.ndarray):
     def norm(self) -> Vector | float:
         """Vector : Calculates the norm of the vector. If the vector
         is alist of vectors then the norm of each item is calculated"""
-        if len(self.shape) < 2:
+        if len(self.shape) < _LIST_OF_VECTORS_NDIM:
             return float(nrm(self))
         return Vector(nrm(self, axis=1))
 
@@ -102,7 +104,7 @@ class Vector(np.ndarray):
         Vector([2, 2, 0])
         """
 
-        if len(self.shape) < 2:
+        if len(self.shape) < _LIST_OF_VECTORS_NDIM:
             raise TypeError("Operation not supperted on simple vectors")
         if not isinstance(dim, int):
             raise TypeError("Parameter 'dim' must be an integer")

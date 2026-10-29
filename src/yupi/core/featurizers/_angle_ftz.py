@@ -1,3 +1,5 @@
+from typing import cast
+
 import numpy as np
 
 from yupi.core.featurizers.featurizer import (
@@ -39,7 +41,7 @@ class TurningAngleChangeRateGlobalFeaturizer(GlobalStatsFeaturizer):
         angles = turning_angles(traj, accumulate=False)
         dt_vals = traj.t.delta
         angle_change_rate = np.diff(angles) / dt_vals[2:]
-        return angle_change_rate
+        return cast(np.ndarray, angle_change_rate)
 
 
 class AngleFeaturizer(CompoundFeaturizer):

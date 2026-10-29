@@ -12,6 +12,8 @@ import numpy as np
 from yupi.trajectory import Trajectory
 from yupi.vector import Vector
 
+logger = logging.getLogger(__name__)
+
 
 def collect_at_step(
     trajs: list[Trajectory],
@@ -244,40 +246,38 @@ def collect(
 
     data = []
     for traj in trajs:
-        if is_lag:
-            assert lag is not None
-            step = int(lag / traj.dt) if checks[1] else int(lag)
-        else:
-            assert at is not None
-            step = int(at / traj.dt) if checks[3] else int(at)
+        step = _resolve_step(traj, lag, "lag") if is_lag else _resolve_step(traj, at, "at")
 
-        current_vec = traj.r
         if step == 0:
-            if velocity:
-                current_vec = traj.v
-            if func is not None:
-                current_vec = func(current_vec)
+            current_vec = _apply(func, traj.v if velocity else traj.r)
             data.append(current_vec if is_lag else current_vec[step])
             continue
 
-        if warnings and step >= len(current_vec):
-            logging.warning("Trajectory %s is shorten than %i samples", traj.traj_id, step)
+        if warnings and step >= len(traj.r):
+            logger.warning("Trajectory %s is shorten than %i samples", traj.traj_id, step)
             continue
 
         if not is_lag:  # Is at
-            data.append(current_vec[step])
+            data.append(traj.r[step])
             continue
 
-        lagged_vec = current_vec[step:] - current_vec[:-step]
+        lagged_vec = traj.r[step:] - traj.r[:-step]
         if velocity:
             lagged_vec /= traj.dt * step
-
-        if func is not None:
-            lagged_vec = func(lagged_vec)
-
-        data.append(lagged_vec)
+        data.append(_apply(func, lagged_vec))
 
     if concat and is_lag:
         return np.concatenate(data)
     equal_len = np.all([len(d) == len(data[0]) for d in data])
     return np.array(data) if equal_len else np.array(data, dtype=object)
+
+
+def _resolve_step(traj: Trajectory, value: int | float | None, name: str) -> int:
+    """A float `lag` or `at` is in time units; an int is already a number of samples."""
+    if value is None:
+        raise ValueError(f"{name} must be set")
+    return int(value / traj.dt) if isinstance(value, float) else int(value)
+
+
+def _apply(func: Callable[[Vector], Vector] | None, vec: Vector) -> Vector:
+    return vec if func is None else func(vec)

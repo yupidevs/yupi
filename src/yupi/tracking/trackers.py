@@ -1,4 +1,5 @@
 import logging
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,8 @@ from yupi.tracking.undistorters import Undistorter
 from yupi.trajectory import Trajectory
 from yupi.transformations import add_moving_FoR
 from yupi.transformations._affine_estimator import AffineParams, _get_affine
+
+logger = logging.getLogger(__name__)
 
 Centroid = tuple[int, int]
 """Centroid of a tracked object: x, y."""
@@ -94,7 +97,6 @@ class ROI:
         if size[0] <= 0 or size[1] <= 0:
             raise ValueError("ROI's size values must be positives")
 
-        # TODO: check for a more pythonic way to do this comprobation
         if (size[0] < 1 and size[1] > 1) or (size[0] > 1 and size[1] < 1):
             raise ValueError(
                 "Size values must be between 0 and 1 both or integers greater than 0 both"
@@ -203,8 +205,6 @@ class ROI:
         self._centroid = self._global_width // 2, self._global_height // 2
         return self._centroid
 
-    # TODO: check for 'win2_name' utility. Maybe it should be 'ROI' as
-    # Default so there is no need to pass it as a parameter
     def _manual_init(self, frame: np.ndarray, name: str) -> Centroid:
         """
         Initialize ROI using manual initialization mode.
@@ -223,7 +223,7 @@ class ROI:
         """
 
         win1_name = f"Initialization of trackers: Click on the initial position of: {name.upper()}"
-        logging.info("Open the video window to select %s's center", name)
+        logger.info("Open the video window to select %s's center", name)
 
         self._global_height, self._global_width = frame.shape[:2]
 
@@ -256,12 +256,12 @@ class ROI:
 
                 nonlocal roi_initialized
                 roi_initialized = True
-                logging.info("ROI initialized. Press any key to continue.")
+                logger.info("ROI initialized. Press any key to continue.")
 
         cv2.setMouseCallback(win1_name, on_click)
         while not roi_initialized:
             cv2.waitKey(0)
-            logging.info(
+            logger.info(
                 "Waiting for ROI initialization. Please "
                 "click on the center of the %s's ROI on "
                 "the video window.",
@@ -286,11 +286,11 @@ class ROI:
         """
 
         if not self._prev_centroid[0]:
-            logging.error("ROI was not initialized in %s", name)
+            logger.error("ROI was not initialized in %s", name)
             return False
 
         cv2.destroyAllWindows()
-        logging.info("ROI initialized in %s", name)
+        logger.info("ROI initialized in %s", name)
         return True
 
     def _initialize(self, name: str, first_frame: np.ndarray) -> bool:
@@ -633,7 +633,6 @@ class TrackingScenario:
                 cv2.circle(frame, (x_3, y_3), 3, (0, 255, 0), -1)
 
         for obj_tracker in self.object_trackers:
-            # TODO: Do this better:
             # Alter the blue channel in ant-related pixels
             window = obj_tracker.roi._crop(frame, prev=True)
             if obj_tracker.mask is not None:
@@ -763,7 +762,7 @@ class TrackingScenario:
         # Increase the iteration counter
         self._iteration_counter += 1
 
-        logging.info("All trackers were initialized")
+        logger.info("All trackers were initialized")
         return True
 
     def _keyboard_controller(self) -> None:
@@ -778,7 +777,7 @@ class TrackingScenario:
             self._enabled = False
 
         elif key == ord("e"):
-            exit()
+            sys.exit()
 
     def _regular_iteration(self) -> tuple[bool, bool]:
         # Get current frame and ends the processing when no more frames are
@@ -790,7 +789,7 @@ class TrackingScenario:
 
         ret, frame = self.cap.read()
         if not ret:
-            logging.info("All frames were processed")
+            logger.info("All frames were processed")
             return False, True
 
         # Correct spherical distortion
@@ -810,7 +809,7 @@ class TrackingScenario:
 
         if not ret:
             msg = f"CameraTracker - No matrix was estimated (Frame {frame_id})"
-            logging.error(msg)
+            logger.error(msg)
             return False, False
 
         # Display the full image with the ant in blue (TODO: Refactor this to
@@ -859,7 +858,8 @@ class TrackingScenario:
         for otrack in self.object_trackers:
             t = self._tracker2trajectory(otrack, pix_per_m)
             if self.camera_tracker:
-                assert reference is not None
+                if reference is None:
+                    raise ValueError("The camera tracker produced no reference")
                 t = add_moving_FoR(t, reference, new_traj_id=t.traj_id)
             t_list.append(t)
         return t_list
@@ -911,7 +911,7 @@ class TrackingScenario:
             if not retval:
                 return retval, None
 
-        logging.info("Processing frames")
+        logger.info("Processing frames")
         while self._enabled:
             retval, end = self._regular_iteration()
             if not retval:

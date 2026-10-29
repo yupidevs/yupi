@@ -3,19 +3,27 @@ This contains all the affine estimator related functions.
 """
 
 import logging
+from typing import Any, cast
 
 import cv2
 import nudged
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
 AffineParams = tuple[float, float, float, float]
 """Affine params: theta, t_x, t_y, scale."""
 
 # ShiTomasi corner detection
-FEATURE_PARAMS = {"maxCorners": 30, "qualityLevel": 0.6, "minDistance": 30, "blockSize": 100}
+FEATURE_PARAMS: dict[str, Any] = {
+    "maxCorners": 30,
+    "qualityLevel": 0.6,
+    "minDistance": 30,
+    "blockSize": 100,
+}
 
 # Lucas Kanade optical flow
-LK_PARAMS = {
+LK_PARAMS: dict[str, Any] = {
     "winSize": (20, 20),
     "maxLevel": 15,
     "criteria": (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 0.05),
@@ -54,7 +62,7 @@ def _get_p3(
 
 def _get_r(p_1: np.ndarray, p_2: np.ndarray) -> np.ndarray:
     x, y = (p_1 - p_2).T
-    return np.sqrt(x**2 + y**2)
+    return cast(np.ndarray, np.sqrt(x**2 + y**2))
 
 
 def _get_mask_r(r: np.ndarray, quantile: float = 1.5) -> np.ndarray:
@@ -64,7 +72,7 @@ def _get_mask_r(r: np.ndarray, quantile: float = 1.5) -> np.ndarray:
     bound = max(1, quantile * r_std)
     # Get mask for nearby points
     mask = r < r_median + bound
-    return mask
+    return cast(np.ndarray, mask)
 
 
 def _delete_far_points(
@@ -102,7 +110,7 @@ def _estimate_matrix(
 
 def _get_rmse(p_2: np.ndarray, p_3: np.ndarray) -> float:
     x, y = (p_2 - p_3).T
-    return np.sqrt(np.mean(x**2 + y**2))
+    return cast(float, np.sqrt(np.mean(x**2 + y**2)))
 
 
 def _get_affine(
@@ -130,17 +138,19 @@ def _get_affine(
 
     # Track good features
     p1_region = cv2.goodFeaturesToTrack(img1_region_gray, mask=mask, **FEATURE_PARAMS)
-    p2_region, st, _ = cv2.calcOpticalFlowPyrLK(  # pylint: disable=invalid-name
+    # OpenCV accepts None for nextPts (it is an output), but its stubs require an array.
+    p2_region, st, _ = cv2.calcOpticalFlowPyrLK(  # type: ignore[call-overload]
         img1_region_gray, img2_region_gray, p1_region, None, **LK_PARAMS
     )
 
     # Change origin and select tracked points
-    p1_frame, p2_frame = p1_region + [x_0, y_0], p2_region + [x_0, y_0]
+    offset = np.array([x_0, y_0])
+    p1_frame, p2_frame = p1_region + offset, p2_region + offset
     p1_good, p2_good = p1_frame[st == 1], p2_frame[st == 1]
 
     # Cancel estimation if no good points were found or tracked
     if p1_good.size == 0:
-        logging.error("No good points were found or sucessfully tracked.")
+        logger.error("No good points were found or sucessfully tracked.")
         return 3 * (np.zeros(1),), 4 * (0,), None
 
     # Estimate points and matrix

@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from tests.test_serializers.utils import compare_trajectories, trajectories
+from tests.core.serializers.utils import compare_trajectories, trajectories
 from yupi.core.serializers.json_serializer import JSONSerializer
 from yupi.exceptions import LoadTrajectoryError
 from yupi.trajectory import Trajectory
@@ -139,13 +139,19 @@ def test_missing_data_on_json_ensemble(trajs: list[Trajectory]) -> None:
     with _missing_t_ensemble.open("w") as file:
         json.dump(missing_t, file)
 
-    with pytest.raises(LoadTrajectoryError, match="No position data found."):
+    with pytest.raises(
+        LoadTrajectoryError, match=r"No position data found for one or more trajectories\."
+    ):
         JSONSerializer.load_ensemble(_missing_axes_enemble)
 
-    with pytest.raises(LoadTrajectoryError, match="No time data found."):
+    with pytest.raises(
+        LoadTrajectoryError, match=r"No time data found for one or more trajectories\."
+    ):
         JSONSerializer.load_ensemble(_missing_dt_ensemble)
 
-    with pytest.raises(LoadTrajectoryError, match="No time data found."):
+    with pytest.raises(
+        LoadTrajectoryError, match=r"No time data found for one or more trajectories\."
+    ):
         JSONSerializer.load_ensemble(_missing_t_ensemble)
 
     Path.unlink(_path)

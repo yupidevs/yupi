@@ -2,6 +2,8 @@
 This contains filtering functions for the trajectories.
 """
 
+from typing import cast
+
 import numpy as np
 
 from yupi.trajectory import _THRESHOLD, Trajectory
@@ -37,7 +39,8 @@ def exp_convolutional_filter(
     for i in range(len(traj) - 1):
         new_r[i + 1] = new_r[i] - gamma * (new_r[i] - r[i]) * dt[i]
 
-    return (
+    return cast(
+        Trajectory,
         Trajectory(
             points=new_r,
             t=traj.t,
@@ -47,7 +50,7 @@ def exp_convolutional_filter(
             diff_est=traj.diff_est,
             **traj.metadata,
         )
-        + track_origin
+        + track_origin,
     )
 
 

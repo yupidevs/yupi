@@ -344,7 +344,7 @@ class LangevinGenerator(_LangevinGenerator):
         (dim, N).
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 the parameters are the model's
         self,
         T: float,
         dim: int = 1,
@@ -389,7 +389,8 @@ class LangevinGenerator(_LangevinGenerator):
     # Check if all initial positions are whithin boundaries
     def _check_r0(self) -> None:
         # Unpack lower and upper bounds
-        assert self.bounds is not None
+        if self.bounds is None:
+            raise ValueError("bounds must be set")
         lower_bound, upper_bound = self.bounds
 
         # Find axes without boundaries
@@ -415,11 +416,11 @@ class LangevinGenerator(_LangevinGenerator):
             raise ValueError("Initial positions must be bellow upper bounds.")
 
     # Set bounds and check initial positions
-    # TODO: check that `bounds` are compatibles with `dim`
     def _set_bounds(self) -> None:
         # Broadcast and convert None into np.nan
         self._broadcast_bounds()
-        assert self.bounds is not None
+        if self.bounds is None:
+            raise ValueError("bounds must be set")
 
         # Check if there is at least one bound
         self.has_bounds = not np.all(np.isnan(self.bounds))
@@ -437,9 +438,10 @@ class LangevinGenerator(_LangevinGenerator):
         # Set r to have shape = (N, dim)
         r = r.T
 
-        assert self.bounds is not None
-        assert self.bounds_ext is not None
-        assert self.bounds_stg is not None
+        if self.bounds is None:
+            raise ValueError("bounds must be set")
+        if self.bounds_ext is None or self.bounds_stg is None:
+            raise ValueError("bounds_extent and bounds_strength must be set")
 
         # Lower and upper bound limits, extents and strengths
         lower_bound, upper_bound = self.bounds
@@ -619,7 +621,7 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         Initial positions, by default None.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 the parameters are the model's
         self,
         T: float,
         dim: int = 1,
@@ -669,7 +671,8 @@ class DiffDiffGenerator(_DiffDiffGenerator):
     # Check if all initial positions are inside boundaries
     def _check_r0(self) -> None:
         # Unpack lower and upper bounds
-        assert self.bounds is not None
+        if self.bounds is None:
+            raise ValueError("bounds must be set")
         lower_bound, upper_bound = self.bounds
 
         # Find axes without boundaries
@@ -704,7 +707,8 @@ class DiffDiffGenerator(_DiffDiffGenerator):
         r = r.T
 
         # Lower and upper bound limits, extents and strengths
-        assert self.bounds is not None
+        if self.bounds is None:
+            raise ValueError("bounds must be set")
         lower_bound, upper_bound = self.bounds
         ext_lb, ext_ub = self.bounds_ext
         stg_lb, stg_ub = self.bounds_stg

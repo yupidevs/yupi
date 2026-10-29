@@ -76,27 +76,7 @@ select = [
     "UP",     # Pyupgrade
     "W",      # Pycodestyle warnings
 ]
-# NEEDS ATTENTION: the rules below are disabled only to move the project onto the cookie-pyrate
-# scaffolding without touching the library's source code or public API. Each one has open findings
-# in src/ that need a code change (some of them breaking) and should be re-enabled once fixed.
-ignore = [
-    "C901",    # Function too complex (one function)
-    "ERA001",  # Commented-out code
-    "FIX002",  # Lines containing TODO
-    "LOG015",  # Calls on the root logger (a module logger changes the logger name users filter on)
-    "N803",    # Upper-case argument names such as T, N, M (public API)
-    "N806",    # Upper-case local variables
-    "PLR0912", # Too many branches
-    "PLR0913", # Too many arguments (public API, e.g. Trajectory.__init__)
-    "PLR0917", # Too many positional arguments (public API)
-    "PLR1722", # exit() instead of sys.exit()
-    "PLR2004", # Magic values in comparisons
-    "RUF005",  # Collection literal concatenation
-    "RUF012",  # Mutable class attributes without ClassVar
-    "S101",    # assert in library code (raising other exceptions changes behaviour)
-    "SIM118",  # `key in dict.keys()`
-    "UP042",   # UnitEnum(str, Enum) -> StrEnum (changes str() and format() output)
-]
+ignore = []
 fixable = ["ALL"]
 unfixable = []
 
@@ -107,10 +87,12 @@ max-complexity = 10
 max-args = 10
 
 [tool.ruff.lint.per-file-ignores]
-# NEEDS ATTENTION: RUF043 (regex metacharacters in pytest.raises match) is disabled in the tests
-# only to keep this migration free of code changes.
-"tests/**" = ["ARG", "S101", "PLR2004", "PLR0913", "RUF043"]
+"tests/**" = ["ARG", "S101", "PLR2004", "PLR0913"]
 "scripts/**" = ["T20", "S603"]  # Allow print statements and subprocess calls on the scripts
+
+[tool.ruff.lint.pep8-naming]
+# Physics notation: total time, number of trajectories, order of the algorithm.
+extend-ignore-names = ["T", "N", "M"]
 
 [tool.ruff.lint.isort]
 split-on-trailing-comma = false
@@ -136,24 +118,17 @@ disallow_untyped_defs = true
 no_implicit_reexport = true
 warn_return_any = true
 extra_checks = true
-# NEEDS ATTENTION: the error codes below are disabled only to move the project onto the
-# cookie-pyrate scaffolding without touching the library's source code. They have open findings
-# in src/ (mostly numpy and OpenCV return types) and should be re-enabled once fixed.
-disable_error_code = [
-    "arg-type",
-    "assignment",
-    "call-overload",
-    "import-untyped",
-    "no-any-return",
-    "unused-ignore",
-]
+
+
+[[tool.mypy.overrides]]
+# No type information shipped by these packages.
+module = ["nudged", "mpl_toolkits.*"]
+ignore_missing_imports = true
 
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-# NEEDS ATTENTION: the template's gate is 80%; yupi's own gate (75%) is kept until the tracking
-# and plotting code have tests.
-addopts = "-ra -q --cov=src --cov-report=term-missing --cov-fail-under=75"
+addopts = "-ra -q --cov=src --cov-report=term-missing --cov-fail-under=80"
 python_files = "tests.py test_*.py *_test.py"
 pythonpath = "./src"
 env_files = [".env.test"]

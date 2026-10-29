@@ -1,9 +1,12 @@
 import abc
 import logging
 from collections.abc import Callable
+from typing import cast
 
 import cv2
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 Bounds = tuple[int, int, int, int]
 """Bounds of a frame: x_min, x_max, y_min, y_max."""
@@ -74,7 +77,7 @@ class BackgroundEstimator:
             frames.append(frame)
 
         # Calculate the median along time
-        return np.median(frames, axis=0).astype(dtype=np.uint8)
+        return cast(np.ndarray, np.median(frames, axis=0).astype(dtype=np.uint8))
 
 
 class TrackingAlgorithm(metaclass=abc.ABCMeta):
@@ -108,7 +111,7 @@ class TrackingAlgorithm(metaclass=abc.ABCMeta):
             c_x = int(moments["m10"] / moments["m00"])
             c_y = int(moments["m01"] / moments["m00"])
             return c_x, c_y
-        logging.warning("Nothing was over threshold. Algorithm: %s", type(self).__name__)
+        logger.warning("Nothing was over threshold. Algorithm: %s", type(self).__name__)
         return None
 
     def preprocess(
@@ -336,7 +339,7 @@ class FrameDifferencing(TrackingAlgorithm):
 
         # cv2.inRange accepts scalars as lowerb and upperb.
         # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
-        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)  # type: ignore[call-overload]
+        mask = cv2.inRange(gray_image, self.frame_diff_threshold, 255)
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -421,7 +424,9 @@ class BackgroundSubtraction(TrackingAlgorithm):
 
         # cv2.inRange accepts scalars as lowerb and upperb.
         # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
-        mask = cv2.inRange(gray_image, self.background_threshold, 255)  # type: ignore[call-overload]
+        if self.background_threshold is None:
+            raise ValueError("background_threshold must be set")
+        mask = cv2.inRange(gray_image, self.background_threshold, 255)
 
         # Compute the centroid of the pixels over threshold
         centroid = self.get_centroid(mask)
@@ -536,7 +541,8 @@ class OpticalFlow(TrackingAlgorithm):
         self.threshold = threshold
         self.previous_frames: list[np.ndarray] = []
 
-        assert buffer_size > 0
+        if buffer_size <= 0:
+            raise ValueError("buffer_size must be positive")
 
         self.buffer_size = buffer_size
 
@@ -605,7 +611,7 @@ class OpticalFlow(TrackingAlgorithm):
 
             # cv2.inRange accepts scalars as lowerb and upperb.
             # See: https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981
-            mask = cv2.inRange(mag, self.threshold, 255.0)  # type: ignore[call-overload]
+            mask = cv2.inRange(mag, self.threshold, 255.0)
 
             # Compute the centroid of the pixels over threshold
             centroid = self.get_centroid(mask)

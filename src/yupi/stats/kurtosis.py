@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -76,7 +76,7 @@ def _kurtosis(arr: np.ndarray) -> float:
         if m_2 == 0:
             return 0
         kurt = m_4 / m_2**2
-        return kurt
+        return cast(float, kurt)
 
     # MULTIDIMENSIONAL CASE
     # arr should have shape (dim, trials)
@@ -96,7 +96,7 @@ def _kurtosis(arr: np.ndarray) -> float:
     _k = np.sum(arr_zm * (cov_inv @ arr_zm), axis=0)
     kurt = np.mean(_k**2)
 
-    return kurt
+    return cast(float, kurt)
 
 
 class KurtosisTimeAvgStat:

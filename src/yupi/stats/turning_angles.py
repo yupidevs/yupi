@@ -10,6 +10,8 @@ from yupi.exceptions import TrajectoryError
 from yupi.graphics._style import LIGHT_BLUE
 from yupi.trajectory import Trajectory
 
+_PLANAR_DIM = 2
+
 
 def turning_angles(
     traj: Trajectory,
@@ -48,7 +50,7 @@ def turning_angles(
         Turning angles where each position in the array correspond
         to a given time instant.
     """
-    if traj.dim != 2:
+    if traj.dim != _PLANAR_DIM:
         raise TrajectoryError(traj, "The trajectory must be 2D to estimate turning angles")
 
     d_r = traj.delta_r

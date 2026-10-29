@@ -14,7 +14,12 @@ import numpy as np
 
 import yupi._differentiation as diff
 from yupi.core.serializers.serializer import Serializer
+from yupi.exceptions import LoadTrajectoryError
 from yupi.trajectory import Trajectory
+
+_FORMAT_V2 = 2
+
+logger = logging.getLogger(__name__)
 
 
 class CSVSerializer(Serializer):
@@ -82,7 +87,7 @@ class CSVSerializer(Serializer):
             writer.writerow([method, window, accuracy])
 
             if not all(isinstance(v, str) for v in traj.metadata.values()):
-                logging.warning(
+                logger.warning(
                     "Not all values in metadata are strings. Converting to"
                     "string for CSV serialization.  It its strongly recommended"
                     "to use other serialization formats that could support more"
@@ -100,7 +105,7 @@ class CSVSerializer(Serializer):
 
             # Check extra val types
             if not all(isinstance(v[0], str) for v in extra_vals):
-                logging.warning(
+                logger.warning(
                     "Not all values in extra are strings. Converting to"
                     "string for CSV serialization.  It its strongly recommended"
                     "to use other serialization formats that could support more"
@@ -169,14 +174,15 @@ class CSVSerializer(Serializer):
             diff_est["window_type"] = diff.WindowType(window)
             diff_est["accuracy"] = accuracy
 
-            if version == 2:
+            if version == _FORMAT_V2:
                 data_starts_at = int(first_row[1])
                 metadata = dict(zip(next(reader), next(reader), strict=True))
                 extra_keys = next(reader)
 
-            assert reader.line_num == data_starts_at, (
-                f"Data starts at wrong line {data_starts_at} != {reader.line_num}"
-            )
+            if reader.line_num != data_starts_at:
+                raise LoadTrajectoryError(
+                    str(file_path), f"data starts at line {reader.line_num}, not {data_starts_at}"
+                )
             data = [list(row) for row in reader]
 
             for i in range(len(extra_keys)):
